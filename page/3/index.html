@@ -254,126 +254,6 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="ThousandHu">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ThousandHu`s blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/" itemprop="url">深入解析yarn架构设计与技术实现-离线计算框架MapReduce</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-15T23:00:05+08:00">
-                2016-09-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          深入解析yarn架构设计与技术实现-MR
-MR客户端mr的客户端主要是通过ApplicationClientProtocol和MRClientProtocol两个rpc通信协议和ResourceManager以及ApplicationMaster通信。
-具体来讲，在yarn上，client会创建一个YarnRunner作为真正的client。该client首先会调用ApplicationClientProtocol提交application，当application成功提交后会通过ClientCache得到clientServiceDelegate与ApplicationMaster直接交互来
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/08/28/深入解析yarn架构设计与技术实现-NodeManager2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1465,6 +1345,141 @@ RMAppAttempt：一个Application可能尝试多次运行，每次尝试
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/07/24/深入解析yarn架构设计与技术实现-Resource-Manager剖析1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/07/24/深入解析yarn架构设计与技术实现-Resource-Manager剖析1/" itemprop="url">深入解析yarn架构设计与技术实现-Resource Manager剖析1</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-24T18:58:32+08:00">
+                2016-07-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          ResourceManager总体架构RM主要职责有4部分：
+
+ResourceTracker: 与NodeManager通信并控制NM上的Container
+ApplicationMasterProtocol： 管理ApplicationMaster
+ApplicationClientProtocol： 与客户端交互，处理客户端的请求
+另外RM还负责资源管理和调度
+
+resourceManager内部架构主要分为一下几块：
+
+用户交互模块
+NM管理模块
+AM管理模块
+Application管理模块
+状态机管理模块
+安全管理模块
+资源分配模块
+
+用户交互模块用户交互模块分为ClientRMSe
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/07/24/深入解析yarn架构设计与技术实现-Resource-Manager剖析1/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
   </section>
 
   
@@ -1514,7 +1529,7 @@ RMAppAttempt：一个Application可能尝试多次运行，每次尝试
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-count">91</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

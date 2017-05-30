@@ -254,128 +254,6 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/11/11/java代码中调用zookeeper/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="ThousandHu">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ThousandHu`s blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2015/11/11/java代码中调用zookeeper/" itemprop="url">java代码中调用zookeeper</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-11-11T15:01:28+08:00">
-                2015-11-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          项目中使用了zookeeper管理hbase，昨天写了个小任务统计hbase里的数据，需要用zookeeper读取hbase的配置。
-zookeeper的机制这一篇先不讲了，hadoop权威指南看到zookeeper再详细的讲。这里主要说一下如何用几行代码迅速的拿到zookeeper中的配置，进一步的是如何注册watcher。
-首先是直接拿zookeeper数据
-12ZooKeeper zk = new ZooKeeper("host1:2181,host2:2181", 60 * 1000, null);String = zk.getData(input, false, null));
-ne
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2015/11/11/java代码中调用zookeeper/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/11/06/findbugs-maven-plugin/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1474,6 +1352,129 @@ rss:，当值为空的时候，默认会使用站点的 Feed 链接。在此之�
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/09/23/mac下用github-hexo搭建个人博客/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2015/09/23/mac下用github-hexo搭建个人博客/" itemprop="url">mac下用github+hexo搭建个人博客</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-09-23T18:44:47+08:00">
+                2015-09-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          安装hexo首先需要安装nodejs, git然后安装hexo
+12npm install -g hexo-clinpm install hexo --save
+安装hexo会遇到npm链接不上的情况，这时可以修改node的repository。编辑~/.npmrc
+1registry = https://registry.npm.taobao.org
+可以选择安装hexo的插件
+1234567891011121314npm install hexo-generator-index --savenpm install hexo-generator-archive --savenpm insta
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2015/09/23/mac下用github-hexo搭建个人博客/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
   </section>
 
   
@@ -1523,7 +1524,7 @@ rss:，当值为空的时候，默认会使用站点的 Feed 链接。在此之�
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-count">91</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

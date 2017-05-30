@@ -254,128 +254,6 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2017/05/30/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="ThousandHu">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ThousandHu`s blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/05/30/hello-world/" itemprop="url">Hello World</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-30T22:58:37+08:00">
-                2017-05-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.
-Quick StartCreate a new post1$ hexo new "My New Post"
-More info: Writing
-Run server1$ hexo server
-More in
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/05/30/hello-world/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2017/05/30/hello-2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -444,7 +322,7 @@ More in
       
         
           
-          test on new macbook
+          hello from my new laptop.
 
 本文链接：http://thousandhu.github.io/2017/05/30/hello-2/
 
@@ -1502,6 +1380,129 @@ YarnClust
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/10/25/spark2-0-standalong模式部署/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/10/25/spark2-0-standalong模式部署/" itemprop="url">spark2.0源码阅读-standalong模式部署</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-25T17:20:31+08:00">
+                2016-10-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          standalong模式stangalone模式是spark自己部署自己在集群上的一个模式。
+
+其中client模式下driver运行在提交任务的机器，cluster模式下运行在cluster内部的某个worker上，只能独自运行。executor不是在worker启动时启动的，而是一个新的application来时才启动的(master调用startExecutorsOnWorkers())。
+集群启动流程集群启动主要是启动master和worker
+12./sbin/start-master.sh./sbin/start-slave.sh [masterURL]
+启动master和work
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/10/25/spark2-0-standalong模式部署/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
   </section>
 
   
@@ -1551,7 +1552,7 @@ YarnClust
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-count">91</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
