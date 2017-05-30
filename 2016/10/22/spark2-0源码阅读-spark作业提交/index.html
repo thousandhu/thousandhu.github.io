@@ -1,0 +1,909 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="内容安排按照《apache spark 源码阅读》。这本书基于古老的spark 1.0.2。我看的代码基于2.0。这篇文章先粗略的过一遍spark的核心代码 SparkContext的初始化综述   原书3.2节 p27  sparkContext初始化时主要做这样几件事情：  根据初始化入参生成SparkConf，再根据SparkConf来创建SparkEnv。sparkEnv的主要部件有 ca">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark2.0源码阅读--spark作业提交">
+<meta property="og:url" content="http://thousandhu.github.io/2016/10/22/spark2-0源码阅读-spark作业提交/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="内容安排按照《apache spark 源码阅读》。这本书基于古老的spark 1.0.2。我看的代码基于2.0。这篇文章先粗略的过一遍spark的核心代码 SparkContext的初始化综述   原书3.2节 p27  sparkContext初始化时主要做这样几件事情：  根据初始化入参生成SparkConf，再根据SparkConf来创建SparkEnv。sparkEnv的主要部件有 ca">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-18-214035.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-18-215632.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-19-221121.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-20-123615.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-20-153836.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/204749-02771855cda616cb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2016-10-21T16:38:04.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark2.0源码阅读--spark作业提交">
+<meta name="twitter:description" content="内容安排按照《apache spark 源码阅读》。这本书基于古老的spark 1.0.2。我看的代码基于2.0。这篇文章先粗略的过一遍spark的核心代码 SparkContext的初始化综述   原书3.2节 p27  sparkContext初始化时主要做这样几件事情：  根据初始化入参生成SparkConf，再根据SparkConf来创建SparkEnv。sparkEnv的主要部件有 ca">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-18-214035.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/10/22/spark2-0源码阅读-spark作业提交/"/>
+
+
+
+
+
+  <title>spark2.0源码阅读--spark作业提交 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/10/22/spark2-0源码阅读-spark作业提交/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">spark2.0源码阅读--spark作业提交</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-22T00:37:15+08:00">
+                2016-10-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>内容安排按照《apache spark 源码阅读》。这本书基于古老的spark 1.0.2。我看的代码基于2.0。这篇文章先粗略的过一遍spark的核心代码</p>
+<h1 id="SparkContext的初始化综述"><a href="#SparkContext的初始化综述" class="headerlink" title="SparkContext的初始化综述"></a>SparkContext的初始化综述</h1><blockquote>
+<p>  原书3.2节 p27</p>
+</blockquote>
+<p>sparkContext初始化时主要做这样几件事情：</p>
+<ul>
+<li>根据初始化入参生成SparkConf，再根据SparkConf来创建SparkEnv。sparkEnv的主要部件有<ul>
+<li>cacheManager：用于储存中间计算结果</li>
+<li>mapOutputTracker：用来缓存MapStatus信息，并提供从MapOutMaster获取信息的功能。获取的Map out的信息根据master和worker有不同的用途：master上，用来记录ShuffleMapTasks所需的map out的源；worker上，仅仅作为cache用来执行shuffle计算。</li>
+<li>shuffleManager：路由维护表</li>
+<li>broadcastManage：广播</li>
+<li>blockManager：块管理</li>
+<li>connectionManager： 安全管理</li>
+<li>httpFileServer： 文件存储服务器</li>
+<li>sparkFilesDir：文件存储目录</li>
+<li>metricsSystem：测量系统</li>
+</ul>
+</li>
+<li>创建TaskScheduler。创建TaskScheduler最关键的一点就是根据master的环境变量来判断spark当前部署的方式，进而生成相应的schedulerBankend的子类</li>
+<li>依照上一步的TaskScheduler创建DAGScheduler并允许</li>
+<li>启动webUI</li>
+</ul>
+<h1 id="spark作业提交"><a href="#spark作业提交" class="headerlink" title="spark作业提交"></a>spark作业提交</h1><blockquote>
+<p>   原书4.1章，p33</p>
+</blockquote>
+<p>以workcount为了讲一下spark作业提交:</p>
+<p><code>sc.textFile(&quot;README&quot;).flatMap(line=&gt;line.split(&quot; &quot;)).map(word =&gt; (word, 1)).reduceByKey(_ + _).count()</code></p>
+<h4 id="1-sc-textFile-quot-README-quot"><a href="#1-sc-textFile-quot-README-quot" class="headerlink" title="1. sc.textFile(&quot;README&quot;)"></a>1. <code>sc.textFile(&quot;README&quot;)</code></h4><p>生成一个HadoopRDD</p>
+<h4 id="2-flatMap-line-gt-line-split-quot-quot-map-word-gt-word-1"><a href="#2-flatMap-line-gt-line-split-quot-quot-map-word-gt-word-1" class="headerlink" title="2.flatMap(line=&gt;line.split(&quot; &quot;)).map(word =&gt; (word, 1))"></a>2.<code>flatMap(line=&gt;line.split(&quot; &quot;)).map(word =&gt; (word, 1))</code></h4><p>通过flatmap和map操作对rdd做转换。这两部生成的rdd都是窄依赖</p>
+<h4 id="3-reduceByKey"><a href="#3-reduceByKey" class="headerlink" title="3. reduceByKey(_ + _)"></a>3. <code>reduceByKey(_ + _)</code></h4><p>reduceByKey操作和上面两个map不同，因为他是一个宽依赖，也就是说这个操作时需要shuffle的，reduceByKey返回一个ShuffledRDD。这种函数一般都需要传入一个partition，默认是HashPartitioner。</p>
+<p>另外reduceByKey是PariRddFunctions中的函数，却能被MappedRDD直接调用，这是scala的一个隐式转换语法特性，见函数<code>rddToPairRDDFunctions</code></p>
+<h4 id="4-count"><a href="#4-count" class="headerlink" title="4. count()"></a>4. <code>count()</code></h4><p>spark中有两中操作，transformation和action。之前的操作都是transformation，只是记录数据的变化，不会真正触发程序对数据计算。而count是一个action，是真正会触发操作的。他们会调用sc.runjob()。</p>
+<p>runjob中有一行会调用<code>val cleanedFunc = clean(func)</code>，这里是对这个func做clean从而为序列化他做准备。</p>
+<p>最终SparkContext的runjob会调用DAGScheduler的runjob，真正进入执行环节</p>
+<p>前三步的结果都是弹性数据集(RDD)，在每个数据集上记录了：</p>
+<ul>
+<li>A list of partitions 由那些数据子集构成</li>
+<li>A function for computing each split 子集中每条记录如何计算(计算因子）</li>
+<li>A list of dependencies on other RDDs 依赖于的数据集(parent RDD）</li>
+<li>Optionally, a Partitioner for key-value RDDs (e.g. to say that the RDD is hash-partitioned) 如何将该数据集的输出结果定位到下一个RDD中</li>
+<li>Optionally, a list of preferred locations to compute each split on (e.g. block locations foran HDFS file) 位置信息</li>
+</ul>
+<h1 id="作业执行"><a href="#作业执行" class="headerlink" title="作业执行"></a>作业执行</h1><p>作业执行的总体流程如下图</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-18-214035.png" alt="2016-10-18-214035"></p>
+<h2 id="作业stage划分"><a href="#作业stage划分" class="headerlink" title="作业stage划分"></a>作业stage划分</h2><blockquote>
+<p>  原书4.2.1 p39</p>
+</blockquote>
+<p>讲作业执行前花一点篇幅讲一下Actor Model和Akka</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-18-215632.png" alt="2016-10-18-215632"></p>
+<p>actor model中每个actor都是一个独立的实体，他们之间通过消息传递完成交互。每个actor的行为只有消息接收、消息处理、消息发送三种</p>
+<p>上面作业提交之后DAGScheduler.runjob会将job提交到eventProcessLoop中（1.0是提交到一个actor中，其实是一样的），之后会有另一个线程将其拿出来处理。处理时会识别这个提交是JobSubmitted，于是调用dagScheduler.handleJobSubmitted()。hadleJobSubmitted主要负责依赖性分析，划分stage，生成finalStage进而ActiveJob。</p>
+<p><code>handleJobSubmitted</code>函数首先调用<code>newResultStage</code>函数，该函数会生成所有parentStages，然后生成最终的stage并返回。这个生成parentStages的过程是个递归的，自顶（finalStage）向下的过程。其中getParentStages会将rdd们划分成stage。当一个rdd是ShuffleDependency时，比如ShuffledRDD时，就会划分一个stage（代码如下）。这样，对一个rdd来说，从它开始往前追溯，所有不是ShuffleDependency的会划分当一个stage</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> (dep &lt;- r.dependencies) &#123;</div><div class="line">        dep <span class="keyword">match</span> &#123;</div><div class="line">          <span class="keyword">case</span> shufDep: <span class="type">ShuffleDependency</span>[_, _, _] =&gt;</div><div class="line">            parents += getShuffleMapStage(shufDep, firstJobId)</div><div class="line">          <span class="keyword">case</span> _ =&gt;</div><div class="line">            waitingForVisit.push(dep.rdd)</div><div class="line">        &#125;</div><div class="line">      &#125;</div></pre></td></tr></table></figure>
+<p>stage有这样几个参数red,numTask,parents: List[Stage]。说明他在rdd的基础上，已经知道有多少任务，同时也记录了自己的父Stage依赖。</p>
+<p>之后<code>handleJobSubmitted</code>会依次调用<code>submitStage</code>和<code>submitWaitingStages</code>。这两个函数的逻辑就是对于一个stage以及他的祖先stages,找到所有dependency是空的stage执行，其余的再次加到waitingStages这个hashmap里等待下一次调用。第一次调用<code>submitStage</code>会让能跑的stage先跑，将不能跑stage按照依赖关系加入waitingStages。加入Stage b依赖stage a，那么b一定在a后面加入，从而jobID一定大于a。之后调用一次<code>submitWaitingStages</code>时按照jobID从小到大submit即可。（这里好像也不是，如果submit是异步提交，那还是一次把所有的提交上去，然后有依赖的进入waitinglist，只不过前面有任务完成就会调用handleTaskCompletion函数，他会再调用submitWaiting尝试提交剩余task）</p>
+<h2 id="任务的创建和分发"><a href="#任务的创建和分发" class="headerlink" title="任务的创建和分发"></a>任务的创建和分发</h2><blockquote>
+<p>   原书4.2.3 P47</p>
+</blockquote>
+<p>任务创建和分发的入口是<code>DAGScheduler.submitMissingTasks(stage: Stage, jobId: Int)</code>。 </p>
+<p>该函数依照stage生成seq[Task[_]]，具体分为ShuffleMapTask和ResultTask两种。task都会记录自己是哪个stage，哪个partition，同时还有一个域是<code>taskBinary: Broadcast[Array[Byte]]</code>。并且会将stage序列化广播到整个系统: </p>
+<blockquote>
+<p>For ShuffleMapTask, serialize and broadcast (rdd, shuffleDep).<br>For ResultTask, serialize and broadcast (rdd, func).</p>
+</blockquote>
+<p>最后他会调用taskScheduler.submitTasks()提交一个taskset。提交taskset会调用backend.reviveOffers()，这里的backend有好几种，我们以CoarseGrainedSchedulerBackend为例讲讲接下来的流程。</p>
+<p>CGSBackend的reviveOffers会发送一个ReviveOffers的消息，当然接收这个消息的也在CGSBackend。接收到这个消息他会调用一个makeOffers的函数，该函数</p>
+<ol>
+<li>负责从executor中找到空闲的executor，</li>
+<li>调用resourceOffers进行资源分配。资源分配是一个round-robin的策略来维持任务在集群上的load balance</li>
+<li>并调用launchTask将任务发送给指定的executor。具体发送方式为<code>executorData.executorEndpoint.send(LaunchTask(new SerializableBuffer(serializedTask)))</code></li>
+</ol>
+<p>其中需要注意一点就是task序列化时的task依赖的文件和jar包是怎么传递的：关键在于TaskSetManager.resourceOffer中的一句话：<code>val serializedTask: ByteBuffer =  Task.serializeWithDependencies(task, sched.sc.addedFiles, sched.sc.addedJars, ser)</code></p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-19-221121.png" alt="https://jaceklaskowski.gitbooks.io/mastering-apache-spark/content/images/CoarseGrainedExecutorBackend-reviveOffers.png"></p>
+<p>这里再讲一讲backend中coarseGranied和fineGranied的区别，至少是mesos下的区别，这里的总结来自<a href="https://jaceklaskowski.gitbooks.io/mastering-apache-spark/content/spark-mesos/spark-mesos.html#reviveOffers" target="_blank" rel="external">文档</a>：</p>
+<ul>
+<li>In fine-grained mode, there is a <strong>single</strong> task in a single Spark executor that shares a single Mesos executor with the other Spark executors. In coarse-grained mode, there is a single Spark executor per Mesos executor with <strong>many</strong> Spark tasks.</li>
+<li>coarseGrained默认首先预启动所有executor backend，所以他的overhead略大，但是每个任务执行前executor都是启动好的，所以他适合交互性任务</li>
+<li>fine grained模式对于资源利用率比较高，适合batch任务和流任务</li>
+</ul>
+<h2 id="任务执行"><a href="#任务执行" class="headerlink" title="任务执行"></a>任务执行</h2><blockquote>
+<p>  原书4.2.4节 p53</p>
+</blockquote>
+<p>首先executorBackend需要注册一个executor，在注册了executor的基础上，接收到LaunchTask事件后会调用executor.launchTask()函数。该函数会新建一个TaskRunner，并且用线程池执行它:<code>threadPool.execute(taskrunner)</code></p>
+<p>taskrunner会经过这样几个步骤：</p>
+<ol>
+<li><p><code>updateDependencies(taskFiles, taskJars)</code>：下载依赖文件</p>
+</li>
+<li><p>反序列化task</p>
+</li>
+<li><p>执行task.run()：分为shuffleMapTask和ReduceTask两种</p>
+<ul>
+<li>shuffleMapTask：因为shuffleMapTask的结果是要写到中间文件后执行shuffle操作的，所以最关键的一句就是<code>writer.write(rdd.iterator(partition, context).asInstanceOf[Iterator[_ &lt;: Product2[Any, Any]]])</code>.这里首先都是要调用iterator来对结果进行遍历。rdd的iterator代码如下：</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">   * Internal method to this RDD; will read from cache if applicable, or otherwise compute it.</div><div class="line">   * This should ''not'' be called by users directly, but is available for implementors of custom</div><div class="line">   * subclasses of RDD.</div><div class="line">   */</div><div class="line">  <span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">iterator</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] = &#123;</div><div class="line">    <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</div><div class="line">      getOrCompute(split, context)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      computeOrReadCheckpoint(split, context)</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>主要是对rdd的每一条数据进行转换，并且最终会调用rdd的各种compute函数。compute函数就是对数据进行计算。</p>
+<p>之后会调用writer.write.这个writer根据shuffle的不同分为<code>UnsafeShuffleWriter</code>,<code>BypassMergeSortShuffleWriter</code>和<code>SortShuffleWriter</code>，主要是通过不同的策略将task结果输出</p>
+<ul>
+<li>ReduceTask: 主要是执行<code>func(context, rdd.iterator(partition, context))</code>。这个func是一个<code>val func: (TaskContext, Iterator[_]) =&gt; _,</code></li>
+</ul>
+</li>
+<li><p>返回结果: Task执行结束后会将结果返回给各个组件，并更新自己的状态<code>execBackend.statusUpdate(taskId, TaskState.FINISHED, serializedResult)</code></p>
+</li>
+</ol>
+<h2 id="结果返回"><a href="#结果返回" class="headerlink" title="结果返回"></a>结果返回</h2><blockquote>
+<p>   p48</p>
+</blockquote>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-20-123615.png" alt="2016-10-20-123615"></p>
+<p>schedulerBackend接收到statusUpdate之后做出如下操作：</p>
+<ul>
+<li>任务执行成功，将其从监视列表删除；如果作业中所有任务都完成，将占用资源释放。否则分配新的任务给刚完成任务的executor</li>
+<li>分配新的任务是由taskSchedulerImpl调用makeoffers(executorId)执行的。所以说spark执行task是依照executor个数分批执行</li>
+<li>如果ReduceTask执行成功，则DABScheduler发送TaskSucceed来通知整个作业的执行情况给监听者，比如jobWaiter。</li>
+<li>该消息会被DAGScheduler.runjob的<code>waiter.completionFuture.value.get</code>收到，如果程序成功执行则整个任务流程结束</li>
+</ul>
+<h1 id="储存机制"><a href="#储存机制" class="headerlink" title="储存机制"></a>储存机制</h1><p>存储机制2.0变化比较大</p>
+<h2 id="shuffle结果的写入和读取"><a href="#shuffle结果的写入和读取" class="headerlink" title="shuffle结果的写入和读取"></a>shuffle结果的写入和读取</h2><blockquote>
+<p>  4.3.1章 p71</p>
+</blockquote>
+<p>当一个task完成时，DAGScheduler会收到消息并且调用hadnleTaskCompletion。在这个函数中会判断task的类型，如果是reduceTask，就更新task完成数目并判断整个job是否完成。如果是shuffleMapTask，其中很重要的一步是将task输出的结果注册到MapOutputTrackerMaster中：<code>mapOutputTracker.registerMapOutputsregisterMapOutputs(shuffleId: Int, statuses: Array[MapStatus], changeEpoch: Boolean = false)</code>。MapOutputTracker中实际存的是一个<code>map&lt;shuffleId, Array[MapStatus]&gt;</code>，MapStatus里存了文件的BlockManagerId。后面的task则会读取这些结果。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-20-153836.png" alt="2016-10-20-153836"></p>
+<p>下面我们具体看一看shuffle怎么写入和读取</p>
+<h3 id="shuffle写入"><a href="#shuffle写入" class="headerlink" title="shuffle写入"></a>shuffle写入</h3><p>shufflerMapTask.run()执行以后，会调用一个writer，这里以sortShuffleWriter为例进一步跟进shuffle写入。</p>
+<p>sortShuffleWriter中的writer函数首先会建立一个tmp文件并生成一个shuffleBlockID（形如<code>&quot;shuffle_&quot; + shuffleId + &quot;_&quot; + mapId + &quot;_&quot; + reduceId</code>），之后把相关的数据写到磁盘里(<code>sorter.writePartitionedFile</code>)并且建立索引(<code>shuffleBlockResolver.writeIndexFileAndCommit(dep.shuffleId, mapId, partitionLengths, tmp</code>)。写入的操作调用的是<code>blockManager.getDiskWrite</code></p>
+<h3 id="shuffle读取"><a href="#shuffle读取" class="headerlink" title="shuffle读取"></a>shuffle读取</h3><p>shuffledRDD的compute函数是读取shuffleMapTask结果的起点</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)] = &#123;</div><div class="line">    <span class="keyword">val</span> dep = dependencies.head.asInstanceOf[<span class="type">ShuffleDependency</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>]]</div><div class="line">    <span class="type">SparkEnv</span>.get.shuffleManager.getReader(dep.shuffleHandle, split.index, split.index + <span class="number">1</span>, context)</div><div class="line">      .read()</div><div class="line">      .asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)]]</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这里的reader默认是BlockStoreShuffleReader，因为hashShuffle已经被2.0移除了<a href="https://issues.apache.org/jira/browse/SPARK-14667" target="_blank" rel="external">SPARK-14667</a>。这个class里面只有一个read函数，是读取shuffledata的逻辑所在。该函数主要有三步：</p>
+<p>BlockStoreShuffleReader用来读取上游任务计算结果，read方法处理步骤：</p>
+<ol>
+<li>从远端节点或本地读取中间计算结果</li>
+<li>对InterruptIbleIterator执行聚合</li>
+<li>对InterruptibleIterator排序，使用ExternalSorter的insertAll方法。</li>
+</ol>
+<p>2.0可以选择combine是在map端做还是在reduce端做。</p>
+<h2 id="Store"><a href="#Store" class="headerlink" title="Store"></a>Store</h2><blockquote>
+<p>  原书4.3.2 p80</p>
+</blockquote>
+<p>原来的存储系统都是有cacheManage这个组件的，在2.0里面这个组件被删了，getOrElseUpdate方法被实现在了blockManager中<a href="https://issues.apache.org/jira/browse/SPARK-12817" target="_blank" rel="external">SPARK-12817</a>。现在储存模块的结构如下图</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/204749-02771855cda616cb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>Master 负责：</p>
+<ul>
+<li>接受各个 Slaves 注册</li>
+<li>保存整个 application 各个 blocks 的元数据</li>
+<li>给各个 Slaves 下发命令</li>
+</ul>
+<p>Slave 负责：</p>
+<ul>
+<li>管理存储在其对应节点内存、磁盘上的 Blocks 数据</li>
+<li>接收并执行 Master 的命令</li>
+<li>更新 block 信息给 Master</li>
+</ul>
+<p>储存模块的入口在SparkEnv中，在driver端构造 SparkContext 时会创建 SparkEnv 实例 _env，这时会调用create函数创建BlockManager。在 worker 进程起来的的时候，<code>object CoarseGrainedExecutorBackend</code> 初始化时会通过调用 <code>SparkEnv#createExecutorEnv</code>，在该函数中会创建 executor 端的 BlockManager，也即 Slave。这之后，CoarseGrainedExecutorBackend 才向 driver 注册 executor，然后再构造 Executor 实例。</p>
+<p>BlockManager 实例在被创建后，不能直接使用，必须调用其 <code>initialize</code> 方法才能使用。对于 Master，是在 BlockManager 创建后就调用了 <code>initialize</code> 方法；对于 Slave，是在 Executor 的构造函数中调用 <code>initialize</code> 方法进行初始化。</p>
+<p>在 <code>initialize</code> 方法中，会进行 BlockManager 的注册，具体操作时通过 driverRpcEndpointRef 发送 <code>RegisterBlockManager</code> 消息。</p>
+<h3 id="数据读写"><a href="#数据读写" class="headerlink" title="数据读写"></a>数据读写</h3><p>当storagelevel不是空时，RDD.iterator会调用getOrCompute函数，该函数通过rddid和parititionid算出blockid，之后调用blockManager.getOrElseUpdate：</p>
+<ul>
+<li>如果该block存在，getOrElseUpdate返回一个blockResult</li>
+<li>如果不存在则getOrElseUpdat调用doPutIterator写入这个block。<ul>
+<li>如果写入成功，getOrElseUpdat返回blockResult</li>
+<li>写入失败则返回一个iter。写入失败的原因常常是因为data太大放不进内存同时不允许放进磁盘</li>
+</ul>
+</li>
+</ul>
+<p>无论接收到什么，getOrCompute函数都会将其打包成一个InterruptibleIterator</p>
+<h4 id="数据写入流程"><a href="#数据写入流程" class="headerlink" title="数据写入流程"></a>数据写入流程</h4><p>调用getOrElseUpdate函数时会判断block存在不存在，如果不存在会调用<code>doPutIterator</code>函数：</p>
+<ul>
+<li>步骤一：写入数据：<ul>
+<li>如果需要写内存会调用<code>putIteratorAsValues</code>(非序列化)和<code>putIteratorAsBytes</code>(序列化)<ul>
+<li>这两个函数都是gradually unroll的方式，物化一点写一点</li>
+<li>写不下了会根据情况写磁盘（diskStore.put(blockId)）或者设置剩余数据的iter</li>
+</ul>
+</li>
+<li>只写磁盘会调用<code>diskStore.put(blockId) { fileOutputStream =&gt;  serializerManager.dataSerializeStream(blockId, fileOutputStream, iterator())(classTag)</code> </li>
+</ul>
+</li>
+<li>步骤二：reportBlockStatus是通过和master的心跳异步同步的。（通过RPC 给Master endpoint发消息）</li>
+<li>步骤三：是否需要replicate：replicate是调用blockTransferService.uploadBlockSync通过Netty传输数据，传输过程是同步的，因此会block程序</li>
+</ul>
+<p>也就是说blockManager在写入时会调用MemoryStore，DiskStore，blockTransferService以及rpc模块</p>
+<h4 id="数据读取流程"><a href="#数据读取流程" class="headerlink" title="数据读取流程"></a>数据读取流程</h4><p>数据读取会先读取本地的block，如果没有再读取远程的block。</p>
+<ul>
+<li>getLocalValues: 按照存储level读取本地，读取本地的时候需要给该block加一个读锁</li>
+<li>getRemoteValues：从远程读取block的时候是一个同步的过程，不过是通过<code>fetchBlcokSync</code>的<code>ThreadUtils.awaitResult(result.future, Duration.Inf)</code>同步的。</li>
+</ul>
+<h1 id="后面的计划"><a href="#后面的计划" class="headerlink" title="后面的计划"></a>后面的计划</h1><ul>
+<li>接着看源码，把部署在不同的平台情况的看完</li>
+</ul>
+<ul>
+<li>是详细想想fine-grained oarse-grained时executor task core的关系</li>
+<li>详细看看shuffle，几种实现的区别，还有不同参数设置对应的实现</li>
+<li>看看序列化对程序的影响以及序列化的设置</li>
+</ul>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ul>
+<li><a href="https://www.gitbook.com/book/jaceklaskowski/mastering-apache-spark" target="_blank" rel="external">masting apache spark</a></li>
+<li><a href="http://www.jianshu.com/p/730eed6a98d2" target="_blank" rel="external">Spark Storage ① - Spark Storage 模块整体架构</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/10/22/spark2-0源码阅读-spark作业提交/">http://thousandhu.github.io/2016/10/22/spark2-0源码阅读-spark作业提交/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spark/" rel="tag"># spark</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/18/第六章-枚举和注解-effective-java/" rel="next" title="第六章 枚举和注解_effective_java">
+                <i class="fa fa-chevron-left"></i> 第六章 枚举和注解_effective_java
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/25/spark2-0-standalong模式部署/" rel="prev" title="spark2.0源码阅读-standalong模式部署">
+                spark2.0源码阅读-standalong模式部署 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SparkContext的初始化综述"><span class="nav-number">1.</span> <span class="nav-text">SparkContext的初始化综述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#spark作业提交"><span class="nav-number">2.</span> <span class="nav-text">spark作业提交</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-sc-textFile-quot-README-quot"><span class="nav-number">2.0.0.1.</span> <span class="nav-text">1. sc.textFile("README")</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-flatMap-line-gt-line-split-quot-quot-map-word-gt-word-1"><span class="nav-number">2.0.0.2.</span> <span class="nav-text">2.flatMap(line=>line.split(" ")).map(word => (word, 1))</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-reduceByKey"><span class="nav-number">2.0.0.3.</span> <span class="nav-text">3. reduceByKey(_ + _)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-count"><span class="nav-number">2.0.0.4.</span> <span class="nav-text">4. count()</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#作业执行"><span class="nav-number">3.</span> <span class="nav-text">作业执行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#作业stage划分"><span class="nav-number">3.1.</span> <span class="nav-text">作业stage划分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务的创建和分发"><span class="nav-number">3.2.</span> <span class="nav-text">任务的创建和分发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务执行"><span class="nav-number">3.3.</span> <span class="nav-text">任务执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结果返回"><span class="nav-number">3.4.</span> <span class="nav-text">结果返回</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#储存机制"><span class="nav-number">4.</span> <span class="nav-text">储存机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#shuffle结果的写入和读取"><span class="nav-number">4.1.</span> <span class="nav-text">shuffle结果的写入和读取</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#shuffle写入"><span class="nav-number">4.1.1.</span> <span class="nav-text">shuffle写入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#shuffle读取"><span class="nav-number">4.1.2.</span> <span class="nav-text">shuffle读取</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Store"><span class="nav-number">4.2.</span> <span class="nav-text">Store</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据读写"><span class="nav-number">4.2.1.</span> <span class="nav-text">数据读写</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#数据写入流程"><span class="nav-number">4.2.1.1.</span> <span class="nav-text">数据写入流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据读取流程"><span class="nav-number">4.2.1.2.</span> <span class="nav-text">数据读取流程</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#后面的计划"><span class="nav-number">5.</span> <span class="nav-text">后面的计划</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">6.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

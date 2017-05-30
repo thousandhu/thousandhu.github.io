@@ -1,0 +1,743 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="知识图谱在姨搜的实践知识图谱这个概念最早由Google于2012年提出，主要是通过从语义层面理解用户的意图，从而改进搜索质量。比如在Google的搜索框里输入creditease（宜信）的时候，搜索结果页面的右侧还会出现creditease相关的信息，比如公司地址等。这些关于宜信的信息，就是通过知识图谱提供的对于查询的理解能力和对查询的实体的知识展示的。在金融相关领域，利用知识图谱，我们可以很方便">
+<meta property="og:type" content="article">
+<meta property="og:title" content="知识图谱在姨搜的实现">
+<meta property="og:url" content="http://thousandhu.github.io/2016/11/20/知识图谱在姨搜的实现/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="知识图谱在姨搜的实践知识图谱这个概念最早由Google于2012年提出，主要是通过从语义层面理解用户的意图，从而改进搜索质量。比如在Google的搜索框里输入creditease（宜信）的时候，搜索结果页面的右侧还会出现creditease相关的信息，比如公司地址等。这些关于宜信的信息，就是通过知识图谱提供的对于查询的理解能力和对查询的实体的知识展示的。在金融相关领域，利用知识图谱，我们可以很方便">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-173923.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-173936.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174006.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174020.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174031.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174045.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174055.png">
+<meta property="og:updated_time" content="2016-11-20T09:41:49.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="知识图谱在姨搜的实现">
+<meta name="twitter:description" content="知识图谱在姨搜的实践知识图谱这个概念最早由Google于2012年提出，主要是通过从语义层面理解用户的意图，从而改进搜索质量。比如在Google的搜索框里输入creditease（宜信）的时候，搜索结果页面的右侧还会出现creditease相关的信息，比如公司地址等。这些关于宜信的信息，就是通过知识图谱提供的对于查询的理解能力和对查询的实体的知识展示的。在金融相关领域，利用知识图谱，我们可以很方便">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-173923.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/11/20/知识图谱在姨搜的实现/"/>
+
+
+
+
+
+  <title>知识图谱在姨搜的实现 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/11/20/知识图谱在姨搜的实现/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">知识图谱在姨搜的实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-20T17:41:40+08:00">
+                2016-11-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="知识图谱在姨搜的实践"><a href="#知识图谱在姨搜的实践" class="headerlink" title="知识图谱在姨搜的实践"></a>知识图谱在姨搜的实践</h1><p>知识图谱这个概念最早由Google于2012年提出，主要是通过从语义层面理解用户的意图，从而改进搜索质量。比如在Google的搜索框里输入creditease（宜信）的时候，搜索结果页面的右侧还会出现creditease相关的信息，比如公司地址等。这些关于宜信的信息，就是通过知识图谱提供的对于查询的理解能力和对查询的实体的知识展示的。在金融相关领域，利用知识图谱，我们可以很方便的分析实体以及实体之间的关系，从而提供强大的风控能力和客户管理能力。本文将从为什么需要知识图谱、知识图谱的表示、知识图谱的应用以及知识图谱在姨搜的实现四个方面来谈谈知识图谱在姨搜的实践。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-173923.png" alt="2016-11-20-173923"></p>
+<h2 id="为什么需要知识图谱"><a href="#为什么需要知识图谱" class="headerlink" title="为什么需要知识图谱"></a>为什么需要知识图谱</h2><p>在金融领域，风险控制是最为核心的部分。我们认为风控的一个核心能力，就是它能从纷繁复杂的各种数据中，找出和这个人或者公司相关的信息，找到信息之后能够对信息进行交叉验证，还能用验证后的信息进行风险程度评估。这里很大的一个挑战就数据种类的多样性。在各种数据，不管是政府的数据或者是公司数据，中间的差别非常大，甚至在一个公司内部，不同产品不同部门的数据也是由差异的。</p>
+<p>面对这样的数据，获取数据本身就是一个难题，而得到的数据如何进行整合，也是很有挑战性的事情。比如有的数据源是一个关于黑名单的数据库，有的可能就给你一个excel或者txt文件，如何将他与原始数据进行融合，并充分发挥所有数据的特点是很难的一件事情。在数据融合后，如何利用这些数据，尤其是数据间的关系也是一个很有挑战性的问题。知识图谱是解决这个问题的强有力的工具。我们的知识图谱设计时参考了传统语义网的一些特性，它在以下三个方面有着出色的特性来，可以帮助我们解决数据整合和使用中遇到的问题问题。</p>
+<p>第一个方面是数据的表现能力，尤其是对实体间关系的扩展能力强可以帮助我们有效的处理数据以及数据间的关系。我们的数据采用了语义网络中最常见的ubject-predicate-object三元组的表现形式。这样的三元组的形式，使得知识图谱具有非常强大的表现能力和扩展能力，以及一些 knowledge-based reasoning的能力。在风控领域，实体间的关系包含非常多的信息，而这种三元组可以很容易的表达这种关系，并且可以基于一个节点很方便的扩展其二度甚至多度关系。</p>
+<p>第二个方面是提供可控的数据管理能力，帮助我们规范不同数据源并统一数据使用流程。三元组的表示形式非常灵活，但是如果不加以约束就会导致数据格式的失控，增加数据理解的难度。知识图谱支持自定义元数据，并依据元数据组织管理数据，并且业界已经有了一些标准格式，比如RDF。只要控制好元数据并严格依照数据标准管理数据，就可以有效的组织和使用数据。我们的知识图谱有一套自定义的schema，对于不同格式、不同来源、不同内容的数据，在接入我们的知识图谱时都会按照我们的schema对数据进行转换和清晰。这样对于任何数据，进入知识图谱后后续流程都是相同的，使得在不需要经过任何修改的情况下，后续的服务就可以直接使用这部分数据，在没有任何额外代价的情况下就可以享受这部分数据带来的价值。</p>
+<p>第三方面是扩展性强，可以很容易的接入新的数据源。正如前面讲的，我们面临的数据是多种多样的，随时都有可能接入新的数据。在遵循我们数据schema标准的前提下，对于新类型的数据，我们可以很方便的添加新的schema。举个例子，如果说之前没有做过房 贷，这个时候要把房贷的信息加进来，房贷肯定是一种贷款，它又包含了 房子。我们可以直接重用之前关于通用贷款的所有工具和模型，然后添加进这 个房屋本身的信息，就形成了房贷自己的数据格式。这样可以无缝使用已有元数据和资源。</p>
+<p>正是因为知识图谱自身的特性能够解决我们在数据管理和使用中的痛点，我们采用知识图谱作为我们风控体系最底层的数据存储系统。</p>
+<h2 id="知识图谱的表示"><a href="#知识图谱的表示" class="headerlink" title="知识图谱的表示"></a>知识图谱的表示</h2><p>刚才谈了一下利用知识图谱管理和使用数据的好处，下面我用一个例子来讲一下知识图谱在姨搜的表示方法。我们使用RDF存储格式来存储知识图谱。RDF是一种通用的资源描述框架，Freebase与DBpedia都采用该格式储存信息。在RDF格式下，一个资源描述是由多个语句构成，一个语句是由资源、属性类型、属性值构成的三元体，表示资源具有的一个属性。比如下面的例子中，张三就职于xx有限公司。在知识图谱中张三和xx有限公司分别会表示为实体A和实体B，每个实体有描述它属性的一些属性值，比如实体A的类型，姓名等。同时实体A和实体B还会有一个关系表示A就职于B。</p>
+<p> <img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-173936.png" alt="2016-11-20-173936"></p>
+<p>对于不同类型的实体，我们都有shema表示他们应该具有的属性类型。比如借款人有姓名，就职信息等属性，公司有公司电话、公司名称、公司地址等属性。这些源数据都是提前定义好的，每个实体的数据都要符合对于该实体schema的规范。这样我们就可以避免对于公司地址这个属性不同数据有不同名称（比如有的叫公司地址，有的叫地址，有的叫公司所在地这种情况）。基于schema的规范，我们会将实体的所有数据以三元组的形式储存起来。比如对于实体A，会储存以下三条数据：</p>
+<ul>
+<li>实体A   实体类型    借款人    </li>
+<li>实体A   姓名            张三</li>
+<li>实体A   就职于        实体B</li>
+</ul>
+<p>这里的三条数据只是一个示范，在真实存储中我们会对属性进行严格的定义，数据也会进行压缩，这里就不在展开了。</p>
+<h2 id="知识图谱的应用"><a href="#知识图谱的应用" class="headerlink" title="知识图谱的应用"></a>知识图谱的应用</h2><p>通过上面的例子，我们了解了姨搜如何在知识图谱中储存数据，这一节我们通过几个方面来看看知识图谱在金融领域的应用。</p>
+<h3 id="反欺诈"><a href="#反欺诈" class="headerlink" title="反欺诈"></a>反欺诈</h3><p>反欺诈是风控中非常重要的一个环节。基于大数据的反欺诈的难点在于如何将不同来源的数据整合在一起，高效的分析实体间的关系，找到实体关系间的矛盾点，从而有效的识别出欺诈案件（比如信息造假、组团欺诈、代办包装等）。在分析实体间关系时，常常会面临复杂网络的处理，而知识图谱作为关系的直接表示方式，能够很好地解决这一问题。首先，知识图谱能够方便的融合不同的数据源；其次，知识图谱本身作为一个图数据的组织形式，能够很好的处理实体间的关系，找到各种矛盾。</p>
+<p>首先我们来看一个身份造假的例子，借款人张三和借款人李四都提供了自己的配偶信息，而他们的配偶指向了同一个人小芳（假设我们通过张三和李四的提供的信息可以唯一的确认配偶对应的实体），这时就会探测到一个矛盾，这种矛盾是需要审核人员着重审查的。</p>
+<p> <img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174006.png" alt="2016-11-20-174006"></p>
+<p>另一个典型的场景是代办包装，这是一个比身份造假更难识别的例子。比如有一些中介公司，专门负责给用户办理假材料，帮助用户获得超过其还款能力的贷款，甚至帮助他们骗贷。这种组织常常隐藏在复杂的网络关系背后，很难被发现。只有我们将隐含的网络关系梳理清楚，才可能发现这些隐藏的中介组织以及相关的借款人。比如下面这个例子，张三、李四、王五、赵六四个人背景各不相同，但是他们都有相同的一批联系人，这就是一个可疑的地方，这些共同的联系人可能就是一个中介团伙。而如果其中张三和李四的历史还款表现不好，那么王五和赵六进件时就需要我们着重审查。 <img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174020.png" width="358"></p>
+<h3 id="失联客户管理"><a href="#失联客户管理" class="headerlink" title="失联客户管理"></a>失联客户管理</h3><p>刚才的两个例子都是贷前借款审核环节的风控，这里再举一个贷后相关的例子。比如贷后常常会面临客户失联问题，即客户在借款成功后不仅不还款，还无法联系到本人以及之前提供的联系人。这种情况使得催收人员无法有效的进行催收。这时我们可以通过知识图谱挖掘和借款人有关的新的联系人和联系方式，从而从新的渠道和借款人取得联系，提高催收成功的几率。</p>
+<p> <img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174031.png" width="358"></p>
+<h3 id="可视化"><a href="#可视化" class="headerlink" title="可视化"></a>可视化</h3><p>基于知识图谱，我们可以提供智能的可视化服务。这里我们来看一个我们真实的线上产品——图谱搜索。 下图是图谱搜索的一个结果，通过搜索一个借款人，展示出与借款人相关的两度内实体的状态。其中方块表示实体，圆圈表示各种属性。这里不同的边表示实体和属性之间的联系，每个实体或者属性本身的颜色以及边的颜色都是有特定含义的（具体的细节不方便公开），同时每个节点都可以点击来获得该信息的一系列统计结果。通过图谱搜索这个工具，信审人员可以一目了然的得知用户的各种信息，尤其是一般情况下很难处理的一度、二度关系的信息，极大地增加了信审的效率和准确率。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174045.png" alt="2016-11-20-174045"></p>
+<h2 id="知识图谱在姨搜的实现"><a href="#知识图谱在姨搜的实现" class="headerlink" title="知识图谱在姨搜的实现"></a>知识图谱在姨搜的实现</h2><p>通过前面的章节，大家了解到了知识图谱如何为宜信提供强大的风控能力，接下来的这个章节，我们主要讲一讲知识图谱在姨搜的具体实现。知识图谱在姨搜的整体架构如下图所示 。整个知识图谱分为数据采集，数据处理，数据存储，数据应用四个模块。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174055.png" alt="2016-11-20-174055"></p>
+<p>知识图谱对接了四个种类的数据源，除了公司内部的实时数据和历史数据，我们还会对接一些外部门的三方服务。同时对于客户进件提供的信息，我们会主动去公网爬取重要信息，并且通过NLP的方式对信息进行处理。</p>
+<p>对于不同的数据源，我们会采用不同的方式进行处理。对于三方数据和爬虫数据，我们通过Flume将数据接入存储模块。对于实时数据，比如用户进件时在网站或者在门店提供的相关信息，我们基于Spark Streaming开发了数据导入工具。利用该工具，对于不同业务不同格式的数据，只需要编写简单的config文件就可以对其进行数据清洗、格式转换、自然语言处理等相关操作。利用Spark Streaming这种流式计算引擎本身低延迟的特点，对于一个新进件，整个系统可以在秒级的延迟内将数据导入系统，也就是说用户进件后信审人员几乎马上得到该进件人的信息以及该进件人在知识图谱中的相关信息并开始审核。这些相关信息中很大一部分是进件人并未提供但是通过知识图谱的信息处理能力提取出来的，对于信审人员的决策有重要的作用。而对于一些历史数据以及相应的统计任务，我们会使用Spark和MapReduce进行处理。值得一提的是，我们的任务都是包装了统一接口，利用配置文件进行配置的，对于同样逻辑的任务，Spark Streaming、Mapreduce、Spark三者的配置文件是通用的，配置文件会根据后端的计算引擎的不同被翻译成不同的执行逻辑被执行。</p>
+<p>数据储存模块主要有两部分。一部分是由Elasticsearch和Hbase组成的Knowledge Graph模块，该模块是储存RDF格式数据的核心模块。另一部分是Mysql数据库，主要储存一些统计数据和分析结果。</p>
+<p>对于知识图谱存储的数据，系统提供两个方式进行获取。我们提供一套RESTful API，为用户提供数据查询服务。比如上文提到的可视化工具图谱搜索的例子，就是通过这些API获取借款人的信息并展示的。其他下游业务比如规则引擎等，也是通过RESTful API访问知识图谱。另一种方式是通过Hive进行访问。对于研究团队来说，他们常常需要让一个模型或者一个策略在一段时间内的所有进件进行决策，从而评估和改进模型和策略。RESTful服务更适合于查询任务，对于分析任务，我们将数据导入Hive，这样研究团队就可以很容易的筛选和批量处理数据。Hive同时承担着分析平台数据源的任务，使用我们自研的分析平台，研究团队可以很容易的对规则和模型进行评估。由于篇幅的限制，这里对分析平台的实现不再展开，只是有一点需要强调，就是我们分析平台对接Hive得到的数据和规则引擎对接RESTful得到的数据完全一致，规则的格式和执行方式也完全一致。这样，研究团队在分析平台上的建模成果和抽象出的规则，可以不经过任何修改无缝接入规则引擎，直接对线上进件进行决策。</p>
+<p>最后，对于整个系统，从数据接入过程到最终提供数据应用的服务，我们提供进行全流程的工作流调度系统和监控系统。工作流调度系统使用Linkedin开源的Azkaban系统，并且对其进行了源码级的定制化。监控工作由Azkaban和Kibana共同执行，Azkaban主要对工作流进行监控预警，而Kibana主要负责监控数据接入部分和数据应用部分的响应情况。</p>
+<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>知识图谱在学术界和工业界有着越来越多的应用，本文主要介绍了一下在金融场景下知识图谱在风控领域的应用以及知识图谱在姨搜的实现。知识图谱作为一个比较新的工具，还面临着一些问题。比如数据归一化的问题、非结构化数据（音频，图片）数据的使用、知识推理能力的提升，都是很具有挑战性的工作，这些问题有一些我们已经有了初步的成果，有一些正在研究当中。我们希望利用知识图谱，以及姨搜的其他服务（分析平台、规则引擎、可视化工具）能够提供全流程、智能、高效的风控服务，进而更好的为普惠金融的目标贡献自己的一份力量。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/11/20/知识图谱在姨搜的实现/">http://thousandhu.github.io/2016/11/20/知识图谱在姨搜的实现/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/15/spark-on-yarn/" rel="next" title="spark on yarn">
+                <i class="fa fa-chevron-left"></i> spark on yarn
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/11/22/MIT-6-824-lab1/" rel="prev" title="MIT 6.824 lab1">
+                MIT 6.824 lab1 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#知识图谱在姨搜的实践"><span class="nav-number">1.</span> <span class="nav-text">知识图谱在姨搜的实践</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要知识图谱"><span class="nav-number">1.1.</span> <span class="nav-text">为什么需要知识图谱</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知识图谱的表示"><span class="nav-number">1.2.</span> <span class="nav-text">知识图谱的表示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知识图谱的应用"><span class="nav-number">1.3.</span> <span class="nav-text">知识图谱的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#反欺诈"><span class="nav-number">1.3.1.</span> <span class="nav-text">反欺诈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#失联客户管理"><span class="nav-number">1.3.2.</span> <span class="nav-text">失联客户管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可视化"><span class="nav-number">1.3.3.</span> <span class="nav-text">可视化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知识图谱在姨搜的实现"><span class="nav-number">1.4.</span> <span class="nav-text">知识图谱在姨搜的实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结语"><span class="nav-number">2.</span> <span class="nav-text">结语</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

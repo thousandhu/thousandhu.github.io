@@ -1,0 +1,725 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="在之前配置好hadoop的基础上，我配置了spark on yarn。 主要有两步，分别是安装scala和配置spark 安装scala我们的spark是1.5.2版，使用的scala版本是scala-2.11.6。安装后要在/etc/bashrc里面配置export SCALA_HOME=/opt/scala-2.11.6 配置spark从官网下载spark-1.5.2的源代码，在dn1.had">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="配置spark on yarn">
+<meta property="og:url" content="http://thousandhu.github.io/2016/05/13/配置spark-on-yarn/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="在之前配置好hadoop的基础上，我配置了spark on yarn。 主要有两步，分别是安装scala和配置spark 安装scala我们的spark是1.5.2版，使用的scala版本是scala-2.11.6。安装后要在/etc/bashrc里面配置export SCALA_HOME=/opt/scala-2.11.6 配置spark从官网下载spark-1.5.2的源代码，在dn1.had">
+<meta property="og:updated_time" content="2016-05-13T10:27:41.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="配置spark on yarn">
+<meta name="twitter:description" content="在之前配置好hadoop的基础上，我配置了spark on yarn。 主要有两步，分别是安装scala和配置spark 安装scala我们的spark是1.5.2版，使用的scala版本是scala-2.11.6。安装后要在/etc/bashrc里面配置export SCALA_HOME=/opt/scala-2.11.6 配置spark从官网下载spark-1.5.2的源代码，在dn1.had">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/05/13/配置spark-on-yarn/"/>
+
+
+
+
+
+  <title>配置spark on yarn | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/05/13/配置spark-on-yarn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">配置spark on yarn</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-05-13T18:27:10+08:00">
+                2016-05-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在之前配置好hadoop的基础上，我配置了spark on yarn。</p>
+<p>主要有两步，分别是安装scala和配置spark</p>
+<h1 id="安装scala"><a href="#安装scala" class="headerlink" title="安装scala"></a>安装scala</h1><p>我们的spark是1.5.2版，使用的scala版本是scala-2.11.6。安装后要在/etc/bashrc里面配置<code>export SCALA_HOME=/opt/scala-2.11.6</code></p>
+<h1 id="配置spark"><a href="#配置spark" class="headerlink" title="配置spark"></a>配置spark</h1><p>从官网下载spark-1.5.2的源代码，在dn1.hadoop下解压到/usr/local下。修改spark-env.sh</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">cp spark-env.sh.template spark-env.sh   #从配置模板复制</div><div class="line">cp spark-env.sh.template spark-env.sh   #从配置模板复制</div><div class="line">vi spark-env.sh     #添加配置内容</div><div class="line"></div><div class="line">#添加</div><div class="line">SPARK_MASTER_IP=dn1.hadoop</div><div class="line">SPARK_LOCAL_DIRS=$somePath</div></pre></td></tr></table></figure>
+<p>注：在设置Worker进程的CPU个数和内存大小，要注意机器的实际硬件条件，如果配置的超过当前Worker节点的硬件条件，Worker进程会启动失败。</p>
+<p>修改slaves，将dn2 , dn3加入slaves</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">#slaves</div><div class="line">dn2.hadoop</div><div class="line">dn3.hadoop</div></pre></td></tr></table></figure>
+<h3 id="启动Spark"><a href="#启动Spark" class="headerlink" title="启动Spark"></a>启动Spark</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sbin/start-all.sh</div></pre></td></tr></table></figure>
+<h3 id="验证-Spark-是否安装成功"><a href="#验证-Spark-是否安装成功" class="headerlink" title="验证 Spark 是否安装成功"></a>验证 Spark 是否安装成功</h3><p>用<code>jps</code>检查，在 master 上应该有以下几个进程：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ jps</div><div class="line">7949 Jps</div><div class="line">7328 SecondaryNameNode</div><div class="line">7805 Master</div><div class="line">7137 NameNode</div><div class="line">7475 ResourceManager</div></pre></td></tr></table></figure>
+<p>在 slave 上应该有以下几个进程：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$jps</div><div class="line">3132 DataNode</div><div class="line">3759 Worker</div><div class="line">3858 Jps</div><div class="line">3231 NodeManager</div></pre></td></tr></table></figure>
+<p>其中master和worker是spark的线程（名称真是简单粗暴）</p>
+<p>Spark的Web管理页面： <a href="http://dn1.hadoop:8080/" target="_blank" rel="external">http://dn1.hadoop:8080</a></p>
+<h3 id="运行示例"><a href="#运行示例" class="headerlink" title="运行示例"></a>运行示例</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">#本地模式两线程运行</div><div class="line">./bin/run-example SparkPi 10 --master local[2]</div><div class="line"></div><div class="line">#Spark Standalone 集群模式运行</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master spark://master:7077 \</div><div class="line">  lib/spark-examples-1.3.0-hadoop2.4.0.jar \</div><div class="line">  100</div><div class="line"></div><div class="line">#Spark on YARN 集群上 yarn-cluster 模式运行</div><div class="line">./bin/spark-submit \</div><div class="line">    --class org.apache.spark.examples.SparkPi \</div><div class="line">    --master yarn-cluster \  # can also be `yarn-client`</div><div class="line">    lib/spark-examples*.jar \</div><div class="line">    10</div></pre></td></tr></table></figure>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p><a href="http://wuchong.me/blog/2015/04/04/spark-on-yarn-cluster-deploy/" target="_blank" rel="external">Spark On YARN 集群安装部署</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/05/13/配置spark-on-yarn/">http://thousandhu.github.io/2016/05/13/配置spark-on-yarn/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spark/" rel="tag"># spark</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/05/01/kafka-vs-flume/" rel="next" title="kafka vs flume">
+                <i class="fa fa-chevron-left"></i> kafka vs flume
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/05/19/记一次修复maven打包类加载冲突/" rel="prev" title="记一次修复maven打包类加载冲突">
+                记一次修复maven打包类加载冲突 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#安装scala"><span class="nav-number">1.</span> <span class="nav-text">安装scala</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置spark"><span class="nav-number">2.</span> <span class="nav-text">配置spark</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#启动Spark"><span class="nav-number">2.0.1.</span> <span class="nav-text">启动Spark</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#验证-Spark-是否安装成功"><span class="nav-number">2.0.2.</span> <span class="nav-text">验证 Spark 是否安装成功</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行示例"><span class="nav-number">2.0.3.</span> <span class="nav-text">运行示例</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">3.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

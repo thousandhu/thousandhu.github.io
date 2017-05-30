@@ -1,0 +1,784 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="java,jvm," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="发现深入理解java虚拟机的读书笔记一直没发，一口气都发了好了。。。 概述  运行时数据区 所有线程共享的数据区 堆 java虚拟机启动时创建 所有对象的实例在这里分配内存 gc也在这里   方法区 储存已被虚拟机加载的类信息，常量，静态变量等数据 运行池常量     线程隔离的数据区 程序计数器：当前线程所执行的字节码行号指示器、字节码解释器工作是通过改变该计数器值来选取下一条需要执行的字节码指">
+<meta name="keywords" content="java,jvm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解java虚拟机 java内存区域与内存溢出异常">
+<meta property="og:url" content="http://thousandhu.github.io/2016/06/18/深入理解java虚拟机 java内存区域与内存溢出异常/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="发现深入理解java虚拟机的读书笔记一直没发，一口气都发了好了。。。 概述  运行时数据区 所有线程共享的数据区 堆 java虚拟机启动时创建 所有对象的实例在这里分配内存 gc也在这里   方法区 储存已被虚拟机加载的类信息，常量，静态变量等数据 运行池常量     线程隔离的数据区 程序计数器：当前线程所执行的字节码行号指示器、字节码解释器工作是通过改变该计数器值来选取下一条需要执行的字节码指">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/20160512jvm%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/1604191.PNG">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/1604192.PNG">
+<meta property="og:updated_time" content="2016-06-18T13:56:50.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解java虚拟机 java内存区域与内存溢出异常">
+<meta name="twitter:description" content="发现深入理解java虚拟机的读书笔记一直没发，一口气都发了好了。。。 概述  运行时数据区 所有线程共享的数据区 堆 java虚拟机启动时创建 所有对象的实例在这里分配内存 gc也在这里   方法区 储存已被虚拟机加载的类信息，常量，静态变量等数据 运行池常量     线程隔离的数据区 程序计数器：当前线程所执行的字节码行号指示器、字节码解释器工作是通过改变该计数器值来选取下一条需要执行的字节码指">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/20160512jvm%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/06/18/深入理解java虚拟机 java内存区域与内存溢出异常/"/>
+
+
+
+
+
+  <title>深入理解java虚拟机 java内存区域与内存溢出异常 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/06/18/深入理解java虚拟机 java内存区域与内存溢出异常/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入理解java虚拟机 java内存区域与内存溢出异常</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-06-18T21:49:45+08:00">
+                2016-06-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>发现深入理解java虚拟机的读书笔记一直没发，一口气都发了好了。。。</p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/20160512jvm%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA.png" alt=""></p>
+<ul>
+<li>运行时数据区<ul>
+<li>所有线程共享的数据区<ul>
+<li>堆<ul>
+<li>java虚拟机启动时创建</li>
+<li>所有对象的实例在这里分配内存</li>
+<li>gc也在这里</li>
+</ul>
+</li>
+<li>方法区<ul>
+<li>储存已被虚拟机加载的类信息，常量，静态变量等数据</li>
+<li>运行池常量</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>线程隔离的数据区<ul>
+<li>程序计数器：当前线程所执行的字节码行号指示器、字节码解释器工作是通过改变该计数器值来选取下一条需要执行的字节码指令</li>
+<li>java虚拟区栈：每个方法在执行的同时都会创建一个<strong>栈帧</strong>用于储存局部变量表，操作数栈、动态链接、方法出口等信息。每个方法执行到完成，就对应着一个栈帧在虚拟机栈中的入栈到出栈的过程<ul>
+<li>stackOverflowError：如果线程请求的栈深度大于虚拟机所允许的深度</li>
+<li>OutOfMemroyError：虚拟机栈可以动态扩展，但是扩展式无法申请到足够内存</li>
+</ul>
+</li>
+<li>本地方法栈:与java虚拟区栈类似，java虚拟区栈提供java方法服务，本地方法栈提供native方法服务</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>执行引擎</li>
+<li>本地库接口</li>
+<li>直接内存：不是虚拟机的一部分，而是由native函数库直接分配的对外内存，然后通过一个java堆中的DirectByteBuffer对象作为该区域的引用来操作，在一些场景中可以提高性能</li>
+</ul>
+<h1 id="hotspot虚拟机对象探秘"><a href="#hotspot虚拟机对象探秘" class="headerlink" title="hotspot虚拟机对象探秘"></a>hotspot虚拟机对象探秘</h1><h2 id="对象的创建"><a href="#对象的创建" class="headerlink" title="对象的创建"></a>对象的创建</h2><ol>
+<li>检查这个指令的参数是否能在常量池中定位到一个类的符号引用。并且检查这个符号引用代表的类是否被加载解析和初始化。如果没有则需要进行类加载</li>
+<li>为新生对象分配内存<ul>
+<li>一种是所有线程不区分</li>
+<li>另一种是每个线程预先分配本地线程分配缓冲。可以使用<code>-XX:+/-UserTLAB</code>设置</li>
+</ul>
+</li>
+<li>将内存空间初始化为0</li>
+<li>对对象进行设置：那个类的实例，如何找到，对象的哈希码，gc年龄信息等，存在对象头中</li>
+<li>执行<code>&lt;init&gt;</code>方法</li>
+</ol>
+<p><a href="http://www.cnblogs.com/miniwiki/archive/2011/03/25/1995615.html" target="_blank" rel="external">Java初始化顺序</a><br><a href="http://m635674608.iteye.com/blog/1418304" target="_blank" rel="external">jvm 初始化之 cinit, init</a></p>
+<h2 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h2><ul>
+<li>对象头<ul>
+<li>储存对象自身的运行时数据：hashcode，GC分代年龄，锁状态，线程持有的所，偏向线程id</li>
+<li>类型指针：指向他的雷元数据，通过这个指针确定是什么类的实例，另外如果是数组，还要记录长度</li>
+</ul>
+</li>
+<li>示例数据：真正有效的数据，hotspot中相同长度的数据会分配到一起。父类一般在子类前面</li>
+<li>对齐填充</li>
+</ul>
+<h2 id="对象访问的定位"><a href="#对象访问的定位" class="headerlink" title="对象访问的定位"></a>对象访问的定位</h2><ol>
+<li>句柄池:优势，对象移动时reference稳定<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/1604191.PNG" alt="1"></li>
+<li>直接指针：优势，省空间<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/1604192.PNG" alt="2"></li>
+</ol>
+<h1 id="OutOfMemoryError"><a href="#OutOfMemoryError" class="headerlink" title="OutOfMemoryError"></a>OutOfMemoryError</h1><ul>
+<li>java堆溢出<ul>
+<li>不断创建对象并保证其不被垃圾回收即可</li>
+<li>error message： java.lang.OutOfMemoryError: java heap space</li>
+<li>通过参数-XX:+HeapDumpOnOutOfMemoryError可以dump出内存转储快照，通过工具查看GC roots的引用链查看具体错误的类。</li>
+</ul>
+</li>
+<li>虚拟机栈和本地方法栈溢出：定义大量本地变量，增加方法帧中的本地变量表长度或者递归调用次数过多。 大部分情况报的是StackOverflowError。</li>
+<li>方法区和运行时常量溢出：定义大量运行时常量，比如用string.intern生成存在常量池的string，并用<code>-XX:Permsize, -XX:MaxPremSize</code>限制方法区的大小。最后会报OutOfMemoryError：PremGen Space</li>
+<li>本机直接内存溢出。明显特征为Heap Dump中不会看见明显异常，而又直接或间接使用了NOI</li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/06/18/深入理解java虚拟机">http://thousandhu.github.io/2016/06/18/深入理解java虚拟机</a> java内存区域与内存溢出异常/</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/jvm/" rel="tag"># jvm</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/06/08/迭代器访问Collection与fail-fast机制/" rel="next" title="迭代器访问Collection与fail-fast机制">
+                <i class="fa fa-chevron-left"></i> 迭代器访问Collection与fail-fast机制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/06/18/深入理解java虚拟机-垃圾收集器与内存分配策/" rel="prev" title="深入理解java虚拟机 垃圾收集器与内存分配策">
+                深入理解java虚拟机 垃圾收集器与内存分配策 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#hotspot虚拟机对象探秘"><span class="nav-number">2.</span> <span class="nav-text">hotspot虚拟机对象探秘</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#对象的创建"><span class="nav-number">2.1.</span> <span class="nav-text">对象的创建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对象的内存布局"><span class="nav-number">2.2.</span> <span class="nav-text">对象的内存布局</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对象访问的定位"><span class="nav-number">2.3.</span> <span class="nav-text">对象访问的定位</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#OutOfMemoryError"><span class="nav-number">3.</span> <span class="nav-text">OutOfMemoryError</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

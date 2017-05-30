@@ -1,0 +1,742 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="jena,sparql," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Architecture RDF API: 查询rdf triples，graph。支持对资源的增删查改。资源的常用表示形式  resource： RDF source们通常是url或者anonymous literal: data values(数字，字符串等） Statement： RDF triple Model： whole graph  rdf graph通过interface grap">
+<meta name="keywords" content="jena,sparql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="apache jena 架构">
+<meta property="og:url" content="http://thousandhu.github.io/2016/04/15/apache-jena-架构/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="Architecture RDF API: 查询rdf triples，graph。支持对资源的增删查改。资源的常用表示形式  resource： RDF source们通常是url或者anonymous literal: data values(数字，字符串等） Statement： RDF triple Model： whole graph  rdf graph通过interface grap">
+<meta property="og:image" content="https://jena.apache.org/images/jena-architecture.png">
+<meta property="og:image" content="https://jena.apache.org/documentation/inference/reasoner-overview.png">
+<meta property="og:updated_time" content="2016-04-15T06:38:27.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="apache jena 架构">
+<meta name="twitter:description" content="Architecture RDF API: 查询rdf triples，graph。支持对资源的增删查改。资源的常用表示形式  resource： RDF source们通常是url或者anonymous literal: data values(数字，字符串等） Statement： RDF triple Model： whole graph  rdf graph通过interface grap">
+<meta name="twitter:image" content="https://jena.apache.org/images/jena-architecture.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/04/15/apache-jena-架构/"/>
+
+
+
+
+
+  <title>apache jena 架构 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/04/15/apache-jena-架构/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">apache jena 架构</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-15T14:37:42+08:00">
+                2016-04-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a><a href="https://jena.apache.org/about_jena/architecture.html" target="_blank" rel="external">Architecture</a></h1><p><img src="https://jena.apache.org/images/jena-architecture.png" alt="jena arachitecture"></p>
+<p>RDF API: 查询rdf triples，graph。支持对资源的增删查改。资源的常用表示形式</p>
+<ul>
+<li>resource： RDF source们通常是url或者anonymous</li>
+<li>literal: data values(数字，字符串等）</li>
+<li>Statement： RDF triple</li>
+<li>Model： whole graph</li>
+</ul>
+<p>rdf graph通过interface graph进行储存，应该在store api level。实现这个接口，底层的存储介质和存储细节就不需要考虑了。</p>
+<p>jena的语义层和储存层是分离的，inference api这一层主要处理语义相关的东西（通过RDF，RDFS和 OWL等）。他同时支持build in rule和exteranl reasoner。</p>
+<p>sparql apl主要负责查询</p>
+<p>ontology api支持RDFS和owl，负责语义相关的东西。</p>
+<hr>
+<p>代码中ARQDatasetGraphKG中同时包含graph和schemagraph，graph是真正的数据，而schema graph作用是类型推断语义推断相关的东西。</p>
+<h1 id="Inference-api-sub-system"><a href="#Inference-api-sub-system" class="headerlink" title="Inference api sub system"></a><a href="https://jena.apache.org/documentation/inference/" target="_blank" rel="external">Inference api sub system</a></h1><p><img src="https://jena.apache.org/documentation/inference/reasoner-overview.png" alt="reasoner overview"></p>
+<p>application 通过modelfactory来访问inference层。modelfactory将数据和多个reasoner结合在一起生成一个新的model。对于这个model的query会返回基于reasoner推断出的数据结果</p>
+<p>model实现了ModelGraphInterface，所以可以getGraph。Ontology API通过OntModel可以方便的链接reasoner，RDF API通过infModel来访问和控制graph</p>
+<p>reasoner api通过bindSchema来绑定schema 或ontology data，通过bind来绑定数据（一个或多个图）。</p>
+<p>reasoner list：</p>
+<ul>
+<li>Transitive reasoner: Provides support for storing and traversing class and property lattices. This implements just the transitive and reflexive properties of rdfs:subPropertyOf and rdfs:subClassOf.</li>
+<li>RDFS rule reasoner: Implements a configurable subset of the RDFS entailments.</li>
+<li>OWL, OWL Mini, OWL Micro Reasoners: A set of useful but incomplete implementation of the OWL/Lite subset of the OWL/Full language.</li>
+<li>Generic rule reasoner: A rule based reasoner that supports user defined rules. Forward chaining, tabled backward chaining and hybrid execution strategies are supported.</li>
+</ul>
+<h1 id="Manipulating-SPARQL-using-ARQ"><a href="#Manipulating-SPARQL-using-ARQ" class="headerlink" title="Manipulating SPARQL using ARQ"></a><a href="https://jena.apache.org/documentation/query/manipulating_sparql_using_arq.html" target="_blank" rel="external">Manipulating SPARQL using ARQ</a></h1><p>SPARQL会在处理时被翻译，一种是语法（syntax）层面的（query and element），一种是代数（algebra）层面的（操作）。</p>
+<p>举个简单的例子</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">SELECT ?s &#123; ?s &lt;http://example.com/val&gt; ?val . FILTER ( ?val &lt; 20 ) &#125;</div><div class="line"></div><div class="line">syntax:</div><div class="line">(GROUP (PATTERN ( ?s &lt;http://example.com/val&gt; ?val )) (FILTER ( &lt; ?val 20 ) ))</div><div class="line"></div><div class="line">algebra:</div><div class="line">(base &lt;file:///...&gt;</div><div class="line">       (project (?s)</div><div class="line">           (filter (&lt; ?val 20)</div><div class="line">               (bgp (triple ?s &lt;http://example.com/val&gt; ?val)))))</div></pre></td></tr></table></figure>
+<p>一般情况下sparql都会被翻译成algebra的形式，然后执行得到结果。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/04/15/apache-jena-架构/">http://thousandhu.github.io/2016/04/15/apache-jena-架构/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/jena/" rel="tag"># jena</a>
+          
+            <a href="/tags/sparql/" rel="tag"># sparql</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/10/flume-负载均衡和容错/" rel="next" title="flume 负载均衡和容错">
+                <i class="fa fa-chevron-left"></i> flume 负载均衡和容错
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/20/buslogic中jetty和jersey的运用-md/" rel="prev" title="buslogic中jetty和jersey的运用">
+                buslogic中jetty和jersey的运用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Architecture"><span class="nav-number">1.</span> <span class="nav-text">Architecture</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Inference-api-sub-system"><span class="nav-number">2.</span> <span class="nav-text">Inference api sub system</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Manipulating-SPARQL-using-ARQ"><span class="nav-number">3.</span> <span class="nav-text">Manipulating SPARQL using ARQ</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

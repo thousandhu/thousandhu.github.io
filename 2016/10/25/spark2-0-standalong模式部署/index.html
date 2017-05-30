@@ -1,0 +1,760 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="standalong模式stangalone模式是spark自己部署自己在集群上的一个模式。  其中client模式下driver运行在提交任务的机器，cluster模式下运行在cluster内部的某个worker上，只能独自运行。executor不是在worker启动时启动的，而是一个新的application来时才启动的(master调用startExecutorsOnWorkers())。">
+<meta name="keywords" content="spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark2.0源码阅读-standalong模式部署">
+<meta property="og:url" content="http://thousandhu.github.io/2016/10/25/spark2-0-standalong模式部署/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="standalong模式stangalone模式是spark自己部署自己在集群上的一个模式。  其中client模式下driver运行在提交任务的机器，cluster模式下运行在cluster内部的某个worker上，只能独自运行。executor不是在worker启动时启动的，而是一个新的application来时才启动的(master调用startExecutorsOnWorkers())。">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-24-184923.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-25-202903.png">
+<meta property="og:image" content="http://images2015.cnblogs.com/blog/677972/201604/677972-20160410195126078-1159983641.jpg">
+<meta property="og:updated_time" content="2016-10-25T12:30:23.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark2.0源码阅读-standalong模式部署">
+<meta name="twitter:description" content="standalong模式stangalone模式是spark自己部署自己在集群上的一个模式。  其中client模式下driver运行在提交任务的机器，cluster模式下运行在cluster内部的某个worker上，只能独自运行。executor不是在worker启动时启动的，而是一个新的application来时才启动的(master调用startExecutorsOnWorkers())。">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-24-184923.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/10/25/spark2-0-standalong模式部署/"/>
+
+
+
+
+
+  <title>spark2.0源码阅读-standalong模式部署 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/10/25/spark2-0-standalong模式部署/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">spark2.0源码阅读-standalong模式部署</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-25T17:20:31+08:00">
+                2016-10-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="standalong模式"><a href="#standalong模式" class="headerlink" title="standalong模式"></a>standalong模式</h1><p>stangalone模式是spark自己部署自己在集群上的一个模式。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-24-184923.png" alt="2016-10-24-184923"></p>
+<p>其中client模式下driver运行在提交任务的机器，cluster模式下运行在cluster内部的某个worker上，只能独自运行。executor不是在worker启动时启动的，而是一个新的application来时才启动的(master调用<code>startExecutorsOnWorkers()</code>)。</p>
+<h2 id="集群启动流程"><a href="#集群启动流程" class="headerlink" title="集群启动流程"></a>集群启动流程</h2><p>集群启动主要是启动master和worker</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">./sbin/start-master.sh</div><div class="line">./sbin/start-slave.sh [masterURL]</div></pre></td></tr></table></figure>
+<p>启动<a href="https://jaceklaskowski.gitbooks.io/mastering-apache-spark/content/spark-standalone-worker-scripts.html" target="_blank" rel="external">master</a>和<a href="https://jaceklaskowski.gitbooks.io/mastering-apache-spark/content/spark-standalone-worker-scripts.html" target="_blank" rel="external">worker</a>的命令可以参考相关链接。</p>
+<p>启动过程中，worker需要向master注册自己，并且定时发动心跳，具体实现在<code>org.apache.spark.deploy.master</code>和<code>org.apache.spark.deploy.worker</code>两个类里。启动时worker会调用<code>registerWithMaster()</code>向master注册，并且通过heartbeat定期与master通信。</p>
+<h2 id="任务提交"><a href="#任务提交" class="headerlink" title="任务提交"></a>任务提交</h2><p>driver是一个hosts SparkContext的进程，是整个程序的入口，下面上一张driver的架构图</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-25-202903.png" alt="2016-10-25-202903"></p>
+<p>启动一个任务的具体流程是这样的：</p>
+<ol>
+<li>driver创建一个SparkContext，进而启动一个scheduler（一般是TaskSchedulerImpl）和一个backend（一般是StandaloneSchedulerBackend）。StandaloneSchedulerBackend的StandaloneAppClient向master发起请求注册一个application（registerWithMaster函数）。该函数会向Master发送一个RegisterApplication的rpc请求</li>
+<li><p>Master收到请求生成一个Application，同时做了以下两件事情</p>
+<ol>
+<li>向Driver发送一个RegisteredApplication消息。Driver收到这个消息以后会开始监听这个app</li>
+<li>调用scheduler函数给application分配资源：<ol>
+<li>如果是cluster模式，则通过<code>launchDriver(worker: WorkerInfo, driver: DriverInfo)</code>函数将worker和driver联系起来，发送<code>LaunchDriver(driver.id, driver.desc)</code>消息给worker。worker收到LaunchDriver生成一个DriverRunner对象并启动。如果是client模式，schedule对于的waitingDrivers中的driver为空，不会调用launchDriver在worker上生成driver。</li>
+<li>调用<code>startExecutorsOnWorkers()</code>进而调用<code>launchExecutor()</code>发送LaunchExecutor给工作节点。默认情况下使用spread out模式，将executor尽量分配到多个worker上</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>worker收到launchExecutor消息启动Executor。Worker创建一个ExecutorRunner线程，ExecutorRunner线程会调用fetchAndRunExecutor函数给Executor创建新的进程。</li>
+<li>Executor（CoarseGrainedExecutorBackend.run()）启动后会根据driverUrl向Driver注册自己。</li>
+<li>Driver的DAGScheduler解析作业并生成相应的Stage，每个Stage包含的Task通过TaskScheduler分配给Executor执行。 所有stage都完成后作业结束。</li>
+</ol>
+<p><img src="http://images2015.cnblogs.com/blog/677972/201604/677972-20160410195126078-1159983641.jpg" alt="">\</p>
+<p> 任务提交这里参考了</p>
+<ul>
+<li><a href="http://www.voidcn.com/blog/sbq63683210/article/p-6066793.html" target="_blank" rel="external">Spark源码学习（2）——Spark Submit(cluster)</a></li>
+<li><a href="http://www.cnblogs.com/jianyuan/p/Spark%e7%b3%bb%e5%88%97%e4%b9%8bWorker%e5%b7%a5%e4%bd%9c%e5%8e%9f%e7%90%86.html" target="_blank" rel="external">Spark系列(八)Worker工作原理</a></li>
+<li><a href="http://alexlei.com/2016/04/25/Submit-application-1/" target="_blank" rel="external">client模式参考文献</a></li>
+<li><a href="http://www.cnblogs.com/jianyuan/p/Spark%e6%95%b4%e4%bd%93%e6%9e%b6%e6%9e%84%e5%88%86%e6%9e%90.html" target="_blank" rel="external">Spark系列(四)整体架构分析</a></li>
+<li><a href="http://alexlei.com/2016/04/25/application-execution/" target="_blank" rel="external">应用执行过程分析</a> 启动过程讲的最清楚的一篇</li>
+</ul>
+<h2 id="容错"><a href="#容错" class="headerlink" title="容错"></a>容错</h2><h4 id="worker退出"><a href="#worker退出" class="headerlink" title="worker退出"></a>worker退出</h4><p>worker意外挂掉或者退出以后，worker上的所有Executor都会被kill或者丢失。此时worker与master间的heartbeat也不存在了，master会觉察到这一异常，从而会将这些executor失败的事情告诉driver</p>
+<h4 id="Executor退出"><a href="#Executor退出" class="headerlink" title="Executor退出"></a>Executor退出</h4><ul>
+<li>ExecutorRunner会注意到异常，通过ExecutorStateChanged汇报给master</li>
+<li>Master要求worker重启Executor</li>
+<li>worker收到指令重启Executor</li>
+</ul>
+<h4 id="Master退出"><a href="#Master退出" class="headerlink" title="Master退出"></a>Master退出</h4><p>在设置了Zookeeper和standby master的前提下，集群也可以恢复master失败。利用ZooKeeper可以提供leader的选举以及一些状态的存储，在集群中可以启动多个Masters来连接到相同的ZooKeeper实例。其中一个会被选举成“leader”，其他的仍旧处于standby模式。如果当前的leader死掉了，另一个Master会被选举出来，恢复之前的那个Master的状态，然后恢复调度。整个恢复过程需要花费1到2分钟时间。注意，这个延迟只会影响到新的应用程序–<strong>在故障转移期间，已经运行的应用程序不会受到影响</strong>。</p>
+<h4 id="supervise参数"><a href="#supervise参数" class="headerlink" title="supervise参数"></a>supervise参数</h4><p>standalone集群模式支持自动重启你的应用程序，如果它以非0的退出代码退出。要使用该功能，当启动你的应用程序时，你可能需要在spark-submit中传入 <code>--supervise</code>。然后，如果你想要杀死一个重复失败的应用程序，也许可以这样做：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-class org.apache.spark.deploy.Client kill &lt;master url&gt; &lt;driver ID&gt;</div></pre></td></tr></table></figure>
+<h4 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h4><ul>
+<li><a href="http://blog.csdn.net/u014729236/article/details/46341687" target="_blank" rel="external">Spark Standalone Mode 翻译和实验</a></li>
+<li><a href="http://blog.csdn.net/anzhsoft/article/details/33740737" target="_blank" rel="external">Spark技术内幕：Master基于ZooKeeper的High Availability（HA）源码实现</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/10/25/spark2-0-standalong模式部署/">http://thousandhu.github.io/2016/10/25/spark2-0-standalong模式部署/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spark/" rel="tag"># spark</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/22/spark2-0源码阅读-spark作业提交/" rel="next" title="spark2.0源码阅读--spark作业提交">
+                <i class="fa fa-chevron-left"></i> spark2.0源码阅读--spark作业提交
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/11/03/spark读取hbase遇到的问题/" rel="prev" title="spark读取hbase遇到的问题">
+                spark读取hbase遇到的问题 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#standalong模式"><span class="nav-number">1.</span> <span class="nav-text">standalong模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#集群启动流程"><span class="nav-number">1.1.</span> <span class="nav-text">集群启动流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务提交"><span class="nav-number">1.2.</span> <span class="nav-text">任务提交</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容错"><span class="nav-number">1.3.</span> <span class="nav-text">容错</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#worker退出"><span class="nav-number">1.3.0.1.</span> <span class="nav-text">worker退出</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Executor退出"><span class="nav-number">1.3.0.2.</span> <span class="nav-text">Executor退出</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Master退出"><span class="nav-number">1.3.0.3.</span> <span class="nav-text">Master退出</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#supervise参数"><span class="nav-number">1.3.0.4.</span> <span class="nav-text">supervise参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考文献"><span class="nav-number">1.3.0.5.</span> <span class="nav-text">参考文献</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

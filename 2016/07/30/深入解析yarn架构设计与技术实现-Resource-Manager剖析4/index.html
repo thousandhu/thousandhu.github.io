@@ -1,0 +1,740 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="容错机制Yarn的荣作主要是ApplicationMaster，Nodemanager，Container和ResourceManager四个组件的容错。  ApplicationMaster容错。ResourceManager会和ApplicationMaster保持通信，一旦发现ApplicationMaster失败或者超时，会为其重新分配资源并重启。重启后ApplicationMaster的">
+<meta name="keywords" content="yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-Resource Manager剖析4">
+<meta property="og:url" content="http://thousandhu.github.io/2016/07/30/深入解析yarn架构设计与技术实现-Resource-Manager剖析4/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="容错机制Yarn的荣作主要是ApplicationMaster，Nodemanager，Container和ResourceManager四个组件的容错。  ApplicationMaster容错。ResourceManager会和ApplicationMaster保持通信，一旦发现ApplicationMaster失败或者超时，会为其重新分配资源并重启。重启后ApplicationMaster的">
+<meta property="og:image" content="http://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/images/rm-ha-overview.png">
+<meta property="og:image" content="http://dongxicheng.org/wp-content/uploads/2013/11/RM-HA.jpg">
+<meta property="og:updated_time" content="2016-07-30T11:50:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-Resource Manager剖析4">
+<meta name="twitter:description" content="容错机制Yarn的荣作主要是ApplicationMaster，Nodemanager，Container和ResourceManager四个组件的容错。  ApplicationMaster容错。ResourceManager会和ApplicationMaster保持通信，一旦发现ApplicationMaster失败或者超时，会为其重新分配资源并重启。重启后ApplicationMaster的">
+<meta name="twitter:image" content="http://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/images/rm-ha-overview.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/07/30/深入解析yarn架构设计与技术实现-Resource-Manager剖析4/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-Resource Manager剖析4 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/07/30/深入解析yarn架构设计与技术实现-Resource-Manager剖析4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-Resource Manager剖析4</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-30T19:49:39+08:00">
+                2016-07-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="容错机制"><a href="#容错机制" class="headerlink" title="容错机制"></a>容错机制</h1><p>Yarn的荣作主要是ApplicationMaster，Nodemanager，Container和ResourceManager四个组件的容错。</p>
+<ul>
+<li>ApplicationMaster容错。ResourceManager会和ApplicationMaster保持通信，一旦发现ApplicationMaster失败或者超时，会为其重新分配资源并重启。重启后ApplicationMaster的运行状态需要自己恢复，比如MRAppMaster会把云翔状态记录到HDFS上，重启后从HDFS读取运行状态恢复</li>
+<li>NodeManager容错：NodeManager如果超时，则ResourceManager会认为它失败，将其上的所有container标记为失败并通知相应的ApplicationMaster，由AM决定如何处理</li>
+<li>container容错：如果ApplicationMaster在一定时间内未启动分配的container，RM会将其收回，如果Container运行失败，RM会告诉对应的AM由其处理。</li>
+<li>ResourceManager容错，因为RM是yarn架构中的一个单点，所以他的容错很难做，一般是采用HA的方式，有一个active master和一个standby master。active master挂了由standby补上。</li>
+</ul>
+<h1 id="resourceManager-HA的原理"><a href="#resourceManager-HA的原理" class="headerlink" title="resourceManager HA的原理"></a>resourceManager HA的原理</h1><p>resourceManager的ha是一个active/standby模式。HA模式下，active resourceManager会将Application的状态，Application每次尝试（ApplicationAttemptId）的状态以及安全令牌相关的信息储存起来，如果active rm挂了则将standby切换成active。</p>
+<p><img src="http://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/images/rm-ha-overview.png" alt=""></p>
+<p>HA需要在yarn-site.xml中进行相关配置，具体可以看<a href="https://hadoop.apache.org/docs/r2.7.2/hadoop-yarn/hadoop-yarn-site/ResourceManagerHA.html" target="_blank" rel="external">文档</a>。手动切换的话，使用命令<code>yarn rmadmin</code>。比如以下命令可以查看或者切换RM的状态：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">$</span><span class="bash"> yarn rmadmin -getServiceState rm1</span></div><div class="line">active</div><div class="line"><span class="meta"></span></div><div class="line">$<span class="bash"> yarn rmadmin -getServiceState rm2</span></div><div class="line">standby</div><div class="line"><span class="meta"></span></div><div class="line"> $<span class="bash"> yarn rmadmin -transitionToStandby rm1</span></div><div class="line">Automatic failover is enabled for org.apache.hadoop.yarn.client.RMHAServiceTarget@1d8299fd Refusing to manually manage HA state, since it may cause a split-brain scenario or other incorrect state. If you are very sure you know what you are doing, please specify the forcemanual flag.</div></pre></td></tr></table></figure>
+<p>自动切换的话网上很多资料都是说和HDFS类似，运用zkFailoverController。他大体的架构如下图。他的基本的实现思想是，所有ResourceManager启动后，将创建Zookeeper下的同一个目录，谁创建成功，则谁进入active状态，其他的自动转入standby状态。而当active RM失效时，standby rm自动转换成active</p>
+<p><img src="http://dongxicheng.org/wp-content/uploads/2013/11/RM-HA.jpg" alt=""></p>
+<h1 id="ResourceManager-HA的实现"><a href="#ResourceManager-HA的实现" class="headerlink" title="ResourceManager HA的实现"></a>ResourceManager HA的实现</h1><p>yarn ha的共享内存系统被抽象成RMStatStore。 底层采用不同的共享文件系统，比如zookeeper，NFS，HDFS等，不同的实现都要继承这个类，然后实现具体的save/load等功能。</p>
+<p>RMStateStore这个类是一个service，并且维护了一个状态机。状态机其实只有两个状态Active和Fenced。如果state是active，那么他接收部分事件时就会调用指定函数更新具体app的状态。比如状态机生成时添加的这个transition</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">addTransition(RMStateStoreState.ACTIVE,</div><div class="line">			RMStateStoreState.ACTIVE,</div><div class="line">			RMStateStoreEventType.STORE_APP, </div><div class="line">			<span class="keyword">new</span> StoreAppTransition())</div></pre></td></tr></table></figure>
+<p>表示RMStateStore是active时如果收到了STORE_APP这个事件则调用StoreAppTranstion这个子类定义的transition。接下来看一下这个子类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">StoreAppTransition</span></span></div><div class="line">    <span class="keyword">implements</span> <span class="title">SingleArcTransition</span>&lt;<span class="title">RMStateStore</span>, <span class="title">RMStateStoreEvent</span>&gt; &#123;</div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">transition</span><span class="params">(RMStateStore store, RMStateStoreEvent event)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (!(event <span class="keyword">instanceof</span> RMStateStoreAppEvent)) &#123;</div><div class="line">      <span class="comment">// should never happen</span></div><div class="line">      LOG.error(<span class="string">"Illegal event type: "</span> + event.getClass());</div><div class="line">      <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line">    ApplicationStateData appState =</div><div class="line">        ((RMStateStoreAppEvent) event).getAppState();</div><div class="line">    ApplicationId appId =  appState.getApplicationSubmissionContext().getApplicationId();</div><div class="line">    LOG.info(<span class="string">"Storing info for app: "</span> + appId);</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">      store.storeApplicationStateInternal(appId, appState);</div><div class="line">      store.notifyApplication(<span class="keyword">new</span> RMAppEvent(appId,</div><div class="line">             RMAppEventType.APP_NEW_SAVED));</div><div class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">      LOG.error(<span class="string">"Error storing app: "</span> + appId, e);</div><div class="line">      store.notifyStoreOperationFailed(e);</div><div class="line">    &#125;</div><div class="line">  &#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个store是一个RMStateStore，而其中storeApplicationStateInternal和notifyApplication实现和具体存储有关，比如在ZKRMStateStore中，这个函数实现了他如何存到一个zk的指定路径。在resourceManager中，RMStateStore存在rmContext中。</p>
+<p>ResourceManager会把service分为两部分，activeService和adminService。activeService是诸如amLivelinessMonitor，amLivelinessMonitor这种集群中只需要一个处于活跃状态的service。而adminService主要是管理rm自身已经ha相关的service。只有处于active状态的rm会启动activeService，AdminService则是所有rm都会启动的。</p>
+<p>在ha模式下，所有resourceManager启动后都会调用transitionToStandby()切换到standby状态，之后注册zk node并将第一个切换成active（不过切换成active的代码我没找到）。</p>
+<p>AdminService中有一个EmbeddedElectorService，应该是和zookeeper一起选择active rm的服务。如何利用zookeeper实现ha我觉得可以新开一篇和hdfs的ha一起讲一下。</p>
+<p>恢复状态是resourceManager在serviceStart的时候会判断是否需要恢复，如果需要则调用recover()函数从之前存好的RMState中取出相关信息进行恢复。</p>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ul>
+<li><a href="https://hadoop.apache.org/docs/r2.7.2/hadoop-yarn/hadoop-yarn-site/ResourceManagerHA.html" target="_blank" rel="external">ResourceManagerHA官方文档</a></li>
+<li><a href="http://www.aliog.com/76058.html" target="_blank" rel="external">YARN源码分析(三)—–ResourceManager HA之应用状态存储与恢复</a></li>
+<li><a href="http://debugo.com/yarn-rm-ha/" target="_blank" rel="external">YARN ResourceManager HA配置详解</a></li>
+<li><a href="http://dongxicheng.org/mapreduce-nextgen/hadoop-yarn-ha-in-cdh5/" target="_blank" rel="external">Hadoop YARN单点故障解决方案（HA）介绍</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/07/30/深入解析yarn架构设计与技术实现-Resource-Manager剖析4/">http://thousandhu.github.io/2016/07/30/深入解析yarn架构设计与技术实现-Resource-Manager剖析4/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/29/深入解析yarn架构设计与技术实现-Resource-Manager剖析3/" rel="next" title="深入解析yarn架构设计与技术实现-Resource Manager剖析3">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-Resource Manager剖析3
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/06/strata-hadoop参会感想/" rel="prev" title="strata+hadoop参会感想">
+                strata+hadoop参会感想 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#容错机制"><span class="nav-number">1.</span> <span class="nav-text">容错机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#resourceManager-HA的原理"><span class="nav-number">2.</span> <span class="nav-text">resourceManager HA的原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ResourceManager-HA的实现"><span class="nav-number">3.</span> <span class="nav-text">ResourceManager HA的实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">4.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

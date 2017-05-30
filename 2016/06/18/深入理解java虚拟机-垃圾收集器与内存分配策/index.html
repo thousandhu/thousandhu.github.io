@@ -1,0 +1,806 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="java,jvm," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="3.2对象已死么程序计数器，虚拟机栈，本地方法栈随着线程生成或销毁。栈帧随着方法的进入和退出而执行出入栈，不需要考虑垃圾回收。而java堆和方法区需要动态回收，所以这部分内存的分配需要垃圾收集  引用计数算法 每有一个地方引用，计数器+1；引用失效减一；为0则可回收 很难解决相互循环引用   可达性分析： 通过一些列成为GC ROOTS的对象最为起点，从这些节点开始向下搜索，搜索的路径成为引用链，">
+<meta name="keywords" content="java,jvm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解java虚拟机 垃圾收集器与内存分配策">
+<meta property="og:url" content="http://thousandhu.github.io/2016/06/18/深入理解java虚拟机-垃圾收集器与内存分配策/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="3.2对象已死么程序计数器，虚拟机栈，本地方法栈随着线程生成或销毁。栈帧随着方法的进入和退出而执行出入栈，不需要考虑垃圾回收。而java堆和方法区需要动态回收，所以这部分内存的分配需要垃圾收集  引用计数算法 每有一个地方引用，计数器+1；引用失效减一；为0则可回收 很难解决相互循环引用   可达性分析： 通过一些列成为GC ROOTS的对象最为起点，从这些节点开始向下搜索，搜索的路径成为引用链，">
+<meta property="og:image" content="http://www.itnose.net/img/20150726/10411265.png">
+<meta property="og:image" content="http://images.cnitblog.com/blog/290922/201403/060000077531969.png">
+<meta property="og:image" content="http://images.cnitblog.com/blog/290922/201403/060000154564149.png">
+<meta property="og:image" content="http://images.cnitblog.com/blog/290922/201403/060000318311580.png">
+<meta property="og:image" content="http://www.itnose.net/img/20150726/10411265.png">
+<meta property="og:updated_time" content="2016-06-18T13:55:49.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解java虚拟机 垃圾收集器与内存分配策">
+<meta name="twitter:description" content="3.2对象已死么程序计数器，虚拟机栈，本地方法栈随着线程生成或销毁。栈帧随着方法的进入和退出而执行出入栈，不需要考虑垃圾回收。而java堆和方法区需要动态回收，所以这部分内存的分配需要垃圾收集  引用计数算法 每有一个地方引用，计数器+1；引用失效减一；为0则可回收 很难解决相互循环引用   可达性分析： 通过一些列成为GC ROOTS的对象最为起点，从这些节点开始向下搜索，搜索的路径成为引用链，">
+<meta name="twitter:image" content="http://www.itnose.net/img/20150726/10411265.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/06/18/深入理解java虚拟机-垃圾收集器与内存分配策/"/>
+
+
+
+
+
+  <title>深入理解java虚拟机 垃圾收集器与内存分配策 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/06/18/深入理解java虚拟机-垃圾收集器与内存分配策/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入理解java虚拟机 垃圾收集器与内存分配策</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-06-18T21:50:44+08:00">
+                2016-06-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="3-2对象已死么"><a href="#3-2对象已死么" class="headerlink" title="3.2对象已死么"></a>3.2对象已死么</h1><p>程序计数器，虚拟机栈，本地方法栈随着线程生成或销毁。栈帧随着方法的进入和退出而执行出入栈，不需要考虑垃圾回收。而java堆和方法区需要动态回收，所以这部分内存的分配需要垃圾收集</p>
+<ul>
+<li>引用计数算法<ul>
+<li>每有一个地方引用，计数器+1；引用失效减一；为0则可回收</li>
+<li>很难解决相互循环引用</li>
+</ul>
+</li>
+<li>可达性分析： 通过一些列成为GC ROOTS的对象最为起点，从这些节点开始向下搜索，搜索的路径成为引用链，当一个对象到GC ROOTS没有任何引用链时，则被判定为可回收对象。<ul>
+<li>GC ROOTS：<ul>
+<li>虚拟机栈中（栈帧中的本地变量表）引用的对象</li>
+<li>方法区中类静态属性引用的对象</li>
+<li>方法区中常量引用的对象</li>
+<li>本地方法栈中JNI（一般为native方法）引用的对象</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>下面四种引用强度依次递减</p>
+<ul>
+<li>强引用： 类似<code>Object obj= new Object()</code>，只要强引用还存在，垃圾收集器永远不会收集该对象</li>
+<li>软引用： 还有用但并非必须的对象。在系统将要oom时，会把这些对象列入回收范围进行二次回收，还是oom才会抛出异常</li>
+<li>弱引用。当垃圾收集器工作时，无论当前内存是否足够，都会回收只被弱引用关联的对象</li>
+<li>虚引用。不会被生存时间构成影响，唯一目的是正在这个对象被回收时收到一条系统消息</li>
+</ul>
+<h2 id="对象死亡的标记过程"><a href="#对象死亡的标记过程" class="headerlink" title="对象死亡的标记过程"></a>对象死亡的标记过程</h2><p>对象在可达性分析后发现没有与GC roots相连的引用链，那么会被第一次标记并进行一次筛选，筛选条件是该对象有没有必要执行finalize（）方法</p>
+<ul>
+<li>如果对象没有覆盖finalize方法或者finalize方法被执行过，就是没必要执行。（finalize方法只会被执行一次）</li>
+<li>如果该对象需要执行finalize，则被放在一个F-queue中，稍后会被一个Finalizer线程执行（这里的执行并不保证finalize函数执行完毕，为了防止finalize卡住或者死循环之类导致gc失败）。如果finalize过程中能够重新和引用链建立关系，则会移除”即将回收”的集合，反之则基本走远了</li>
+<li>不建议使用finalize函数，他不稳定，不如try-finally</li>
+</ul>
+<p>方法区的回收主要是废弃常量和无用类，无用类的判断标准有以下三点：</p>
+<ul>
+<li>该类的所有实例都已经被回收</li>
+<li>加载该类的classLoader被回收</li>
+<li>该类的java.lang.class对象没有在任何地方被引用。</li>
+</ul>
+<p>在大量使用反射，动态代理，gcLib等地方需要注意防止永久代不会溢出</p>
+<h1 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h1><ul>
+<li>标记-清除算法： 首先标记所有需要会受到对象，标记完成后统一进行删除<ul>
+<li>不足1：效率比较低</li>
+<li>产生大龄不连续的内存碎片</li>
+</ul>
+</li>
+<li>复制算法：将内存一分为二，每次只使用其中一块。当这一块使用完，就将还存在的对象复制到另一块内存上，把原来的空间一次清理掉<ul>
+<li>不足，内存使用率下降一半</li>
+<li>新生代中98%的对象都是“朝生夕死”，因此现在常用的方法都是基于这种方法。将内存分为一块较大的Eden和两块较小的Survivor。会收拾将eden和survivor中还存活的对象一次复制到另一个survivor，然后清理掉eden和原先的survivor。如果survivor放不下所有存活对象，则会放入老年代</li>
+</ul>
+</li>
+<li>标记-整理：将所有存活的对象移动到内存的一端，之后将另一端完全清空</li>
+<li><strong>分代回收：新生代用复制算法，老生带由于存活的久的对象较多，用标记清除或标记整理算法</strong></li>
+</ul>
+<h1 id="HotSpot的实现"><a href="#HotSpot的实现" class="headerlink" title="HotSpot的实现"></a>HotSpot的实现</h1><p>枚举根节点：利用OopMap数据结构来记录哪些地方存着对象引用。为了结缘内存，并不是在每条指令都生成oopMap，而是在指定的称作”安全点”的位置，安全点的选定都是能让程序长时间执行的位置，特征在于指令序列复用，如方法调用，循环跳转，异常跳转等。</p>
+<p>一个问题就是需要让所有线程跑到安全点再停顿gc，两种方法：</p>
+<ul>
+<li>抢先式中断：用的少。gc时程序先停下来，如果不在安全点再恢复，让他跑到安全点再停止。</li>
+<li>主动式：GC需要中断线程时，简单的设置一个标志，各个线程执行时主动的去轮训这个标志，发现标志就中断自己。</li>
+</ul>
+<p>安全点面临一个问题，对于那些sleep或者blocked的线程无法响应jvm的中断请求，这需要安全区域来解决。安全区域值得是在一段代码中，引用关系不会发生变化。这样在这个区域内的人户地方开始GC都是安全的。线程进入安全区域时，标识自己，这样jvm就不用处理检查这个线程的根节点枚举。</p>
+<h1 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h1><p><img src="http://www.itnose.net/img/20150726/10411265.png" alt=""></p>
+<p> <a href="http://www.cnblogs.com/pan2011/archive/2014/03/06/3583644.html" target="_blank" rel="external">各种收集器简介</a></p>
+<p>垃圾回收器的分类及优缺点:</p>
+<ul>
+<li>串行垃圾回收器:串行垃圾回收器通过持有应用程序所有的线程进行工作。它为单线程环境设计，只使用一个单独的线程进行垃圾回收，通过冻结所有应用程序线程进行工作，所以可能不适合服务器环境。它最适合的是简单的命令行程序。<ul>
+<li><img src="http://images.cnitblog.com/blog/290922/201403/060000077531969.png" alt=""></li>
+</ul>
+</li>
+<li>并行垃圾回收器:并行垃圾回收器也叫做 throughput collector 。它是JVM的默认垃圾回收器。与串行垃圾回收器不同，它使用多线程进行垃圾回收。相似的是，它也会冻结所有的应用程序线程当执行垃圾回收的时候<ul>
+<li><img src="http://images.cnitblog.com/blog/290922/201403/060000154564149.png" alt=""></li>
+</ul>
+</li>
+<li>并发标记扫描垃圾回收器:并发标记垃圾回收使用多线程扫描堆内存，标记需要清理的实例并且清理被标记过的实例。四个步骤：<ul>
+<li>初始标记：标记初始的GC roots，需要stop world</li>
+<li>并发标记：GC root tracing。</li>
+<li>重新标记：修正并发标记期间变动的对象。 需要stop world </li>
+<li>并发清理：</li>
+<li>优点：并发收集，低停顿</li>
+<li>缺点：1 对cpu资源敏感，2基于标记清楚算法，有很多碎片。</li>
+<li><img src="http://images.cnitblog.com/blog/290922/201403/060000318311580.png" alt=""></li>
+</ul>
+</li>
+<li>G1:  G1垃圾回收器适用于堆内存很大的情况，他将堆内存分割成不同的区域，并且并发的对其进行垃圾回收。G1也可以在回收内存之后对剩余的堆内存空间进行压缩。并发扫描标记垃圾回收器在STW情况下压缩内存。G1垃圾回收会优先选择第一块垃圾最多的区域<h1 id="内存分配与回收策略"><a href="#内存分配与回收策略" class="headerlink" title="  - 内存分配与回收策略"></a>  - <img src="http://www.itnose.net/img/20150726/10411265.png" alt="">内存分配与回收策略</h1></li>
+</ul>
+<ol>
+<li>对象优先分配在Eden</li>
+<li>大对象直接进入老年代（通过<code>-XX:PretenureSizeThreshold</code>设置大对象阈值。）PS避免使用那些短命的大对象，从来减少为了获取连续空间而出现的GC</li>
+<li>长期存活的对象将进入老年代。每个对象有一个年龄计数器，对徐昂在eden出生并且经过一次minor  gc后如果存活并进入survivor，则age+1，每在survior中存活一次加一，超过一定阈值进入老年代（一般是15）</li>
+<li>动态对象年龄判断。当survivor中年龄n的综合大于survivor容量的一半，则年龄大于等于n的就可以进入老年代。</li>
+<li>空间分配担保。minor gc之前，会先检查老年代的最大可用连续空间，如果没有新生代所有对象总空间大则检查是否允许担保失败，如果不允许则会改成full GC，如果允许但是老年大最大可用连续空间小于历次晋升到老年代的对象的平均大小，也改为full gc</li>
+</ol>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/06/18/深入理解java虚拟机-垃圾收集器与内存分配策/">http://thousandhu.github.io/2016/06/18/深入理解java虚拟机-垃圾收集器与内存分配策/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/jvm/" rel="tag"># jvm</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/06/18/深入理解java虚拟机 java内存区域与内存溢出异常/" rel="next" title="深入理解java虚拟机 java内存区域与内存溢出异常">
+                <i class="fa fa-chevron-left"></i> 深入理解java虚拟机 java内存区域与内存溢出异常
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/06/18/深入理解java虚拟机-类文件结构/" rel="prev" title="深入理解java虚拟机-类文件结构">
+                深入理解java虚拟机-类文件结构 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#3-2对象已死么"><span class="nav-number">1.</span> <span class="nav-text">3.2对象已死么</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#对象死亡的标记过程"><span class="nav-number">1.1.</span> <span class="nav-text">对象死亡的标记过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#垃圾收集算法"><span class="nav-number">2.</span> <span class="nav-text">垃圾收集算法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HotSpot的实现"><span class="nav-number">3.</span> <span class="nav-text">HotSpot的实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">4.</span> <span class="nav-text">垃圾收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内存分配与回收策略"><span class="nav-number">5.</span> <span class="nav-text">  - 内存分配与回收策略</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

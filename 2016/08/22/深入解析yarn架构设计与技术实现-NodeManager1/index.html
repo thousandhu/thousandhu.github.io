@@ -1,0 +1,769 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="深入解析yarn架构设计与技术实现-Node Manager NodeManager主要有两个职责：  从ApplicationMaster上接收有关Container的命令并执行 ContainerManagermentProtocol协议，AppliationMaster是rpc client，会主动将信息发送给NM，这个好处是降低时间延迟 主要是startContainer，stopCont">
+<meta name="keywords" content="hadoop,yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-NodeManager1">
+<meta property="og:url" content="http://thousandhu.github.io/2016/08/22/深入解析yarn架构设计与技术实现-NodeManager1/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="深入解析yarn架构设计与技术实现-Node Manager NodeManager主要有两个职责：  从ApplicationMaster上接收有关Container的命令并执行 ContainerManagermentProtocol协议，AppliationMaster是rpc client，会主动将信息发送给NM，这个好处是降低时间延迟 主要是startContainer，stopCont">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-14-144308.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-20-151011.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-20-162420.png">
+<meta property="og:updated_time" content="2016-08-22T14:42:38.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-NodeManager1">
+<meta name="twitter:description" content="深入解析yarn架构设计与技术实现-Node Manager NodeManager主要有两个职责：  从ApplicationMaster上接收有关Container的命令并执行 ContainerManagermentProtocol协议，AppliationMaster是rpc client，会主动将信息发送给NM，这个好处是降低时间延迟 主要是startContainer，stopCont">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-14-144308.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/08/22/深入解析yarn架构设计与技术实现-NodeManager1/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-NodeManager1 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/08/22/深入解析yarn架构设计与技术实现-NodeManager1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-NodeManager1</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-22T22:41:58+08:00">
+                2016-08-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>深入解析yarn架构设计与技术实现-Node Manager</p>
+<p>NodeManager主要有两个职责：</p>
+<ul>
+<li>从ApplicationMaster上接收有关Container的命令并执行<ul>
+<li>ContainerManagermentProtocol协议，AppliationMaster是rpc client，会主动将信息发送给NM，这个好处是降低时间延迟</li>
+<li>主要是startContainer，stopContainer和getContainerStatus三个函数</li>
+</ul>
+</li>
+<li>向ResourceManager汇报各个container的状态并领取相关container命令<ul>
+<li>ResourceTrackerProtocol协议，其中ResourceManager是RPC server，NM周期性同步状态和领取命令</li>
+<li>主要是registerNodemanager和nodeHeartbeat两个函数</li>
+</ul>
+</li>
+</ul>
+<h1 id="总体架构"><a href="#总体架构" class="headerlink" title="总体架构"></a>总体架构</h1><p>NM总体上分为这么几个部分：</p>
+<ul>
+<li>NodeStatusUpdater：NM与RM通信的唯一通道。初次启动会注册NM，之后会与RM维持心跳</li>
+<li>ContainerManager：管理NM上的container，有多个模块，是NM最核心的部分，后面在container部分会细讲</li>
+<li>NodeHealthCheckerService模块：通过周期性运行自定义脚本（NodeHealthScriptRunner）和向磁盘写文件（LocalDirsHandlerService）检查节点健康状态。</li>
+<li>security：安全模块<ul>
+<li>ApplicationACLsManager，确保NM的用户是合法的</li>
+<li>ContainerTokenSecrtManager，确保用户请求的资源被RM授权过</li>
+</ul>
+</li>
+<li>webserver：通过web界面展示NM相关信息</li>
+<li>DeletionService：异步删除文件</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-14-144308.png" alt="2016-08-14-144308"></p>
+<h1 id="节点健康状况管理"><a href="#节点健康状况管理" class="headerlink" title="节点健康状况管理"></a>节点健康状况管理</h1><h2 id="自定义脚本"><a href="#自定义脚本" class="headerlink" title="自定义脚本"></a>自定义脚本</h2><p>通过设置<code>yarn.nodemanager.health-checker.script.path</code>指定脚本路径。该脚本如果输出以ERROR为前缀的message，则认为节点处于不健康的状态，rm会将其加入blacklist。<code>yarn.nodemanager.health-checker.interval-ms</code>设定脚本执行间隔.<code>yarn.nodemanager.health-checker.script.timeout-ms</code>设定脚本超时间隔，在该时间内没有响应则任务节点处于不健康的状态。<code>yarn-nodemanager.health.script.opt</code>可以向脚本传递参数</p>
+<h2 id="检测磁盘"><a href="#检测磁盘" class="headerlink" title="检测磁盘"></a>检测磁盘</h2><p>通过设置<code>yanr.nodemanagerdisk-health-checker.enable</code>可以设置开启监测磁盘损坏数目的功能，该功能有LocalirsHandlerService服务提供。因为程序中间运行结果和日志一般都存在本地磁盘，所以需要监控磁盘的执行情况。</p>
+<h1 id="分布式缓存机制"><a href="#分布式缓存机制" class="headerlink" title="分布式缓存机制"></a>分布式缓存机制</h1><p>yarn的分布式缓存主要是将用户的应用执行时所需的外部文件自动透明的加载到NodeManager上的机制。比如下图，一个任务启动时，第1，3，6步都是需要和hdfs交互来上传或者下载文件的。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-20-151011.png" alt="2016-08-20-151011"></p>
+<p>按照资源的可见性，NodeManager将资源分为3类：</p>
+<ul>
+<li><p>public:只要有一个用户将这些资源下载到本地，则该机器上的所有应用都可以直接使用</p>
+</li>
+<li><p>private:资源被下载后该用户的所有应用都可以使用该资源</p>
+</li>
+<li><p>application：该节点的同一应用的所有container可以共享该资源</p>
+</li>
+</ul>
+<p>按照资源类型的不同，可以分为archive（.jar等，会自动解压），file（普通文件），Pattern(之前两种都有)。对于mr来说，可以通过addCacheArchive(),addCachefile()等函数设置需要分布式缓存的文件。</p>
+<p>在yarn-site.xml中，可以挂载很多硬盘，设置多个路径，如</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.local-dirs<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>/data-a/hadoop/yarn/local-dir,/data-b/hadoop/yarn/local-dir,/data-c/hadoop/yarn/local-dir,/data-d/hadoop/yarn/local-dir,/data-e/hadoop/yarn/local-dir,/data-f/hadoop/yarn/local-dir,/data-g/hadoop/yarn/local-dir<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>就是挂载了7块硬盘，NodeManager通过轮询的方式将三类资源放在上面配置的路径中：</p>
+<ul>
+<li>public资源，放在<code>${yarn.nodemanager.local-dirs}/local-dirfilecache</code>目录下，资源权限为755</li>
+<li>private资源，放在<code>${yarn.nodemanager.local-dirs}/usercache/${user}/filecache</code>文件夹下，<code>${user}</code>是应用的提交者。权限为710</li>
+<li>application资源，存放在<code>${yarn.nodemanager.local-dirs}、usercache/${user}/${appcache}/${appid}/filecache/</code>下。权限为710</li>
+<li>container的工作目录：在<code>${yarn.nodemanager.local-dirs}、usercache/${user}/${appcache}/${appid}/${containerid}</code>下，在container运行过程中需要用到的jar包等，会通过软连接连接到对应资源</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-20-162420.png" alt="2016-08-20-162420"></p>
+<p> public资源通过ResourceLocalizationService的PublicLocalizer下载，private和application资源通过ResourceLocalizationService的LocalizerRunner（每个container对应一个线程）下载.</p>
+<p>过期缓存会被定时删除，时间有yarn.nodemanager.localizer.cache.cleanup-interval-ms决定。而container输出的中间数据会在application整个都结束时才统一清理，这是为了避免application内的container间的数据依赖（如reduce依赖map的输出）。</p>
+<p>日志文件相对简单，存在<code>${yarn.nodemanager.log-dirs}/${appid}/${containerid}</code>下。日志的清理机制分为定期删除（保留时间由<code>yarn.nodemanager.log.retain-seconds</code>决定）和日志转存（<code>yarn.log-aggregation-enable</code>开启）两种。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/08/22/深入解析yarn架构设计与技术实现-NodeManager1/">http://thousandhu.github.io/2016/08/22/深入解析yarn架构设计与技术实现-NodeManager1/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/08/10/深入解析yarn架构设计与技术实现-资源调度器/" rel="next" title="深入解析yarn架构设计与技术实现-资源调度器">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-资源调度器
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/28/深入解析yarn架构设计与技术实现-NodeManager2/" rel="prev" title="深入解析yarn架构设计与技术实现-NodeManager2">
+                深入解析yarn架构设计与技术实现-NodeManager2 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#总体架构"><span class="nav-number">1.</span> <span class="nav-text">总体架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#节点健康状况管理"><span class="nav-number">2.</span> <span class="nav-text">节点健康状况管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义脚本"><span class="nav-number">2.1.</span> <span class="nav-text">自定义脚本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#检测磁盘"><span class="nav-number">2.2.</span> <span class="nav-text">检测磁盘</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分布式缓存机制"><span class="nav-number">3.</span> <span class="nav-text">分布式缓存机制</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,689 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="事件库主要是通过dispatch分发，以AysncDispatcher为例。AsyncDispatcher有一个blockingQueue来缓存event。AsyncDispatcher服务启动时会启动一个线程，不断的去eventQueue拿任务并且分发。分发调用dispatcher线程，而这个dispatcher会根据任务的不同类型，将任务分发到不同的eventHandler。eventhand">
+<meta name="keywords" content="yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-事件库与状态机">
+<meta property="og:url" content="http://thousandhu.github.io/2016/06/24/事件库-深入解析yarn架构设计与技术实现-md/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="事件库主要是通过dispatch分发，以AysncDispatcher为例。AsyncDispatcher有一个blockingQueue来缓存event。AsyncDispatcher服务启动时会启动一个线程，不断的去eventQueue拿任务并且分发。分发调用dispatcher线程，而这个dispatcher会根据任务的不同类型，将任务分发到不同的eventHandler。eventhand">
+<meta property="og:image" content="http://www.2cto.com/uploadfile/2013/1120/20131120011913353.jpg">
+<meta property="og:updated_time" content="2016-06-26T15:25:46.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-事件库与状态机">
+<meta name="twitter:description" content="事件库主要是通过dispatch分发，以AysncDispatcher为例。AsyncDispatcher有一个blockingQueue来缓存event。AsyncDispatcher服务启动时会启动一个线程，不断的去eventQueue拿任务并且分发。分发调用dispatcher线程，而这个dispatcher会根据任务的不同类型，将任务分发到不同的eventHandler。eventhand">
+<meta name="twitter:image" content="http://www.2cto.com/uploadfile/2013/1120/20131120011913353.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/06/24/事件库-深入解析yarn架构设计与技术实现-md/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-事件库与状态机 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/06/24/事件库-深入解析yarn架构设计与技术实现-md/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-事件库与状态机</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-06-24T22:10:39+08:00">
+                2016-06-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>事件库主要是通过dispatch分发，以AysncDispatcher为例。AsyncDispatcher有一个blockingQueue<event>来缓存event。AsyncDispatcher服务启动时会启动一个线程，不断的去eventQueue拿任务并且分发。分发调用dispatcher线程，而这个dispatcher会根据任务的不同类型，将任务分发到不同的eventHandler。eventhandler是需要调用dispatcher的register函数进行注册的。分发任务去不同handler的过程就是调用handler的handle函数。这个函数有可能是做一些具体的处理，也可能是接受这个event，将其放入自己的eventQueue。如果是后者，那这个过程实际上是一个事件转发，从上游调度器转发到下游调度器。看代码时迷惑可能会迷惑在同一个dispatcher的run/createThread函数启动一个线程后不停的take event，而handle函数却在不停的put event，感觉像是一个死循环。真实情况是自己的handle函数一般是上游在调用，相当于把任务转发给你，而你自己在调用自己的dispatcher时，会先选择一个event的handler，然后调用handler.handle，这个handler通常不再是自己，也就是说把它转发给下游。这种基于事件驱动的方式有着异步，高并发的特点，相比于直接的函数调用更适合大型分布式系统。</event></p>
+<p><img src="http://www.2cto.com/uploadfile/2013/1120/20131120011913353.jpg" alt=""></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">protected void dispatch(Event event) &#123;</div><div class="line">   //all events go thru this loop</div><div class="line">   if (LOG.isDebugEnabled()) &#123;</div><div class="line">     LOG.debug(&quot;Dispatching the event &quot; + event.getClass().getName() + &quot;.&quot;</div><div class="line">         + event.toString());</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   Class&lt;? extends Enum&gt; type = event.getType().getDeclaringClass();</div><div class="line"></div><div class="line">   try&#123;</div><div class="line">     EventHandler handler = eventDispatchers.get(type);</div><div class="line">     if(handler != null) &#123;</div><div class="line">       handler.handle(event);</div><div class="line">     &#125; else &#123;</div><div class="line">       throw new Exception(&quot;No handler for registered for &quot; + type);</div><div class="line">     &#125;</div><div class="line">   &#125; catch (Throwable t) &#123;</div><div class="line">     //TODO Maybe log the state of the queue</div><div class="line">     LOG.fatal(&quot;Error in dispatcher thread&quot;, t);</div><div class="line">     // If serviceStop is called, we should exit this thread gracefully.</div><div class="line">     if (exitOnDispatchException</div><div class="line">         &amp;&amp; (ShutdownHookManager.get().isShutdownInProgress()) == false</div><div class="line">         &amp;&amp; stopped == false) &#123;</div><div class="line">       Thread shutDownThread = new Thread(createShutDownThread());</div><div class="line">       shutDownThread.setName(&quot;AsyncDispatcher ShutDown handler&quot;);</div><div class="line">       shutDownThread.start();</div><div class="line">     &#125;</div><div class="line">   &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>状态机的构建主要是状态注册addTransition和installToplogy。而执行时主要是调用查看现在的状态getCurrentState()和doTranstion()两个函数</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/06/24/事件库-深入解析yarn架构设计与技术实现-md/">http://thousandhu.github.io/2016/06/24/事件库-深入解析yarn架构设计与技术实现-md/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/06/22/深入解析yarn架构设计与技术实现-yarn-rpc框架/" rel="next" title="深入解析yarn架构设计与技术实现-yarn rpc框架">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-yarn rpc框架
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/06/24/hadoop-streaming实现分布式grep/" rel="prev" title="hadoop streaming实现分布式grep">
+                hadoop streaming实现分布式grep <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

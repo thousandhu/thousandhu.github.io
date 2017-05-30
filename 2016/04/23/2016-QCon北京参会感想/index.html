@@ -1,0 +1,813 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="architecture,big data," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="2016 QCon北京参会感想感谢公司，蹭了一天6k8的高价会议。ppt下载 首先说一下整体感受吧。我主要盯着大数据平台架构这个session听。中间穿插着听了2个做知识图谱相关的和freewheel做噪声消除的。水平有限，他们深入讲一个项目的很多地方都听不懂，反而是美团讲整个数据分析平台的听得比较明白，可能是自己的水平有限，对于开源项目的具体细节还不了解，还停留在用的阶段。 另外今天很大的一个收">
+<meta name="keywords" content="architecture,big data">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2016 QCon北京参会感想">
+<meta property="og:url" content="http://thousandhu.github.io/2016/04/23/2016-QCon北京参会感想/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="2016 QCon北京参会感想感谢公司，蹭了一天6k8的高价会议。ppt下载 首先说一下整体感受吧。我主要盯着大数据平台架构这个session听。中间穿插着听了2个做知识图谱相关的和freewheel做噪声消除的。水平有限，他们深入讲一个项目的很多地方都听不懂，反而是美团讲整个数据分析平台的听得比较明白，可能是自己的水平有限，对于开源项目的具体细节还不了解，还停留在用的阶段。 另外今天很大的一个收">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E4%BB%A4%E7%89%8C%E6%A1%B6%E9%99%90%E6%B5%81.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/160422%E6%98%8E%E7%95%A5-%E6%9E%B6%E6%9E%84.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/160422%E7%BE%8E%E5%9B%A2%E6%95%B0%E6%8D%AE%E6%B5%81%E6%9E%B6%E6%9E%84%E5%9B%BE.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/160422%E7%BE%8E%E5%9B%BE%E7%A6%BB%E7%BA%BF%E8%AE%A1%E7%AE%97%E9%83%A8%E7%BD%B2%E6%9E%B6%E6%9E%84.png">
+<meta property="og:updated_time" content="2016-04-23T07:14:38.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2016 QCon北京参会感想">
+<meta name="twitter:description" content="2016 QCon北京参会感想感谢公司，蹭了一天6k8的高价会议。ppt下载 首先说一下整体感受吧。我主要盯着大数据平台架构这个session听。中间穿插着听了2个做知识图谱相关的和freewheel做噪声消除的。水平有限，他们深入讲一个项目的很多地方都听不懂，反而是美团讲整个数据分析平台的听得比较明白，可能是自己的水平有限，对于开源项目的具体细节还不了解，还停留在用的阶段。 另外今天很大的一个收">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E4%BB%A4%E7%89%8C%E6%A1%B6%E9%99%90%E6%B5%81.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/04/23/2016-QCon北京参会感想/"/>
+
+
+
+
+
+  <title>2016 QCon北京参会感想 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/04/23/2016-QCon北京参会感想/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">2016 QCon北京参会感想</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-23T15:13:04+08:00">
+                2016-04-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="2016-QCon北京参会感想"><a href="#2016-QCon北京参会感想" class="headerlink" title="2016 QCon北京参会感想"></a>2016 QCon北京参会感想</h1><p>感谢公司，蹭了一天6k8的高价会议。<a href="http://2016.qconbeijing.com/schedule" target="_blank" rel="external">ppt下载</a></p>
+<p>首先说一下整体感受吧。我主要盯着大数据平台架构这个session听。中间穿插着听了2个做知识图谱相关的和freewheel做噪声消除的。水平有限，他们深入讲一个项目的很多地方都听不懂，反而是美团讲整个数据分析平台的听得比较明白，可能是自己的水平有限，对于开源项目的具体细节还不了解，还停留在用的阶段。</p>
+<p>另外今天很大的一个收获就是听了各个团队关于技术选型相关的讲解，发现技术选型首先是<strong>解决业务的痛点</strong>，其次是自己团队对于<strong>开源项目的技术掌控力</strong>（美团有两个kylin committer，京东的presto自己开了presto-jd分支，jstorm就是阿里内部的项目），比如阿里对于Jstorm完全掌控，导致他们很多管道或者相关的需求，即使在有flume的情况下还是选择了Jstorm。最后才是性能，性能满足使用条件即可。这一点是之前工作没有体会到的。之前技术调研和选型mentor都做了，自己只是按照选好的道路走就可以。</p>
+<p>下面分session讲一下</p>
+<h1 id="《阿里巴巴实时计算平台-JStorm-Turbo》"><a href="#《阿里巴巴实时计算平台-JStorm-Turbo》" class="headerlink" title="《阿里巴巴实时计算平台 JStorm Turbo》 "></a>《阿里巴巴实时计算平台 JStorm Turbo》 </h1><p>早上第一个主题是<a href="http://2016.qconbeijing.com/presentation/2852" target="_blank" rel="external">阿里的jstorm</a>。Jstrom是阿里的一个基于storm的java实现，据说性能和稳定性都比storm要好。</p>
+<p>阿里的非常多业务都在用jstorm，包括管道系统都不用flume而用Jstrom。主要也是因为阿里对于jstorm的掌握它深了。</p>
+<p>资源调度方面jstorm追求两点</p>
+<ul>
+<li>大型化、规模化 （jstoorm on yran）</li>
+<li>轻量化 jstorm on docker</li>
+</ul>
+<p>而稳定性方面speaker推荐大家生产环境使用双十一 双十二版本</p>
+<ul>
+<li>全新监控系统（生命周期）</li>
+<li>限流（twitter的heron论文，反压？下游命令堆积时，发消息给master，master确定是否开始反压）</li>
+<li>资源隔离 （cgroup，share方式）</li>
+<li>中央控制nimbus HA。</li>
+<li>大规模部署，超过storm 400台限制（心跳发送到TM）</li>
+<li>ToPologyMaster</li>
+</ul>
+<p>性能提升方面jstorm主要做了这么几点</p>
+<ul>
+<li>重新定义数据结构：针对batch定义。将公共的数据抽出来放到公共区域，对string优化</li>
+<li>多级batch机制：三层</li>
+<li>增加线程池单独处理反序列化（string  int  double自己实现反序列化。最新版会有一个公共序列化进程</li>
+<li>jvm性能调优</li>
+<li>GC调优</li>
+<li>去掉总发送线程和总接收线程</li>
+<li>在spout内部读写分离</li>
+<li>降低采样对性能的影响</li>
+<li>优化复杂函数（分析高频函数，单独优化）</li>
+</ul>
+<p>其中序列化反序列化是优化的大头</p>
+<p>最后对于使用场景，1分钟内的speaker推荐使用storm，1到15分钟，推荐使用flink DataStream和spark Streaming，15分钟以上推荐flink DataSet、spark和MR/Tez.</p>
+<h1 id="《阿里双11系统管控调度架构与实践》"><a href="#《阿里双11系统管控调度架构与实践》" class="headerlink" title="《阿里双11系统管控调度架构与实践》"></a>《阿里双11系统管控调度架构与实践》</h1><p>这个talk主要讲的是阿里的限流系统，和我预想的不太一样，于是听了个开头就走了。限流系统业界成熟的方法就是令牌桶，当然阿里做了很多的扩展。后来看ppt，感觉干货还不少，没听可惜了<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/%E4%BB%A4%E7%89%8C%E6%A1%B6%E9%99%90%E6%B5%81.png" alt=""></p>
+<h1 id="《社会化数据的混合存储和高效处理》"><a href="#《社会化数据的混合存储和高效处理》" class="headerlink" title="《社会化数据的混合存储和高效处理》"></a>《社会化数据的混合存储和高效处理》</h1><p>明略的这个其实讲的是个知识图谱。他们的架构和我们类似，不过引入了titan Graph database并用spark做graph processing。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/160422%E6%98%8E%E7%95%A5-%E6%9E%B6%E6%9E%84.png" alt=""></p>
+<p>选用titan而没有用neo4j的主要原因是neo4j收费，并且titan和hadoop生态圈结合更好</p>
+<p>不过他们使用titan也踩了很多坑：</p>
+<ul>
+<li>边爆炸问题<ul>
+<li>titan使用邻接表储存边点</li>
+<li>同类变合并</li>
+<li>原始信息用其他方式储存</li>
+</ul>
+</li>
+<li>supernode</li>
+<li>多点查询效率<ul>
+<li>基于tinkerPop</li>
+<li>TitanMultiVertexQuery接口</li>
+<li>应用层优化</li>
+</ul>
+</li>
+<li>索引性能和灵活度</li>
+<li>数据导入性能<ul>
+<li>并行导入</li>
+<li>子图划分</li>
+<li>batch loading</li>
+<li>优化底层参数</li>
+<li>调优底层存储</li>
+</ul>
+</li>
+</ul>
+<p>我们现在的架构中的确对于图的处理差一些，之前小米也说他们使用graphX处理社会化数据，不知道我们把arq和sparql用起来以后能不能解决这个问题。</p>
+<h1 id="《广告平台中用户画像和标注噪声处理的实践》"><a href="#《广告平台中用户画像和标注噪声处理的实践》" class="headerlink" title="《广告平台中用户画像和标注噪声处理的实践》"></a>《广告平台中用户画像和标注噪声处理的实践》</h1><p>freewheel主要处理的是一个缺失数据标注的问题，比如用户的性别数据缺失，需要标注。能拿到的就是一批数据的性别比例，目标是通过自己的学习，标注的性别和这个得到的比例类似。</p>
+<h1 id="《大数据和人工智能在互联网金融上的应用》"><a href="#《大数据和人工智能在互联网金融上的应用》" class="headerlink" title="《大数据和人工智能在互联网金融上的应用》"></a>《大数据和人工智能在互联网金融上的应用》</h1><p>这个哥们就是把之前他<a href="http://zhuanlan.zhihu.com/p/20394260" target="_blank" rel="external">知乎上的文章</a>又讲了一遍，干货比较少，知识图谱使用例子比较多。不过其中有一页slides讲了底层存储。有两个主流，一个是图数据库（neo4j/titan/orientDB），另一个就是rdf(virtuoso,jena,sesmae)。其实rdf如何发挥图的优势和spark结合起来做图数据挖掘应该是一个很有意思的方向。我们后面要做的olap是将query转化为hql，这个解决的是query时的效率问题，对于图数据挖掘可能还差一些。</p>
+<h1 id="《美团大数据平台架构实践》"><a href="#《美团大数据平台架构实践》" class="headerlink" title="《美团大数据平台架构实践》"></a>《美团大数据平台架构实践》</h1><p>全天最佳！全是干货</p>
+<p>先上架构图</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/160422%E7%BE%8E%E5%9B%A2%E6%95%B0%E6%8D%AE%E6%B5%81%E6%9E%B6%E6%9E%84%E5%9B%BE.png" alt=""></p>
+<h2 id="数据接入"><a href="#数据接入" class="headerlink" title="数据接入"></a>数据接入</h2><ul>
+<li>db是通过canal导入mysql增量数据。</li>
+<li>日志通过flume导入。</li>
+</ul>
+<p>所有数据先进入kafka，再进入后端的系统（为什么要进kafka？有什么好处，是否只是为了支持多下游？）</p>
+<h2 id="离线计算平台"><a href="#离线计算平台" class="headerlink" title="离线计算平台"></a>离线计算平台</h2><p>离线计算平台主要由这样几部分组成：</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/160422%E7%BE%8E%E5%9B%BE%E7%A6%BB%E7%BA%BF%E8%AE%A1%E7%AE%97%E9%83%A8%E7%BD%B2%E6%9E%B6%E6%9E%84.png" alt=""></p>
+<p>他的计算引擎层支持多种不同的工具，比如hive，kylin，presto等待</p>
+<ul>
+<li>kylin主要是将数据转化为数据立方，之后加速对源数据进行的OLAP操作。<a href="http://www.infoq.com/cn/articles/apache-kylin-algorithm" target="_blank" rel="external">Apache Kylin的快速数据立方体算法——概述</a></li>
+<li>presto主要是为了做ad-hoc查询，他和hive相比优点是快，因为他的目标是交互式查询，缺点就是独占内存，并且内存不够会fail。<a href="http://tech.meituan.com/presto.html" target="_blank" rel="external">Presto实现原理和美团的使用实践
+</a></li>
+<li>spark。<a href="http://tech.meituan.com/spark-in-meituan.html" target="_blank" rel="external">Spark在美团的实践</a></li>
+<li>另外，美团的bi重度依赖sql，所以他们做了很多sql模板化的事情。</li>
+</ul>
+<h2 id="hadoop"><a href="#hadoop" class="headerlink" title="hadoop"></a>hadoop</h2><p>他们中间经历过一段时间的跨机房，所以对hdfs和yarn做了定制。主要是对于hdfs的data存储pipeline定制，让一个data存储不要在多个机房，yarn的conainer也是对不同机房做了不同的队列。</p>
+<h2 id="交互式开发"><a href="#交互式开发" class="headerlink" title="交互式开发"></a>交互式开发</h2><p>美团基于zeppelin（踩坑+用户认证）做了交互式开发平台</p>
+<h2 id="OLAP引擎的技术选型"><a href="#OLAP引擎的技术选型" class="headerlink" title="OLAP引擎的技术选型"></a>OLAP引擎的技术选型</h2><p>这里和后面京东都讲了技术选型，感觉开启了新的思路。应届生嘛，之前没考虑过这方面的东西</p>
+<ul>
+<li>选型一定要找自己技术相对熟悉，能够hold住的产品，而不能仅仅从性能考虑<ul>
+<li>产品稳定性、成熟度</li>
+<li>团队对产品掌控力</li>
+<li>对业务的支持性</li>
+</ul>
+</li>
+</ul>
+<h1 id="《基于-ElasticStack-的数据探索与分析》"><a href="#《基于-ElasticStack-的数据探索与分析》" class="headerlink" title="《基于 ElasticStack 的数据探索与分析》"></a>《基于 ElasticStack 的数据探索与分析》</h1><p>这个talk基本就是在讲我们公司的产品啥都能干，更像一个公司主页的产品推销而不是技术分享。应该去听旁边美团的对象存储系统的。不过es居然还能做数据分析，真是惊呆了</p>
+<h1 id="《Presto在京东云的应用实践》"><a href="#《Presto在京东云的应用实践》" class="headerlink" title="《Presto在京东云的应用实践》"></a>《Presto在京东云的应用实践》</h1><p>首先也是讲了一下技术选型，一个是公司大趋势（老板和fb很熟- -），另一个就是技术上本来能hold，这也是speaker强调的一点，随着使用的深入，肯定要踩坑+个性化定制，甚至优化，所以技术能力一定要有。</p>
+<p>之后讲了一些对于presto的定制，包括数据源的丰富，访问安全，udf定制等</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/04/23/2016-QCon北京参会感想/">http://thousandhu.github.io/2016/04/23/2016-QCon北京参会感想/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/architecture/" rel="tag"># architecture</a>
+          
+            <a href="/tags/big-data/" rel="tag"># big data</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/20/apache-jena-arq-模块扩展/" rel="next" title="apache jena arq 模块扩展">
+                <i class="fa fa-chevron-left"></i> apache jena arq 模块扩展
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/27/Sparql自定义propertyFunction/" rel="prev" title="Sparql自定义propertyFunction">
+                Sparql自定义propertyFunction <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#2016-QCon北京参会感想"><span class="nav-number">1.</span> <span class="nav-text">2016 QCon北京参会感想</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#《阿里巴巴实时计算平台-JStorm-Turbo》"><span class="nav-number">2.</span> <span class="nav-text">《阿里巴巴实时计算平台 JStorm Turbo》 </span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#《阿里双11系统管控调度架构与实践》"><span class="nav-number">3.</span> <span class="nav-text">《阿里双11系统管控调度架构与实践》</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#《社会化数据的混合存储和高效处理》"><span class="nav-number">4.</span> <span class="nav-text">《社会化数据的混合存储和高效处理》</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#《广告平台中用户画像和标注噪声处理的实践》"><span class="nav-number">5.</span> <span class="nav-text">《广告平台中用户画像和标注噪声处理的实践》</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#《大数据和人工智能在互联网金融上的应用》"><span class="nav-number">6.</span> <span class="nav-text">《大数据和人工智能在互联网金融上的应用》</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#《美团大数据平台架构实践》"><span class="nav-number">7.</span> <span class="nav-text">《美团大数据平台架构实践》</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据接入"><span class="nav-number">7.1.</span> <span class="nav-text">数据接入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#离线计算平台"><span class="nav-number">7.2.</span> <span class="nav-text">离线计算平台</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hadoop"><span class="nav-number">7.3.</span> <span class="nav-text">hadoop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#交互式开发"><span class="nav-number">7.4.</span> <span class="nav-text">交互式开发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OLAP引擎的技术选型"><span class="nav-number">7.5.</span> <span class="nav-text">OLAP引擎的技术选型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#《基于-ElasticStack-的数据探索与分析》"><span class="nav-number">8.</span> <span class="nav-text">《基于 ElasticStack 的数据探索与分析》</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#《Presto在京东云的应用实践》"><span class="nav-number">9.</span> <span class="nav-text">《Presto在京东云的应用实践》</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

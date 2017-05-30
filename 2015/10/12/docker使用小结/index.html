@@ -1,0 +1,798 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="docker," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="最近试用了下docker，放在这里做个总结 docker是PAAS层面的虚拟化技术，它基于LXC（Linux Container）技术实现了container之间的隔离，相比于vm更为轻量级。这种轻量级可隔离的特点使得docker可以解决程序员大家开发环境时遇到的以下几个问题：  软件安装麻烦，比如很多公司都使用redhat，一般开发人员又不给root，安装一个nginx或者是mysql都得自己下">
+<meta name="keywords" content="docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="docker使用小结">
+<meta property="og:url" content="http://thousandhu.github.io/2015/10/12/docker使用小结/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="最近试用了下docker，放在这里做个总结 docker是PAAS层面的虚拟化技术，它基于LXC（Linux Container）技术实现了container之间的隔离，相比于vm更为轻量级。这种轻量级可隔离的特点使得docker可以解决程序员大家开发环境时遇到的以下几个问题：  软件安装麻烦，比如很多公司都使用redhat，一般开发人员又不给root，安装一个nginx或者是mysql都得自己下">
+<meta property="og:updated_time" content="2015-11-14T14:06:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="docker使用小结">
+<meta name="twitter:description" content="最近试用了下docker，放在这里做个总结 docker是PAAS层面的虚拟化技术，它基于LXC（Linux Container）技术实现了container之间的隔离，相比于vm更为轻量级。这种轻量级可隔离的特点使得docker可以解决程序员大家开发环境时遇到的以下几个问题：  软件安装麻烦，比如很多公司都使用redhat，一般开发人员又不给root，安装一个nginx或者是mysql都得自己下">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2015/10/12/docker使用小结/"/>
+
+
+
+
+
+  <title>docker使用小结 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/10/12/docker使用小结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">docker使用小结</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-12T15:55:23+08:00">
+                2015-10-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近试用了下docker，放在这里做个总结</p>
+<p>docker是PAAS层面的虚拟化技术，它基于LXC（Linux Container）技术实现了container之间的隔离，相比于vm更为轻量级。这种轻量级可隔离的特点使得docker可以解决程序员大家开发环境时遇到的以下几个问题：</p>
+<ul>
+<li>软件安装麻烦，比如很多公司都使用redhat，一般开发人员又不给root，安装一个nginx或者是mysql都得自己下载编译安装 权限问题，没有root，一些软件无法运行，例如dnsmasq；</li>
+<li>没有root，无法修改hosts，无法netstat -nptl，无法tcpdump，无法iptable</li>
+<li>隔离性差，例如不同的开发人员如果在同一台主机环境下共享开发，虽然是用户隔离，但端口如果不规范可能会冲突；同一个Mysql如果权限管理不好很有可能误删别人的数据</li>
+<li>可移植性差，例如和生产环境不一致，开发人员之间也无法共享；更严重的情况是当有新人入职时，通常需要又折腾一遍开发环境，无法快速搭建</li>
+</ul>
+<p>因为docker依赖linux的特性，在mac上需要使用虚拟机。我主要是在mac上利用virtualbox+boot2docker+docker-compose来实现的。</p>
+<h1 id="docker的安装与配置"><a href="#docker的安装与配置" class="headerlink" title="docker的安装与配置"></a>docker的安装与配置</h1><ol>
+<li>安装virtualbox</li>
+<li>安装docker：brew install boot2docker&amp;&amp; brew install docker</li>
+<li>boot2docker init</li>
+<li>设置环境变量<ul>
+<li>export DOCKER_HOST=tcp://192.168.59.103:2376 （这个ip要通过boot2docker ip看一下，init时也会给出提示）</li>
+<li>export DOCKER_CERT_PATH=/Users/ziqian/.boot2docker/certs/boot2docker-vm</li>
+<li>export DOCKER_TLS_VERIFY=1</li>
+</ul>
+</li>
+<li><p>boot2docker up</p>
+</li>
+<li><p>（optional） 由于官方网站需要翻墙，所以可能需要设置docker hub代理：<a href="http://stackoverflow.com/questions/24489265/docker-boot2docker-set-http-https-proxies-for-docker-on-osx" target="_blank" rel="external">http://stackoverflow.com/questions/24489265/docker-boot2docker-set-http-https-proxies-for-docker-on-osx</a></p>
+</li>
+</ol>
+<ol>
+<li>boot2docker restart</li>
+<li>验证是否配置成功：<ul>
+<li>docker pull hello-world</li>
+<li>docker run hello-world</li>
+</ul>
+</li>
+</ol>
+<h1 id="Dockerfile简介"><a href="#Dockerfile简介" class="headerlink" title="Dockerfile简介"></a>Dockerfile简介</h1><p>Dockerfile是用来描述一个docker image的生成过程的文件。在一个含有Dockerfile的文件夹中，通过 <strong>docker build imagename .</strong> 命令即可自动build docker image（注意命令中的“.”不能丢）。下面以redis官方提供的<a href="https://hub.docker.com/_/redis/" target="_blank" rel="external">docker file</a>为例讲讲dockerfile。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"><span class="string">FROM</span> <span class="attr">debian:wheezy</span></div><div class="line"></div><div class="line"><span class="comment"># add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added</span></div><div class="line"><span class="string">RUN</span> <span class="string">groupadd</span> <span class="bullet">-r</span> <span class="string">redis</span> <span class="string">&amp;&amp;</span> <span class="string">useradd</span> <span class="bullet">-r</span> <span class="bullet">-g</span> <span class="string">redis</span> <span class="string">redis</span></div><div class="line"></div><div class="line"><span class="string">RUN</span> <span class="string">apt-get</span> <span class="string">update</span> <span class="string">&amp;&amp;</span> <span class="string">apt-get</span> <span class="string">install</span> <span class="bullet">-y</span> <span class="bullet">--no-install-recommends</span> <span class="string">\</span></div><div class="line">        <span class="string">ca-certificates</span> <span class="string">\</span></div><div class="line">        <span class="string">curl</span> <span class="string">\</span></div><div class="line">        <span class="string">libc6-i386</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">rm</span> <span class="bullet">-rf</span> <span class="string">/var/lib/apt/lists/*</span></div><div class="line"></div><div class="line"><span class="comment"># grab gosu for easy step-down from root</span></div><div class="line"><span class="string">RUN</span> <span class="string">gpg</span> <span class="bullet">--keyserver</span> <span class="string">pool.sks-keyservers.net</span> <span class="bullet">--recv-keys</span> <span class="string">B42F6819007F00F88E364FD4036A9C25BF357DD4</span></div><div class="line"><span class="string">RUN</span> <span class="string">curl</span> <span class="bullet">-o</span> <span class="string">/usr/local/bin/gosu</span> <span class="bullet">-SL</span> <span class="string">"https://github.com/tianon/gosu/releases/download/1.2/gosu-$(dpkg --print-architecture)"</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">curl</span> <span class="bullet">-o</span> <span class="string">/usr/local/bin/gosu.asc</span> <span class="bullet">-SL</span> <span class="string">"https://github.com/tianon/gosu/releases/download/1.2/gosu-$(dpkg --print-architecture).asc"</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">gpg</span> <span class="bullet">--verify</span> <span class="string">/usr/local/bin/gosu.asc</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">rm</span> <span class="string">/usr/local/bin/gosu.asc</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">chmod</span> <span class="string">+x</span> <span class="string">/usr/local/bin/gosu</span></div><div class="line"></div><div class="line"><span class="string">ENV</span> <span class="string">REDIS_VERSION</span> <span class="number">3.0</span><span class="number">.4</span></div><div class="line"><span class="string">ENV</span> <span class="string">REDIS_DOWNLOAD_URL</span> <span class="attr">http://download.redis.io/releases/redis-3.0.4.tar.gz</span></div><div class="line"><span class="string">ENV</span> <span class="string">REDIS_DOWNLOAD_SHA1</span> <span class="string">cccc58b2b8643930840870f17280fcae57ed7675</span></div><div class="line"></div><div class="line"><span class="comment"># for redis-sentinel see: http://redis.io/topics/sentinel</span></div><div class="line"><span class="string">RUN</span> <span class="string">buildDeps='gcc</span> <span class="string">gcc-multilib</span> <span class="string">libc6-dev-i386</span> <span class="string">make'</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">set</span> <span class="bullet">-x</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">apt-get</span> <span class="string">update</span> <span class="string">&amp;&amp;</span> <span class="string">apt-get</span> <span class="string">install</span> <span class="bullet">-y</span> <span class="string">$buildDeps</span> <span class="bullet">--no-install-recommends</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">rm</span> <span class="bullet">-rf</span> <span class="string">/var/lib/apt/lists/*</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">mkdir</span> <span class="bullet">-p</span> <span class="string">/usr/src/redis</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">curl</span> <span class="bullet">-sSL</span> <span class="string">"$REDIS_DOWNLOAD_URL"</span> <span class="bullet">-o</span> <span class="string">redis.tar.gz</span> <span class="string">\</span></div><div class="line">    <span class="string">&amp;&amp;</span> <span class="string">echo</span> <span class="string">"$REDIS_DOWNLOAD_SHA1 *redis.tar.gz"</span> <span class="string">| sha1sum -c - \</span></div><div class="line">    &amp;&amp; tar -xzf redis.tar.gz -C /usr/src/redis --strip-components=1 \</div><div class="line">    &amp;&amp; rm redis.tar.gz \</div><div class="line">    &amp;&amp; make -C /usr/src/redis 32bit \</div><div class="line">    &amp;&amp; make -C /usr/src/redis install \</div><div class="line">    &amp;&amp; rm -r /usr/src/redis \</div><div class="line">    &amp;&amp; apt-get purge -y --auto-remove $buildDeps</div><div class="line"></div><div class="line">RUN mkdir /data &amp;&amp; chown redis:redis /data</div><div class="line">VOLUME /data</div><div class="line">WORKDIR /data</div><div class="line"></div><div class="line">COPY docker-entrypoint.sh /entrypoint.sh</div><div class="line">ENTRYPOINT ["/entrypoint.sh"]</div><div class="line"></div><div class="line">EXPOSE 6379</div><div class="line">CMD [ "redis-server" ]</div></pre></td></tr></table></figure>
+<p>Dockerfile主要格式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"># Comment</div><div class="line">INSTRUCTION arguments</div></pre></td></tr></table></figure>
+<p>主要的INSTRUCTION有这样几个</p>
+<ul>
+<li>第一行的FROM指的是从哪个镜像开始创建，一般来讲docker image都是在一个image的基础上创建</li>
+<li>RUN build时在linux中运行的具体命令。这里注意如果你的几个命令有上下文依赖，貌似需要写到一个RUN内而不是分成多个RUN写</li>
+<li>MAINTAINER 镜像创建者</li>
+<li>CMD 默认的container启动时的指定服务，镜像启动时可以通过输入参数更改。一个image只能有一个CMD，多条CMD执行最后一个</li>
+<li>EXPOSE container内部服务开启的端口。在mac上他其实只是对虚拟机打开了端口，主机上要用还得在启动container时，做host-container的端口映射.<ul>
+<li>vbox映射端口的命令$ VBoxManage modifyvm “boot2docker-vm” –natpf1 “redis,tcp,,6379,,6379”</li>
+<li>这样就把虚拟机的6379映射到mac上</li>
+</ul>
+</li>
+<li>ENV 设置环境变量</li>
+<li>VOLUME 将本地文件夹挂在到container中</li>
+<li>WORKDIR 切换目录使用</li>
+</ul>
+<p>其余Dockerfile相关命令请见<a href="https://docs.docker.com/reference/builder/" target="_blank" rel="external">官方文档</a></p>
+<h1 id="启动docker"><a href="#启动docker" class="headerlink" title="启动docker"></a>启动docker</h1><ul>
+<li>注，如果希望通过docker-compose管理container，可以查看下文的docker-compose来解决</li>
+</ul>
+<p>docker run是启动一个container的命令，格式为<code>docker run [OPTIONS] IMAGE [COMMAND] [ARG...]</code>，这里以启动redis为例</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">docker run -v /myredis/conf/redis.conf:/usr/local/etc/redis/redis.conf --name myredis redis redis-server /usr/local/etc/redis/redis.conf</div></pre></td></tr></table></figure>
+<p>这里的COMMAND是OPTIONS是/myredis/conf/redis.conf:/usr/local/etc/redis/redis.conf –name myredis，COMMAND是redis-server，ARG是redis-server的这条命令的参数，和docker本身就没关系了。</p>
+<p>这个docker是用自己本地的redis.conf启动的。这里重要的参数是：</p>
+<ul>
+<li>-v 将本机路径映射到docker内部</li>
+<li>–name 给container起名</li>
+</ul>
+<p>还有两个重要的参数</p>
+<ul>
+<li>–link 链接其他容器，比如你再启动一个redis-sentinel时就可以将myredis link给他</li>
+<li>-w 指定workdir</li>
+</ul>
+<p>其他参数可以看手册<code>docker run help</code></p>
+<p>启动好之后，如果之前的端口映射正确，你就可以通过redis-client直接通过本地的6379链接container里的redis服务了</p>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><ul>
+<li>输入docker命令后无反应时，可能是无法连接到boot2docker。解决方案<ul>
+<li>查看boot2docker ip：boot2docker ip</li>
+<li>修改环境变量： export DOCKER_HOST=tcp://${ip}:2376</li>
+</ul>
+</li>
+<li>第一次使用docker run创建container之后，container不需要重复创建，只需要通过docker ps -a查看container的状态，并使用docker start ${container_name}启动挂起的container即可。</li>
+</ul>
+<h1 id="docker-compose"><a href="#docker-compose" class="headerlink" title="docker-compose"></a>docker-compose</h1><p>docker-compose是用来在docker中定义和运行复杂应用的小工具，比如在一个文件中定义多个容器，只用一行命令就可以让一切就绪并运行。并且它支持集群中分布式部署，在部署大型应用时更有优势。</p>
+<h2 id="安装docker-compose"><a href="#安装docker-compose" class="headerlink" title="安装docker-compose"></a>安装docker-compose</h2><ol>
+<li>pip install -U docker-compose</li>
+<li>chmod +x /usr/local/bin/docker-compose</li>
+</ol>
+<h2 id="编写docker-compose-ylm"><a href="#编写docker-compose-ylm" class="headerlink" title="编写docker-compose.ylm"></a>编写docker-compose.ylm</h2><p>为了体现其部署的优势，我给出一个同时启动redis和redis-sentinel的ylm。相关的配置信息标在了注释里</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">#container名称</div><div class="line">redis-sentinel:</div><div class="line">#image表示该container使用的image。docker-compose同样支持使用dockerfile直接build image。这时需要使用build和dockerfile两个标签</div><div class="line">  image: redis</div><div class="line">#container默认的命令</div><div class="line">  command: redis-sentinel /conf/sentinel.conf</div><div class="line">#该container与宿主机的文件映射，宿主机路径在前。在mac中宿主机是virtualbox中的虚拟机boot2docker-vm。所以还需要做mac到vm的映射，port同理。</div><div class="line">  volumes:</div><div class="line">    - ./conf:/conf</div><div class="line">#该container和其他container的映射关系，这里sentinel就是连接了redis</div><div class="line">  links:</div><div class="line">    - redis</div><div class="line">#container与宿主机的端口映射，宿主机端口在前</div><div class="line">  ports:</div><div class="line">    - &quot;26379:26379&quot;</div><div class="line">redis:</div><div class="line">  image: redis</div><div class="line">  command: redis-server</div><div class="line">  ports:</div><div class="line">    - &quot;6379:6379&quot;</div></pre></td></tr></table></figure>
+<p>关于yml更详细的说明请见 <a href="http://docs.docker.com/compose/yml/" target="_blank" rel="external">官方文档</a></p>
+<h2 id="运行compose"><a href="#运行compose" class="headerlink" title="运行compose"></a>运行compose</h2><p>在有docker-compose.yml的文件夹内执行docker-compose run –service-ports redis-sentinel<br>这里就成功启动了一个redis-sentinel，并且docker-compose会把它依赖的（也就是link的）container（这里是redis）都启动起来。</p>
+<ul>
+<li>注意，docker-compose在设计上对于docker-compose run命令默认不开放端口给宿主机。所以使用–service-ports选项。具体讨论请见<a href="https://github.com/docker/compose/issues/1256#issuecomment-90135857" target="_blank" rel="external">github相关页面</a>。</li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2015/10/12/docker使用小结/">http://thousandhu.github.io/2015/10/12/docker使用小结/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/09/24/hexo添加rss和站内搜索/" rel="next" title="hexo添加rss和站内搜索">
+                <i class="fa fa-chevron-left"></i> hexo添加rss和站内搜索
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/scala学习资源/" rel="prev" title="scala学习资源">
+                scala学习资源 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#docker的安装与配置"><span class="nav-number">1.</span> <span class="nav-text">docker的安装与配置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Dockerfile简介"><span class="nav-number">2.</span> <span class="nav-text">Dockerfile简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#启动docker"><span class="nav-number">3.</span> <span class="nav-text">启动docker</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项"><span class="nav-number">3.1.</span> <span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#docker-compose"><span class="nav-number">4.</span> <span class="nav-text">docker-compose</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装docker-compose"><span class="nav-number">4.1.</span> <span class="nav-text">安装docker-compose</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编写docker-compose-ylm"><span class="nav-number">4.2.</span> <span class="nav-text">编写docker-compose.ylm</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行compose"><span class="nav-number">4.3.</span> <span class="nav-text">运行compose</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

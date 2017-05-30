@@ -1,0 +1,756 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn,spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="spark on yarn有两种模式。在cluster模式下，driver是运行在ApplicationMaster上的，而client模式下则是运行在用户提交spark任务的那台机器上。   Yarn和standalone的架构其实是对应的，下表给出了两者的对应关系    Standalone YARN     Client Client   Master ApplicationMaster">
+<meta name="keywords" content="yarn,spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark on yarn">
+<meta property="og:url" content="http://thousandhu.github.io/2016/11/15/spark-on-yarn/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="spark on yarn有两种模式。在cluster模式下，driver是运行在ApplicationMaster上的，而client模式下则是运行在用户提交spark任务的那台机器上。   Yarn和standalone的架构其实是对应的，下表给出了两者的对应关系    Standalone YARN     Client Client   Master ApplicationMaster">
+<meta property="og:image" content="https://www.iteblog.com/pic/spark-yarn-f31.png">
+<meta property="og:image" content="https://www.iteblog.com/pic/spark-yarn-f22.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-13-153412.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-15-153053.png">
+<meta property="og:image" content="http://images.cnblogs.com/cnblogs_com/BYRans/761498/o_yarnClusterSparkProcess.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-25-203453.png">
+<meta property="og:updated_time" content="2016-11-15T07:36:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark on yarn">
+<meta name="twitter:description" content="spark on yarn有两种模式。在cluster模式下，driver是运行在ApplicationMaster上的，而client模式下则是运行在用户提交spark任务的那台机器上。   Yarn和standalone的架构其实是对应的，下表给出了两者的对应关系    Standalone YARN     Client Client   Master ApplicationMaster">
+<meta name="twitter:image" content="https://www.iteblog.com/pic/spark-yarn-f31.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/11/15/spark-on-yarn/"/>
+
+
+
+
+
+  <title>spark on yarn | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/11/15/spark-on-yarn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">spark on yarn</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-15T15:34:31+08:00">
+                2016-11-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>spark on yarn有两种模式。在cluster模式下，driver是运行在ApplicationMaster上的，而client模式下则是运行在用户提交spark任务的那台机器上。</p>
+<p><img src="https://www.iteblog.com/pic/spark-yarn-f31.png" alt=""></p>
+<p><img src="https://www.iteblog.com/pic/spark-yarn-f22.png" alt=""></p>
+<p>Yarn和standalone的架构其实是对应的，下表给出了两者的对应关系</p>
+<table>
+<thead>
+<tr>
+<th>Standalone</th>
+<th>YARN</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Client</td>
+<td>Client</td>
+</tr>
+<tr>
+<td>Master</td>
+<td>ApplicationMaster</td>
+</tr>
+<tr>
+<td>Worker</td>
+<td>ExecutorRunnable</td>
+</tr>
+<tr>
+<td>Scheduler</td>
+<td>YarnClusterScheduler/YarnScheduler</td>
+</tr>
+<tr>
+<td>SchedulerBackend</td>
+<td>YarnClusterSchedulerBackend/YarnClientScheduleBackend</td>
+</tr>
+</tbody>
+</table>
+<p>这一篇讲的了流程<a href="http://blog.itpub.net/29754888/viewspace-1815323/" target="_blank" rel="external">http://blog.itpub.net/29754888/viewspace-1815323/</a></p>
+<p>先讲一下cluster模式</p>
+<p>spark提交的入口在<code>org.apache.spark.deploy.SparkSubmit</code>。prepareSubmitEnvironment来根据提交方式初始化，比如设定taskScheduler的类型是YarnClusterScheduler，schedulerBackend的类型是YarnClusterSchedulerBackend。之后如果是cluster模式，会通过反射最终回来到<code>org.apache.spark.deploy.yarn.Client</code>，最终调用client.run函数向yarn提交一个application。提交的application时设置了AM类型是<code>org.apache.spark.deploy.yarn.ApplicationMaster</code>。这个am启动时会调用main函数然后调用到run函数。进行相关设置后cluster模式下run函数会调用rundriver，rundriver代码如下</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">runDriver</span></span>(securityMgr: <span class="type">SecurityManager</span>): <span class="type">Unit</span> = &#123;</div><div class="line">    addAmIpFilter()</div><div class="line">    userClassThread = startUserApplication()</div><div class="line"></div><div class="line">    <span class="comment">// This a bit hacky, but we need to wait until the spark.driver.port property has</span></div><div class="line">    <span class="comment">// been set by the Thread executing the user class.</span></div><div class="line">    <span class="keyword">val</span> sc = waitForSparkContextInitialized()</div><div class="line"></div><div class="line">    <span class="comment">// If there is no SparkContext at this point, just fail the app.</span></div><div class="line">    <span class="keyword">if</span> (sc == <span class="literal">null</span>) &#123;</div><div class="line">      finish(<span class="type">FinalApplicationStatus</span>.<span class="type">FAILED</span>,</div><div class="line">        <span class="type">ApplicationMaster</span>.<span class="type">EXIT_SC_NOT_INITED</span>,</div><div class="line">        <span class="string">"Timed out waiting for SparkContext."</span>)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      rpcEnv = sc.env.rpcEnv</div><div class="line">      <span class="keyword">val</span> driverRef = runAMEndpoint(</div><div class="line">        sc.getConf.get(<span class="string">"spark.driver.host"</span>),</div><div class="line">        sc.getConf.get(<span class="string">"spark.driver.port"</span>),</div><div class="line">        isClusterMode = <span class="literal">true</span>)</div><div class="line">      registerAM(rpcEnv, driverRef, sc.ui.map(_.appUIAddress).getOrElse(<span class="string">""</span>), securityMgr)</div><div class="line">      userClassThread.join()</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>首先ApplicationMaster初始化时会接受一个YarnRMClient的参数，这个类主要负责注册application相关，是对AMRMClient的wrapper。</li>
+<li>userClassTread是一个新线程，他里面启动Spark driver，rundriver最后会等待这个线程完成，完成后即表示着注册之后就会等待userClassThread完成。</li>
+<li>waitForSparkContextInitialized是一个很hacky的函数，它主要是获取SparkContext，这里的sc我理解是userClassThread创建的。</li>
+<li>runAMEndpoint函数主要启动了一个AMEndpoint，这个endpoint负责处理，RequestExecutors，KillExecutors，GetExecutorLossReason几个消息。</li>
+<li>registerAM函数会创建allocator这个成员变量。allocator负责和resourceManager交互获取资源。在rundriver中会先调用一次<code>allocator.allocateResources()</code>，如果第一次rm给的资源没有满足，reporterThread会继续重试请求资源。下面这张图很好的说明了applicationMaster如何一步步构造出allocator并与rm通信的。</li>
+<li><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-13-153412.png" alt="2016-11-13-153412"></li>
+</ul>
+<p>这里稍微展开一下allocator，看看他如何启动executor。在allocateResources中，他会向rm请求资源。当收到资源后，他会调用handleAllocatedContainers函数，该函数会按照host，rack，其他的空间亲和顺序依次匹配资源并在上面启动指定数量的container。首先allocator会调用matchContainerToRequest来更新containersToUse，remaining还有amClient中下次需要申请的资源的队列（amClient.removeContainerRequest(containerRequest)），也就是调用matchContainerToRequest来更新资源需求的记录。之后对于所有在containersToUse中的资源，调用runAllocatedContainers()，对于每个资源启动一个ExecutorRunnable，目前executorRunnable对应一个<code>org.apache.spark.executor.CoarseGrainedExecutorBackend</code>。</p>
+<p>这里有一张图展示了ApplicationMaster中各个组件的关系：</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-15-153053.png" alt="2016-11-15-153053"></p>
+<p>最后附一张cluster模式下整体的图：</p>
+<p><img src="http://images.cnblogs.com/cnblogs_com/BYRans/761498/o_yarnClusterSparkProcess.png" alt=""></p>
+<p>再看一下yarn client模式</p>
+<p>下图是一个spark在yarn上以client模式运行程序的流程。<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-25-203453.png" alt="2016-10-25-203453"></p>
+<p>client模式主要是讲driver运行在client端，他和cluster模式有一下几个不同：</p>
+<ul>
+<li>client的taskscheduler和backend分别是yarnScheduler和yarnClientSchedulerBackend。</li>
+<li>YarnClientSchedulerBackend里面会启动一个client，它里面会启动一个yarnClient。通过这个yarnClient，我们可以给resourceManager提交ApplicationMaster。</li>
+<li>client的ApplicationMaster调用的是runExecutorLauncher。同时，注意到因为在AM上其实是通过jps查看类名来分辨AM的类型的，所以在ApplicationMaster中既有<code>object ApplicationMaster</code>又有<code>object ExecutorLauncher</code>。</li>
+</ul>
+<p>参考文献</p>
+<ul>
+<li><a href="http://blog.itpub.net/29754888/viewspace-1815323/" target="_blank" rel="external">Spark on Yarn 任务提交流程源码分析</a></li>
+<li><a href="http://www.cnblogs.com/BYRans/p/5889374.html" target="_blank" rel="external">Spark基本工作流程及YARN cluster模式原理</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/11/15/spark-on-yarn/">http://thousandhu.github.io/2016/11/15/spark-on-yarn/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+            <a href="/tags/spark/" rel="tag"># spark</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/03/spark读取hbase遇到的问题/" rel="next" title="spark读取hbase遇到的问题">
+                <i class="fa fa-chevron-left"></i> spark读取hbase遇到的问题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/11/20/知识图谱在姨搜的实现/" rel="prev" title="知识图谱在姨搜的实现">
+                知识图谱在姨搜的实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

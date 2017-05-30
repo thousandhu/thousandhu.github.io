@@ -1,0 +1,726 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="zookeeper," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="我们知识图谱（knowledge graph，简称kg）的数据是存在es和hbase里面的。如果有时候数据，尤其是hbase rowkey计算逻辑发生修改，就需要重做整个kg的数据，一般是建一个新的es index和hbase的表。为了能够让线上服务自动加载新的kg地址，我们是把配置写在zookeeper里面然后在kgclient启动一个zkwatcher来实时获得新的kg地址并重启kgclien">
+<meta name="keywords" content="zookeeper">
+<meta property="og:type" content="article">
+<meta property="og:title" content="利用zookeeperWatcher监控zookeeper node变化">
+<meta property="og:url" content="http://thousandhu.github.io/2016/07/23/利用zookeeperWatcher监控zookeeper-node变化/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="我们知识图谱（knowledge graph，简称kg）的数据是存在es和hbase里面的。如果有时候数据，尤其是hbase rowkey计算逻辑发生修改，就需要重做整个kg的数据，一般是建一个新的es index和hbase的表。为了能够让线上服务自动加载新的kg地址，我们是把配置写在zookeeper里面然后在kgclient启动一个zkwatcher来实时获得新的kg地址并重启kgclien">
+<meta property="og:updated_time" content="2016-07-23T05:24:35.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="利用zookeeperWatcher监控zookeeper node变化">
+<meta name="twitter:description" content="我们知识图谱（knowledge graph，简称kg）的数据是存在es和hbase里面的。如果有时候数据，尤其是hbase rowkey计算逻辑发生修改，就需要重做整个kg的数据，一般是建一个新的es index和hbase的表。为了能够让线上服务自动加载新的kg地址，我们是把配置写在zookeeper里面然后在kgclient启动一个zkwatcher来实时获得新的kg地址并重启kgclien">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/07/23/利用zookeeperWatcher监控zookeeper-node变化/"/>
+
+
+
+
+
+  <title>利用zookeeperWatcher监控zookeeper node变化 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/07/23/利用zookeeperWatcher监控zookeeper-node变化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">利用zookeeperWatcher监控zookeeper node变化</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-23T13:22:13+08:00">
+                2016-07-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>我们知识图谱（knowledge graph，简称kg）的数据是存在es和hbase里面的。如果有时候数据，尤其是hbase rowkey计算逻辑发生修改，就需要重做整个kg的数据，一般是建一个新的es index和hbase的表。为了能够让线上服务自动加载新的kg地址，我们是把配置写在zookeeper里面然后在kgclient启动一个zkwatcher来实时获得新的kg地址并重启kgclient。</p>
+<h1 id="zookeeperwatcher的基本知识"><a href="#zookeeperwatcher的基本知识" class="headerlink" title="zookeeperwatcher的基本知识"></a>zookeeperwatcher的基本知识</h1><p>zookeeper监听比较重要的两个类是ZookeeperWatcher和ZookeeperListener。Watcher是监听的接口，每个需要watcher的地方都需要实例化一个Watcher，比如hbase的HMaster，RegionServer等</p>
+<p>所有需要监听的事件通过listener操作并需要通过ZookeeperWatcher.registerListener注册自己。 (注意,wather在调用listeners里的方法时将会被阻塞，所以listener里的方法不要long-running)</p>
+<p>Listener比较重要的函数是：    </p>
+<ul>
+<li>void nodeChildrenChanged(String path):Called when an existing node has a child node added or removed.</li>
+<li>void    nodeCreated(String path):Called when a new node has been created.</li>
+<li>void    nodeDataChanged(String path):Called when an existing node has changed data.</li>
+<li>void    nodeDeleted(String path):Called when a node has been deleted</li>
+</ul>
+<p>在zookeeper任意节点有对应变化时，对于函数会被调用，而path参数就是变化节点的路径。</p>
+<h1 id="我们的使用方式"><a href="#我们的使用方式" class="headerlink" title="我们的使用方式"></a>我们的使用方式</h1><p>先看ZookeeperListener的子类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ConfigWatcher</span> <span class="keyword">extends</span> <span class="title">ZooKeeperListener</span> </span>&#123;</div><div class="line">        <span class="keyword">private</span> String basePath;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">ConfigWatcher</span><span class="params">(ZooKeeperWatcher watcher, String base)</span> </span>&#123;</div><div class="line">            <span class="keyword">super</span>(watcher);</div><div class="line">            basePath = base;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> KeeperException </span>&#123;</div><div class="line">            watcher.registerListener(<span class="keyword">this</span>);</div><div class="line">            <span class="keyword">if</span> (ZKUtil.watchAndCheckExists(watcher, basePath)) &#123;</div><div class="line">                <span class="keyword">byte</span>[] data = ZKUtil.getDataAndWatch(zkw, basePath);</div><div class="line">                <span class="keyword">if</span> (data != <span class="keyword">null</span>) &#123;</div><div class="line">                    parseConfigFromZk(data);</div><div class="line">                &#125;</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                logger.warn(<span class="string">"Cannot find config from zk at "</span> + basePath +<span class="string">", waiting ..."</span>);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">handle</span><span class="params">(String path)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (!basePath.equals(path)) </div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                <span class="keyword">byte</span>[] data;</div><div class="line">                data = ZKUtil.getDataAndWatch(zkw, basePath);</div><div class="line">                <span class="keyword">if</span> (data != <span class="keyword">null</span>) &#123;</div><div class="line">                    parseConfigAndRestart(data);</div><div class="line">                &#125;</div><div class="line">            &#125; <span class="keyword">catch</span> (KeeperException e) &#123;</div><div class="line">                String errMsg = <span class="string">"Error when fetching data from zk on path "</span> + path + <span class="string">". Aborting ..."</span>;</div><div class="line">                logger.error(errMsg);</div><div class="line">                watcher.abort(errMsg, e);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">nodeCreated</span><span class="params">(String path)</span> </span>&#123;</div><div class="line">            handle(path);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">nodeDataChanged</span><span class="params">(String path)</span> </span>&#123;</div><div class="line">            handle(path);</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (<span class="keyword">this</span>.watcher != <span class="keyword">null</span>) &#123;</div><div class="line">                watcher.unregisterListener(<span class="keyword">this</span>);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>configWatcher启动时在watcher中注册自己，然后第一次拿到配置。他重载了Listener的nodeCreated和nodeDataChanged，当节点变化时就调用handle函数。而handle函数会通过getDataAndWatch来获取新的配置并且继续watch。如果不需要继续watch就调用getdata即可。</p>
+<p>再看一下kgclient的config：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">synchronized</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">config</span><span class="params">(String hosts, <span class="keyword">int</span> port, String basePath)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">        Configuration conf = <span class="keyword">new</span> Configuration();</div><div class="line">        conf.set(<span class="string">"hbase.zookeeper.quorum"</span>, hosts);</div><div class="line">        conf.setInt(<span class="string">"hbase.zookeeper.property.clientPort"</span>, port);</div><div class="line">        zkw = <span class="keyword">new</span> ZooKeeperWatcher(conf, ConfigWatcher.class.getName(), <span class="keyword">null</span>);</div><div class="line">        watcher = <span class="keyword">new</span> ConfigWatcher(zkw, basePath);</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            watcher.start();</div><div class="line">        &#125; <span class="keyword">catch</span> (KeeperException e) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IOException(e);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这个函数new了一个zkWatcher和一个configWatcher，并启动了这个configWatch。而这个函数是在创建kgclient单例时调用的。通过这个方法，我们就能动态的得到kgclient的配置，保证他从最新的hbase表读取数据</p>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p><a href="http://m.blog.csdn.net/article/details?id=41803353" target="_blank" rel="external">HBase源码解析(二) HMaster主要类成员解析</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/07/23/利用zookeeperWatcher监控zookeeper-node变化/">http://thousandhu.github.io/2016/07/23/利用zookeeperWatcher监控zookeeper-node变化/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/zookeeper/" rel="tag"># zookeeper</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/22/深入解析yarn架构设计与技术实现-服务库/" rel="next" title="深入解析yarn架构设计与技术实现-服务库">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-服务库
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/24/atom-配置/" rel="prev" title="atom 配置">
+                atom 配置 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#zookeeperwatcher的基本知识"><span class="nav-number">1.</span> <span class="nav-text">zookeeperwatcher的基本知识</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#我们的使用方式"><span class="nav-number">2.</span> <span class="nav-text">我们的使用方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">3.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,739 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hive,优化," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Join 连接优化普通的Join操作的Reduce 阶段，位于 Join左边的表的内容会被加载进内存，所以最好将小表放在左边。不过如果使用关键字/*+streamtable(大表名称)*/就无所谓位置了。 对于HiveQL，会先执行on条件筛选，再链接，在进行where筛选。On的筛选条件主要是针对从表，主表的数据都会输出。因此对于主表无关数据很多时，可以先使用子查询，过滤主表的无效数据。同时注意">
+<meta name="keywords" content="hive,优化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hive 优化">
+<meta property="og:url" content="http://thousandhu.github.io/2015/12/18/hive-优化/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="Join 连接优化普通的Join操作的Reduce 阶段，位于 Join左边的表的内容会被加载进内存，所以最好将小表放在左边。不过如果使用关键字/*+streamtable(大表名称)*/就无所谓位置了。 对于HiveQL，会先执行on条件筛选，再链接，在进行where筛选。On的筛选条件主要是针对从表，主表的数据都会输出。因此对于主表无关数据很多时，可以先使用子查询，过滤主表的无效数据。同时注意">
+<meta property="og:updated_time" content="2015-12-18T10:06:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hive 优化">
+<meta name="twitter:description" content="Join 连接优化普通的Join操作的Reduce 阶段，位于 Join左边的表的内容会被加载进内存，所以最好将小表放在左边。不过如果使用关键字/*+streamtable(大表名称)*/就无所谓位置了。 对于HiveQL，会先执行on条件筛选，再链接，在进行where筛选。On的筛选条件主要是针对从表，主表的数据都会输出。因此对于主表无关数据很多时，可以先使用子查询，过滤主表的无效数据。同时注意">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2015/12/18/hive-优化/"/>
+
+
+
+
+
+  <title>hive 优化 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/12/18/hive-优化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">hive 优化</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-12-18T16:11:32+08:00">
+                2015-12-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Join-连接优化"><a href="#Join-连接优化" class="headerlink" title="Join 连接优化"></a>Join 连接优化</h1><p>普通的Join操作的Reduce 阶段，位于 Join左边的表的内容会被加载进内存，所以最好将小表放在左边。不过如果使用关键字<code>/*+streamtable(大表名称)*/</code>就无所谓位置了。</p>
+<p>对于HiveQL，会先执行on条件筛选，再链接，在进行where筛选。On的筛选条件主要是针对从表，主表的数据都会输出。因此对于主表无关数据很多时，可以先使用子查询，过滤主表的无效数据。同时注意能用on filter的就不要用where</p>
+<h2 id="map-side-join"><a href="#map-side-join" class="headerlink" title="map side join"></a>map side join</h2><p>当小表关联一个超大表时，容易发生数据倾斜，可以用mapside join，把小表全部加载到内存在map端进行join，避免reducer处理。<br><code>SELECT /*+ MAPJOIN(user) */  l.session_id, u.username from user u join page_views l on (u. id=l.user_id) ;</code></p>
+<p>hive0.7版本开始，设置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">hive.auto.convert.join=true</div><div class="line">hive.mapjoin.smalltable.filsize=25000000    </div><div class="line">--使用这个优化的小表的大小(单位：字节)</div><div class="line">--注意：右外连接和全外连接不支持这个优化</div></pre></td></tr></table></figure>
+<p>可以自动判断能否mapside join</p>
+<h1 id="Count-distinct"><a href="#Count-distinct" class="headerlink" title="Count distinct"></a>Count distinct</h1><p>数据量小的时候无所谓，数据量大的情况下，由于COUNT DISTINCT操作需要用一个Reduce Task来完成，这一个Reduce需要处理的数据量太大，就会导致整个Job很难完成，一般COUNT DISTINCT使用先GROUP BY再COUNT的方式替换：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">SELECT day,</div><div class="line">	COUNT(DISTINCT id) AS uv</div><div class="line">	FROM lxw1234</div><div class="line">	GROUP BY day</div><div class="line">转化为</div><div class="line">SELECT day,</div><div class="line">	COUNT(id) AS uv</div><div class="line">	FROM (</div><div class="line">		SELECT day,id </div><div class="line">			FROM lxw1234 </div><div class="line">			GROUP BY day,id) a</div><div class="line">	GROUP BY day;</div></pre></td></tr></table></figure>
+<h1 id="合理使用union-all"><a href="#合理使用union-all" class="headerlink" title="合理使用union all"></a>合理使用union all</h1><p><a href="http://superlxw1234.iteye.com/blog/1536440" target="_blank" rel="external">http://superlxw1234.iteye.com/blog/1536440</a></p>
+<h1 id="group-by数据倾斜"><a href="#group-by数据倾斜" class="headerlink" title="group by数据倾斜"></a>group by数据倾斜</h1><p>数据倾斜聚合优化，设置参数hive.groupby.skewindata = true，当选项设定为 true，生成的查询计划会有两个 MR Job。第一个 MR Job 中，Map 的输出结果集合会随机分布到 Reduce 中，每个 Reduce 做部分聚合操作，并输出结果，这样处理的结果是相同的 Group By Key 有可能被分发到不同的 Reduce 中，从而达到负载均衡的目的；第二个 MR Job 再根据预处理的数据结果按照 Group By Key 分布到 Reduce 中（这个过程可以保证相同的 Group By Key 被分布到同一个 Reduce 中），最后完成最终的聚合操作。</p>
+<h1 id="using-Partitions-and-Buckets"><a href="#using-Partitions-and-Buckets" class="headerlink" title="using Partitions and Buckets"></a>using Partitions and Buckets</h1><p>通过对table的指定列进行partation和buckets可以更迅速的进行搜索</p>
+<h1 id="hive-config相关"><a href="#hive-config相关" class="headerlink" title="hive config相关"></a>hive config相关</h1><h2 id="map和reduce个数优化"><a href="#map和reduce个数优化" class="headerlink" title="map和reduce个数优化"></a>map和reduce个数优化</h2><p><a href="http://www.csdn.net/article/2015-01-13/2823530" target="_blank" rel="external">http://www.csdn.net/article/2015-01-13/2823530</a></p>
+<h2 id="合并小文件"><a href="#合并小文件" class="headerlink" title="合并小文件"></a>合并小文件</h2><p>文件数目过多，会给 HDFS 带来压力，并且会影响处理效率，可以通过合并 Map 和 Reduce 的结果文件来消除这样的影响：</p>
+<ul>
+<li>hive.merge.mapfiles = true是否和并 Map 输出文件，默认为 True</li>
+<li>hive.merge.mapredfiles = false是否合并 Reduce 输出文件，默认为 False</li>
+<li>hive.merge.size.per.task = 256<em>1000</em>1000合并文件的大小</li>
+</ul>
+<h2 id="并行执行"><a href="#并行执行" class="headerlink" title="并行执行"></a>并行执行</h2><p>Hive引擎会将一个HiveQL查询语句分解成几个执行阶段(stages)(可以通过EXPLAIN HiveQL看出)，默认情况下，Hive会一次执行一个阶段(stage)，有时候一个包含多个执行阶段(stages)的HiveQL的stages之间并没有前后执行的依赖顺序，这种情况下将这些stages并行执行是一个很好的选择，可以带来更好的性能。<br>将hive.exec.parallel参数设置为true就会激活并行执行的功能，如果一个HiveQL作业可以并行的执行其多个stages，这就会提升集群的利用率：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.exec.parallel<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">description</span>&gt;</span>Whether to execute jobs in parallel<span class="tag">&lt;/<span class="name">description</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div></pre></td></tr></table></figure>
+<h2 id="jvm重用"><a href="#jvm重用" class="headerlink" title="jvm重用"></a>jvm重用</h2><p>JVM重用是Hadoop的一个性能调整的参数，它也会对Hive产生非常大的影响，特别是在很那避免处理大量小文件的场景中，每一个task执行方式景都很短，要知道默认新情况下每处理一个task都要启动一个JVM进程，JVM进程是一个重量级的进程，这就需要大量的资源的开销，这种情况下使用JVM重用可以大量减少这些不必要的JVM的初始化和销毁的开销，大大缩短总的执行时间。<br>这个参数可以再$HADOOP_HOME/conf/mapred-site.xml中设置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;property&gt;</div><div class="line">	&lt;name&gt;mapred.job.reuse.jvm.num.tasks&lt;/name&gt;</div><div class="line">	&lt;value&gt;10&lt;/value&gt;</div><div class="line">	&lt;description&gt;</div><div class="line">		How many tasks to run per jvm.if set to -1,there is no limit.</div><div class="line">	&lt;/description&gt;</div><div class="line">&lt;/property&gt;</div></pre></td></tr></table></figure>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ul>
+<li><a href="http://www.open-open.com/lib/view/open1341214750402.html" target="_blank" rel="external">http://www.open-open.com/lib/view/open1341214750402.html</a></li>
+<li><a href="http://www.chinahadoop.cn/group/8/thread/1778" target="_blank" rel="external">http://www.chinahadoop.cn/group/8/thread/1778</a></li>
+<li><a href="http://lxw1234.com/archives/2015/06/317.htm" target="_blank" rel="external">http://lxw1234.com/archives/2015/06/317.htm</a></li>
+<li><a href="http://itindex.net/detail/53496-hive-%E4%BC%98%E5%8C%96-%E6%80%BB%E7%BB%93" target="_blank" rel="external">http://itindex.net/detail/53496-hive-%E4%BC%98%E5%8C%96-%E6%80%BB%E7%BB%93</a></li>
+<li><a href="http://www.csdn.net/article/2015-01-13/2823530" target="_blank" rel="external">http://www.csdn.net/article/2015-01-13/2823530</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2015/12/18/hive-优化/">http://thousandhu.github.io/2015/12/18/hive-优化/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hive/" rel="tag"># hive</a>
+          
+            <a href="/tags/优化/" rel="tag"># 优化</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/13/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-17-hive/" rel="next" title="Hadoop: The Definitive Guide 4th读书笔记: chapter 17 hive">
+                <i class="fa fa-chevron-left"></i> Hadoop: The Definitive Guide 4th读书笔记: chapter 17 hive
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/07/azkaban定制/" rel="prev" title="azkaban定制">
+                azkaban定制 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Join-连接优化"><span class="nav-number">1.</span> <span class="nav-text">Join 连接优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#map-side-join"><span class="nav-number">1.1.</span> <span class="nav-text">map side join</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Count-distinct"><span class="nav-number">2.</span> <span class="nav-text">Count distinct</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#合理使用union-all"><span class="nav-number">3.</span> <span class="nav-text">合理使用union all</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#group-by数据倾斜"><span class="nav-number">4.</span> <span class="nav-text">group by数据倾斜</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#using-Partitions-and-Buckets"><span class="nav-number">5.</span> <span class="nav-text">using Partitions and Buckets</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#hive-config相关"><span class="nav-number">6.</span> <span class="nav-text">hive config相关</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#map和reduce个数优化"><span class="nav-number">6.1.</span> <span class="nav-text">map和reduce个数优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#合并小文件"><span class="nav-number">6.2.</span> <span class="nav-text">合并小文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#并行执行"><span class="nav-number">6.3.</span> <span class="nav-text">并行执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jvm重用"><span class="nav-number">6.4.</span> <span class="nav-text">jvm重用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">7.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

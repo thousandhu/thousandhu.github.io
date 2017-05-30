@@ -1,0 +1,770 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="序列化Yarn中rpc模块采用protocol buffers做序列化；使用avro作为日志序列化库 RPC模型rpc跨越了OSI 7层模型中的传输层和引用曾，主要是用于让一台机器调用另一台机器的子程序时屏蔽网络通信细节。主要包含一下4个部分  通信模块：两个相互写作的通信模块实现了请求应答协议，一般不对数据进行处理，常见同步异步两种。 Stub程序。客户端均包含Stub程序，使得函数调用表现的跟">
+<meta name="keywords" content="yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-yarn rpc框架">
+<meta property="og:url" content="http://thousandhu.github.io/2016/06/22/深入解析yarn架构设计与技术实现-yarn-rpc框架/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="序列化Yarn中rpc模块采用protocol buffers做序列化；使用avro作为日志序列化库 RPC模型rpc跨越了OSI 7层模型中的传输层和引用曾，主要是用于让一台机器调用另一台机器的子程序时屏蔽网络通信细节。主要包含一下4个部分  通信模块：两个相互写作的通信模块实现了请求应答协议，一般不对数据进行处理，常见同步异步两种。 Stub程序。客户端均包含Stub程序，使得函数调用表现的跟">
+<meta property="og:image" content="http://www.2cto.com/uploadfile/2013/1120/20131120113810905.jpg">
+<meta property="og:image" content="http://www.2cto.com/uploadfile/2013/1120/20131120114221750.jpg">
+<meta property="og:updated_time" content="2016-06-22T09:12:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-yarn rpc框架">
+<meta name="twitter:description" content="序列化Yarn中rpc模块采用protocol buffers做序列化；使用avro作为日志序列化库 RPC模型rpc跨越了OSI 7层模型中的传输层和引用曾，主要是用于让一台机器调用另一台机器的子程序时屏蔽网络通信细节。主要包含一下4个部分  通信模块：两个相互写作的通信模块实现了请求应答协议，一般不对数据进行处理，常见同步异步两种。 Stub程序。客户端均包含Stub程序，使得函数调用表现的跟">
+<meta name="twitter:image" content="http://www.2cto.com/uploadfile/2013/1120/20131120113810905.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/06/22/深入解析yarn架构设计与技术实现-yarn-rpc框架/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-yarn rpc框架 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/06/22/深入解析yarn架构设计与技术实现-yarn-rpc框架/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-yarn rpc框架</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-06-22T17:11:32+08:00">
+                2016-06-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h1><p>Yarn中rpc模块采用protocol buffers做序列化；使用avro作为日志序列化库</p>
+<h1 id="RPC模型"><a href="#RPC模型" class="headerlink" title="RPC模型"></a>RPC模型</h1><p>rpc跨越了OSI 7层模型中的传输层和引用曾，主要是用于让一台机器调用另一台机器的子程序时屏蔽网络通信细节。主要包含一下4个部分</p>
+<ul>
+<li>通信模块：两个相互写作的通信模块实现了请求应答协议，一般不对数据进行处理，常见同步异步两种。</li>
+<li>Stub程序。客户端均包含Stub程序，使得函数调用表现的跟本地调用一样。<ul>
+<li>在客户端，他表现的向本地程序，但是不直接执行本地调用，而是将请求发送给服务端，等服务端应答后解码。</li>
+<li>在服务端，接收应答后解码，调用相应的过程，将结果编码返回</li>
+</ul>
+</li>
+<li>调度程序：接收通信模块的请求并选择一个stub程序进行处理</li>
+</ul>
+<p>rpc的一般过程：</p>
+<ol>
+<li>客户端以本地方式调用系统产生的stub程序</li>
+<li>stub程序将函数调用信息封装并交给通信模块</li>
+<li>通信模块发给远程服务器</li>
+<li>远程服务器接收消息后将此消息发送给相应的stub程序</li>
+<li>stub程序拆封消息，并调用相应函数</li>
+<li>被调用函数执行并将结果返回给stub</li>
+<li>stub程序封装结果并通过通信模块传送给客户程序</li>
+</ol>
+<p>总体架构：</p>
+<ul>
+<li>序列化层</li>
+<li>函数调用层</li>
+<li>网络传输层：采用了基于tcp/ip的socket机制</li>
+<li>服务器端处理框架：基于reactor设计模式的事件驱动i/o模型</li>
+</ul>
+<p>Hadoop rpc主要是三个类：RPC，client和Server，分别对应对外编程接口，客户端实现和服务器实现</p>
+<h2 id="RPC类"><a href="#RPC类" class="headerlink" title="RPC类"></a>RPC类</h2><p>RPC类的构建方法为getProxy()和waitForProxy()，销毁方法为stopProxy<br>.通过RPC.Builder.build()完成服务器对象构建并且调用Server.start()启动。</p>
+<p>hadoop rpc使用了java动态代理完成对远程方法的调用。<a href="http://shensy.iteye.com/blog/1698197" target="_blank" rel="external">动态代理</a>主要是利用java的反射，实现Java反射包中的InvocationHandler接口来执行代理功能，好处在于灵活性比较强。对于hadoop的invoke方法，因为函数不在本地，所以客户端是讲函数调用信息打包成可序列化的WritableRpcEngine.Invocation对象，并通过忘了发给服务端，服务端进行解析。invocation对象关于函数的打包代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> org.apache.hadoop.ipc;</div><div class="line"><span class="comment">//class WritableRpcEngine</span></div><div class="line"></div><div class="line"> <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Invocation</span> <span class="keyword">implements</span> <span class="title">Writable</span>, <span class="title">Configurable</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> String methodName;</div><div class="line">    <span class="keyword">private</span> Class&lt;?&gt;[] parameterClasses;</div><div class="line">    <span class="keyword">private</span> Object[] parameters;</div><div class="line">    <span class="keyword">private</span> Configuration conf;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">long</span> clientVersion;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> clientMethodsHash;</div><div class="line">    <span class="keyword">private</span> String declaringClassProtocolName;</div><div class="line">    </div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Invocation</span><span class="params">(Method method, Object[] parameters)</span> </span>&#123;</div><div class="line">      <span class="keyword">this</span>.methodName = method.getName();</div><div class="line">      <span class="keyword">this</span>.parameterClasses = method.getParameterTypes();</div><div class="line">      <span class="keyword">this</span>.parameters = parameters;</div><div class="line">      rpcVersion = writableRpcVersion;</div><div class="line">      <span class="keyword">if</span> (method.getDeclaringClass().equals(VersionedProtocol.class)) &#123;</div><div class="line">        <span class="comment">//VersionedProtocol is exempted from version check.</span></div><div class="line">        clientVersion = <span class="number">0</span>;</div><div class="line">        clientMethodsHash = <span class="number">0</span>;</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">this</span>.clientVersion = RPC.getProtocolVersion(method.getDeclaringClass());</div><div class="line">        <span class="keyword">this</span>.clientMethodsHash = ProtocolSignature.getFingerprint(method</div><div class="line">            .getDeclaringClass().getMethods());</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">this</span>.declaringClassProtocolName = </div><div class="line">          RPC.getProtocolName(method.getDeclaringClass());</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以通过代码清晰的看到他们如何表示一个函数。而序列化主要是通过实现Writable接口，也就是write和readFields两个方法来实现的</p>
+<h2 id="client"><a href="#client" class="headerlink" title="client"></a>client</h2><p>主要有两个内部类call和connection</p>
+<ul>
+<li>call： 封装一个rpc请求，包含五个变量：标识id，函数调用信息param（就是之前invocation被序列化的那个），函数返回值value，异常信息error和执行完成表示done。其中id和param由client填写，后三个由服务端填写</li>
+<li>connection类。client与每个server维护一个通信连接，连接相关的信息被封装在一个connection中。connection中有一个hashmap存着与一个server相连的所有call，其他的包括连接标识id，server端同学socker等。client中也有一个hashmap存着所有的connection，也就是一个client对应对个connection（后面代表多个server），一个connection对应多个call（就是可以对一个server发送多个call）</li>
+</ul>
+<p>当调用call函数执行某个远程方法时，Client端需要进行（如图3-7所示）以下4个步骤。</p>
+<ol>
+<li>创建一个Connection对象，并将远程方法调用信息封装成Call对象，放到Connection对象中的哈希表中；<br>2。 调用Connection类中的sendRpcRequest()方法将当前Call对象发送给Server端；</li>
+<li>Server端处理完RPC请求后，将结果通过网络返回给Client端，Client端通过receiveRpcResponse()函数获取结果；</li>
+<li>Client检查结果处理状态（成功还是失败），并将对应Call对象从哈希表中删除</li>
+</ol>
+<p><img src="http://www.2cto.com/uploadfile/2013/1120/20131120113810905.jpg" alt="client 调用过程"></p>
+<h2 id="server"><a href="#server" class="headerlink" title="server"></a>server</h2><p>rpc的server主要用了<a href="http://blog.csdn.net/linxcool/article/details/7771952" target="_blank" rel="external">reactor模式</a>.<br>reactor模式主要是事件驱动的，有一个或多个并发输入源，有一个Service Handler，有多个Request Handlers；这个Service Handler会同步的将输入的请求（Event）多路复用的分发给相应的Request Handler。这里复用指的是一个request handler会处理多个事件，从而提高了并行性。</p>
+<p><img src="http://www.2cto.com/uploadfile/2013/1120/20131120114221750.jpg" alt="server的那张图"></p>
+<p>server中有一个Listener，多个reader，一个callQueue（是个BlockingQueue），多个handler还有一个responder。接收阶段Listener统一监听来自client的连接，有新的连接时将他自动分给一个reader线程。分配的方式很简单，就是轮询</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Reader getReader() &#123;</div><div class="line">  currentReader = (currentReader + 1) % readers.length;</div><div class="line">  return readers[currentReader];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>之后被分配的reader继续监听他负责的client是否有新的rpc，并将传过来的数据解析成一个call并且放在callQueue中。Listener和reader的reactor模式主要体现在监听上，这里用到了NIO的Selector，可以看一下这个<a href="http://ifeve.com/selectors" target="_blank" rel="external">教程</a>。NIO中Selector的典型写法就是创建selector，注册channel，轮询遍历来访问就绪通道：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">//创建</div><div class="line">Selector selector = Selector.open();</div><div class="line"></div><div class="line">//注册</div><div class="line">channel.configureBlocking(false);</div><div class="line">SelectionKey key = channel.register(selector,</div><div class="line">	Selectionkey.OP_READ);</div><div class="line"></div><div class="line">//访问。在Listener和reader中都是再套一个while(running)一直执行</div><div class="line">Set selectedKeys = selector.selectedKeys();</div><div class="line">Iterator keyIterator = selectedKeys.iterator();</div><div class="line">while(keyIterator.hasNext()) &#123;</div><div class="line">    SelectionKey key = keyIterator.next();</div><div class="line">    if(key.isAcceptable()) &#123;</div><div class="line">        // a connection was accepted by a ServerSocketChannel.</div><div class="line">    &#125; else if (key.isConnectable()) &#123;</div><div class="line">        // a connection was established with a remote server.</div><div class="line">    &#125; else if (key.isReadable()) &#123;</div><div class="line">        // a channel is ready for reading</div><div class="line">    &#125; else if (key.isWritable()) &#123;</div><div class="line">        // a channel is ready for writing</div><div class="line">    &#125;</div><div class="line">    keyIterator.remove();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>而另一边，Handler不断从callQueue拿到call对象执行，执行结果如果小的话handler直接返回，大的话加入一个call.connection.responseQueue，让responder去返回。responder也用了selector，异步的返回结果。并且responder会做清理（doPurge函数），对于超过15分钟的call就会删除</p>
+<h1 id="YARN-RPC实例的简单分析"><a href="#YARN-RPC实例的简单分析" class="headerlink" title="YARN RPC实例的简单分析"></a>YARN RPC实例的简单分析</h1><p>书上这一段讲的很细，我这里只是记一下我结合这个例子对rpc的理解。对于ResourceTracker这个协议，在nodemanager（client端）中是NodeStatusUpdaterImpl实现的，他的reosourceTracker是一个RMporxy，nodeManager直接调用这个proxy的registerNodeManager。而在resourceManager那边，是有一个真实的resourceTrackerService，他内部有一个org.apache.hadoop.ipc.Server,这个就对应rpc里的server。但是具体在哪里序列化我真的没找到。书中给出了ResourceTrackerPBClientImpl和ServerImpl，这个的确是用了pb做了序列化，但是整个工程没找到调用。。。</p>
+<p>另外nodemanager的代码要看package org.apache.hadoop.yarn.server.nodemanager里面的，我之前没注意，看的resourceManage包里的，那个的nm估计是个单机模式用的，坑的一笔。。。而且hadoop到现在的确代码很多了，看起来很吃力。我看大工程的能力也的确需要提高</p>
+<p>这里有几篇不错的参考文档。</p>
+<ul>
+<li><a href="http://www.superwu.cn/2015/05/28/2499/" target="_blank" rel="external">Hadoop 2.0 Yarn代码:心跳驱动服务分析</a></li>
+<li><a href="http://zengzhaozheng.blog.51cto.com/8219051/1438204" target="_blank" rel="external">Yarn之ResourceManager详细分析笔记（一）待续</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/06/22/深入解析yarn架构设计与技术实现-yarn-rpc框架/">http://thousandhu.github.io/2016/06/22/深入解析yarn架构设计与技术实现-yarn-rpc框架/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/06/21/深入解析yarn架构设计与技术实现1-基本概念/" rel="next" title="深入解析yarn架构设计与技术实现1-基本概念">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现1-基本概念
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/06/24/事件库-深入解析yarn架构设计与技术实现-md/" rel="prev" title="深入解析yarn架构设计与技术实现-事件库与状态机">
+                深入解析yarn架构设计与技术实现-事件库与状态机 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#序列化"><span class="nav-number">1.</span> <span class="nav-text">序列化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RPC模型"><span class="nav-number">2.</span> <span class="nav-text">RPC模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#RPC类"><span class="nav-number">2.1.</span> <span class="nav-text">RPC类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#client"><span class="nav-number">2.2.</span> <span class="nav-text">client</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#server"><span class="nav-number">2.3.</span> <span class="nav-text">server</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#YARN-RPC实例的简单分析"><span class="nav-number">3.</span> <span class="nav-text">YARN RPC实例的简单分析</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,787 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,读书笔记," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="本读书笔记组织形式是每个chapter为一篇，每篇大小标题对应书中一节和一小节。 转载请注明出处&amp;lt;&amp;gt; The Design of HDFShdfs的定义为  filesystem designed for storing very large files with streaming data access patterns, running on clusters of commod">
+<meta name="keywords" content="hadoop,读书笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop: The Definitive Guide 4th 读书笔记—chapter3: HDFS">
+<meta property="og:url" content="http://thousandhu.github.io/2015/10/27/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter3-HDFS/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="本读书笔记组织形式是每个chapter为一篇，每篇大小标题对应书中一节和一小节。 转载请注明出处&amp;lt;&amp;gt; The Design of HDFShdfs的定义为  filesystem designed for storing very large files with streaming data access patterns, running on clusters of commod">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/151126hdfs-read.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/151126hdfs-replica%20placement.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/151126hdfs-write.png">
+<meta property="og:updated_time" content="2015-11-29T07:04:46.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hadoop: The Definitive Guide 4th 读书笔记—chapter3: HDFS">
+<meta name="twitter:description" content="本读书笔记组织形式是每个chapter为一篇，每篇大小标题对应书中一节和一小节。 转载请注明出处&amp;lt;&amp;gt; The Design of HDFShdfs的定义为  filesystem designed for storing very large files with streaming data access patterns, running on clusters of commod">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/151126hdfs-read.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2015/10/27/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter3-HDFS/"/>
+
+
+
+
+
+  <title>Hadoop: The Definitive Guide 4th 读书笔记—chapter3: HDFS | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/10/27/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter3-HDFS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Hadoop: The Definitive Guide 4th 读书笔记—chapter3: HDFS</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-27T11:02:55+08:00">
+                2015-10-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本读书笔记组织形式是每个chapter为一篇，每篇大小标题对应书中一节和一小节。</p>
+<p>转载请注明出处&lt;&gt;</p>
+<h1 id="The-Design-of-HDFS"><a href="#The-Design-of-HDFS" class="headerlink" title="The Design of HDFS"></a>The Design of HDFS</h1><p>hdfs的定义为</p>
+<blockquote>
+<p>filesystem designed for storing very large files with streaming data access patterns, running on clusters of commodity hardware.</p>
+</blockquote>
+<p>他有三个主要特点：</p>
+<ul>
+<li>very large files：可以支持到pb级别</li>
+<li>streaming data access： write-once, read-many-time</li>
+<li>commodity hardware： 不需要昂贵硬件支持</li>
+</ul>
+<p>hdfs不适用于：</p>
+<ol>
+<li>low-latency data access： 低延迟的数据访问可以尝试使用hbase</li>
+<li>lots of small files： 主要原因是namenode 将filesystem的metadata存在memory中，内存大小限制了文件数量。</li>
+<li>multiple writers， arbitrary（武断的/随意的）file</li>
+</ol>
+<h1 id="HDFS-Concepts"><a href="#HDFS-Concepts" class="headerlink" title="HDFS Concepts"></a>HDFS Concepts</h1><h2 id="Blocks"><a href="#Blocks" class="headerlink" title="Blocks"></a>Blocks</h2><p>block是hdfs的基本储存单元，每个128m。但是单个文件不是独占这128m，这和单机的fs不同。按照block组织有3个好处：</p>
+<ol>
+<li>一个file的大小可以远大于一个node的内存，使用block以后可以隔绝这个问题。</li>
+<li>简化storage subsystem。 storage subsystem只需要处理block，简化了他的管理逻辑。比如offset的计算，权限管理等。（权限管理是文件的属性，和block无关）</li>
+<li>blocks为容错带来好处。hdfs默认复制三份。</li>
+</ol>
+<p><code>hdfs fsckk / -files -blocks</code>可以查看block的基本信息</p>
+<h2 id="Namenodes-and-Datanodes"><a href="#Namenodes-and-Datanodes" class="headerlink" title="Namenodes and Datanodes"></a>Namenodes and Datanodes</h2><p>HDFS是master-slaver的模式，namenode是slaver。namenode管理者fs的namespace。他储存了filesystem tree和metadata。这些信息以namespace image和edit log的形式永久的存在磁盘上。namenode还储存了file的block位置，不过这些位置是系统启动时通过datanode发送的信息重建起来的。</p>
+<p>client通过和类似POSIX接口和hdfs通信</p>
+<p>namenode通过两种方式容错。</p>
+<ol>
+<li>备份filesystem和metadata。hadoop可以配置namenode写这些信息的方式，设置成同步并且原子的备份即可。</li>
+<li>可以启动一个secondary namenode。它平时是用于merge edit log和 namespace image。所以他有一份备份，可以用作容灾</li>
+</ol>
+<h2 id="Block-Caching"><a href="#Block-Caching" class="headerlink" title="Block Caching"></a>Block Caching</h2><p>略 </p>
+<h2 id="HDFS-Federation"><a href="#HDFS-Federation" class="headerlink" title="HDFS Federation"></a>HDFS Federation</h2><p>单一namenode会实得内存成为系统瓶颈。在federation技术下，可以设置多个namenode，每个namenode管理一个namespace vloume，同时使用一个block pool管理整个filesystem的blocks。volume相互独立，但是block pools是相互依赖的，每个namenode会相互注册block</p>
+<h2 id="HDFS-High-Availability"><a href="#HDFS-High-Availability" class="headerlink" title="HDFS High Availability"></a>HDFS High Availability</h2><p>hadoop1 中 namenode本质上还是一个SPOF（single point of failure）。失败后在启动另一个namenode前，hdfs无法提供服务。启动另一个namenode需要三个步骤：</p>
+<ol>
+<li>load namespace image into memory</li>
+<li>replay edit log</li>
+<li>receive enough block reports</li>
+</ol>
+<p>hadoop2 提供了high availability（HA）模式，通过一个active standby config可以设置standby namenode。</p>
+<p>QJM（quorum journal manager）是一种常用的HA shared storage。 QJM跑一群journal 节点上，每一次写操作必须记录在它上面。</p>
+<h2 id="Failover-and-fencing"><a href="#Failover-and-fencing" class="headerlink" title="Failover and fencing"></a>Failover and fencing</h2><p>默认情况下，zookeeper 保证一个namenode处于active的状态</p>
+<p>当网络状况不好时，原先的namenode活着的时候也可能被误判为挂了，这时使用fencing的方法来处理这个问题。如果standby节点已经启动，则直接通过断电的方式来挂掉原先的namenode</p>
+<blockquote>
+<p>As a last resort, the previously active namenode can be fenced with a technique rather graphically known as STONITH, or “shoot the other node in the head,” which uses a specialized power distribution unit to forcibly power down the host machine.</p>
+</blockquote>
+<p>client端的failover：首先namenode是通过url的形式把逻辑地址写入config。之后client library轮流访问两个namenode（HA）指到成功。</p>
+<h1 id="The-command-line-interface"><a href="#The-command-line-interface" class="headerlink" title="The command-line interface"></a>The command-line interface</h1><h2 id="File-Permission-in-HDFS"><a href="#File-Permission-in-HDFS" class="headerlink" title="File Permission in HDFS"></a>File Permission in HDFS</h2><p>hadf有三种permission，user，group，other。默认情况下是没有authenticated的。如果permission checking打开，就先看client是不是owner，然后看在不在group里，都不是则按other的权限。<br>hdfs的权限也是rwx，其中x(execute)对于文件没有用，对于文件夹是控制能否访问子文件夹的</p>
+<h2 id="The-java-interface"><a href="#The-java-interface" class="headerlink" title="The java interface"></a>The java interface</h2><p>略</p>
+<h1 id="Data-Flow"><a href="#Data-Flow" class="headerlink" title="Data Flow"></a>Data Flow</h1><h2 id="Anatomy-of-a-file-read"><a href="#Anatomy-of-a-file-read" class="headerlink" title="Anatomy of a file read"></a>Anatomy of a file read</h2><p>￼￼<img src="http://7xmhxl.com1.z0.glb.clouddn.com/151126hdfs-read.png" alt="151126hdfs-read"></p>
+<h2 id="Network-Topology-and-hadoop"><a href="#Network-Topology-and-hadoop" class="headerlink" title="Network Topology and hadoop"></a>Network Topology and hadoop</h2><p>￼￼<img src="http://7xmhxl.com1.z0.glb.clouddn.com/151126hdfs-replica%20placement.png" alt="151126hdfs-replica-placement"><br>每次读取namenode都会找距离最小的block，距离是这样定义的：</p>
+<ul>
+<li>处理器和block在同一个机器，</li>
+<li>在同一个rack（刀架？）</li>
+<li>在同一个data center</li>
+<li>在不同datacenter</li>
+</ul>
+<h2 id="Anatomy-of-a-file-write"><a href="#Anatomy-of-a-file-write" class="headerlink" title="Anatomy of a file write"></a>Anatomy of a file write</h2><p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/151126hdfs-write.png" alt="151126hdfs-write"></p>
+<ol>
+<li>creates file by create() on distribytedFileSystem</li>
+<li>DistributedFileSystem RPC calls namenode to create a new file in filesystem’s space</li>
+<li>client write data to internal data queue.</li>
+<li>DataStreamer consumed the data queue and write to datanode in pipeline</li>
+<li>DFSOutputStream wait for the ack queue. When all datanode in pipeline finish write, it return a ack<ul>
+<li>当一个datanode出错时，首先pipeline被关闭，所有ack被加到之前的data queue。然后好的datanode上的block会被赋一个新的identity。失败的datanode被移出所有pipeline，然后新的pipeline被建立，选出新的datanode写入数据。</li>
+<li>多个datanode出错时，只要有dfs.namenode.replication.min(default 1)成功，就先返回成功，然后一步的复制。</li>
+</ul>
+</li>
+<li>数据成功写完后，client close stream</li>
+</ol>
+<h2 id="replica-placement"><a href="#replica-placement" class="headerlink" title="replica placement"></a>replica placement</h2><p>defautl。在当前node上写一份。另一个刀架r上写第二份，同时再在r上写第三份</p>
+<h2 id="coherency-Model"><a href="#coherency-Model" class="headerlink" title="coherency Model"></a>coherency Model</h2><p>flush不保证data能被读到。<br>hflush保证data至少被写进所有datanode的内存<br>hsync保证被写进硬盘</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2015/10/27/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter3-HDFS/">http://thousandhu.github.io/2015/10/27/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter3-HDFS/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/读书笔记/" rel="tag"># 读书笔记</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/26/Hadoop-The-Definitive-Guide-4th读书笔记-chapter2/" rel="next" title="Hadoop: The Definitive Guide 4th读书笔记: chapter2">
+                <i class="fa fa-chevron-left"></i> Hadoop: The Definitive Guide 4th读书笔记: chapter2
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/27/Maven-插件编写/" rel="prev" title="Maven 插件编写">
+                Maven 插件编写 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#The-Design-of-HDFS"><span class="nav-number">1.</span> <span class="nav-text">The Design of HDFS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HDFS-Concepts"><span class="nav-number">2.</span> <span class="nav-text">HDFS Concepts</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Blocks"><span class="nav-number">2.1.</span> <span class="nav-text">Blocks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Namenodes-and-Datanodes"><span class="nav-number">2.2.</span> <span class="nav-text">Namenodes and Datanodes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Block-Caching"><span class="nav-number">2.3.</span> <span class="nav-text">Block Caching</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HDFS-Federation"><span class="nav-number">2.4.</span> <span class="nav-text">HDFS Federation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HDFS-High-Availability"><span class="nav-number">2.5.</span> <span class="nav-text">HDFS High Availability</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failover-and-fencing"><span class="nav-number">2.6.</span> <span class="nav-text">Failover and fencing</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#The-command-line-interface"><span class="nav-number">3.</span> <span class="nav-text">The command-line interface</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#File-Permission-in-HDFS"><span class="nav-number">3.1.</span> <span class="nav-text">File Permission in HDFS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-java-interface"><span class="nav-number">3.2.</span> <span class="nav-text">The java interface</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Data-Flow"><span class="nav-number">4.</span> <span class="nav-text">Data Flow</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Anatomy-of-a-file-read"><span class="nav-number">4.1.</span> <span class="nav-text">Anatomy of a file read</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Network-Topology-and-hadoop"><span class="nav-number">4.2.</span> <span class="nav-text">Network Topology and hadoop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Anatomy-of-a-file-write"><span class="nav-number">4.3.</span> <span class="nav-text">Anatomy of a file write</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#replica-placement"><span class="nav-number">4.4.</span> <span class="nav-text">replica placement</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#coherency-Model"><span class="nav-number">4.5.</span> <span class="nav-text">coherency Model</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

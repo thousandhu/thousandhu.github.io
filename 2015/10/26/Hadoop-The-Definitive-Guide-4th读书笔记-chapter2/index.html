@@ -1,0 +1,752 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,读书笔记," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="本读书笔记组织形式是每个chapter为一篇，每篇大小标题对应书中一节和一小节。 转载请注明出处http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-chapter2/ A Weather Dataset略 Analyzing the Da">
+<meta name="keywords" content="hadoop,读书笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop: The Definitive Guide 4th读书笔记: chapter2">
+<meta property="og:url" content="http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th读书笔记-chapter2/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="本读书笔记组织形式是每个chapter为一篇，每篇大小标题对应书中一节和一小节。 转载请注明出处http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-chapter2/ A Weather Dataset略 Analyzing the Da">
+<meta property="og:updated_time" content="2015-11-14T14:08:35.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hadoop: The Definitive Guide 4th读书笔记: chapter2">
+<meta name="twitter:description" content="本读书笔记组织形式是每个chapter为一篇，每篇大小标题对应书中一节和一小节。 转载请注明出处http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-chapter2/ A Weather Dataset略 Analyzing the Da">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th读书笔记-chapter2/"/>
+
+
+
+
+
+  <title>Hadoop: The Definitive Guide 4th读书笔记: chapter2 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th读书笔记-chapter2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Hadoop: The Definitive Guide 4th读书笔记: chapter2</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-26T20:46:28+08:00">
+                2015-10-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本读书笔记组织形式是每个chapter为一篇，每篇大小标题对应书中一节和一小节。</p>
+<p>转载请注明出处<a href="http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-chapter2/">http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-chapter2/</a></p>
+<h1 id="A-Weather-Dataset"><a href="#A-Weather-Dataset" class="headerlink" title="A Weather Dataset"></a>A Weather Dataset</h1><p>略</p>
+<h1 id="Analyzing-the-Data-with-Unix-tools"><a href="#Analyzing-the-Data-with-Unix-tools" class="headerlink" title="Analyzing the Data with Unix tools"></a>Analyzing the Data with Unix tools</h1><p>略</p>
+<h1 id="Analyzing-the-Data-with-Hadoop"><a href="#Analyzing-the-Data-with-Hadoop" class="headerlink" title="Analyzing the Data with Hadoop"></a>Analyzing the Data with Hadoop</h1><h2 id="Map-and-Reduce"><a href="#Map-and-Reduce" class="headerlink" title="Map and Reduce"></a>Map and Reduce</h2><p>这一节主要就是讲了如何结合mapreduce统计信息每年温度的最大值。mapreduce处理他的思想就是在map端进行数据预处理，取出一条记录中的年份和温度，map的output是按照年份为key的聚合，其value为该map上的所有温度的list。reduce端遍历这个list并找到最大温度</p>
+<h2 id="Java-MapReduce"><a href="#Java-MapReduce" class="headerlink" title="Java MapReduce"></a>Java MapReduce</h2><p>这一节主要讲如何写java的mapredce。</p>
+<p>map长这样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MaxTemperatureMapper</span></span></div><div class="line">	<span class="keyword">extends</span> <span class="title">Mapper</span>&lt;<span class="title">LongWritable</span>, <span class="title">Text</span>, <span class="title">Text</span>, <span class="title">IntWritable</span>&gt; &#123;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MISSING = <span class="number">9999</span>;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">map</span><span class="params">(LongWritable key, Text value, Context context)</span></span></div><div class="line">			<span class="keyword">throws</span> IOException, InterruptedException &#123;</div><div class="line">		String line = value.toString();</div><div class="line">		String year = line.substring(<span class="number">15</span>, <span class="number">19</span>);</div><div class="line">		<span class="keyword">int</span> airTemperature;</div><div class="line">		<span class="keyword">if</span> (line.charAt(<span class="number">87</span>) == <span class="string">'+'</span>) &#123; <span class="comment">// parseInt doesn't like leading plus signs</span></div><div class="line">			airTemperature = Integer.parseInt(line.substring(<span class="number">88</span>, <span class="number">92</span>)); &#125; <span class="keyword">else</span> &#123;</div><div class="line">			airTemperature = Integer.parseInt(line.substring(<span class="number">87</span>, <span class="number">92</span>));</div><div class="line">		&#125;</div><div class="line">		String quality = line.substring(<span class="number">92</span>, <span class="number">93</span>);</div><div class="line">		<span class="keyword">if</span> (airTemperature != MISSING &amp;&amp; quality.matches(<span class="string">"[01459]"</span>))&#123; </div><div class="line">			context.write(<span class="keyword">new</span> Text(year), <span class="keyword">new</span> IntWritable(airTemperature));</div><div class="line">		&#125; </div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>reduce长这样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MaxTemperatureReducer</span></span></div><div class="line"><span class="keyword">extends</span> <span class="title">Reducer</span>&lt;<span class="title">Text</span>, <span class="title">IntWritable</span>, <span class="title">Text</span>, <span class="title">IntWritable</span>&gt; &#123;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">reduce</span><span class="params">(Text key, Iterable&lt;IntWritable&gt; values, Context context)</span> </span></div><div class="line">			<span class="keyword">throws</span> IOException, InterruptedException &#123;</div><div class="line">		<span class="keyword">int</span> maxValue = Integer.MIN_VALUE; </div><div class="line">		<span class="keyword">for</span> (IntWritable value : values) &#123;</div><div class="line">			maxValue = Math.max(maxValue, value.get());</div><div class="line">		&#125;</div><div class="line">		context.write(key, <span class="keyword">new</span> IntWritable(maxValue)); &#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>是比较基础的概念</p>
+<p>在main函数中有很多设置，这个看jobconf的<a href="https://hadoop.apache.org/docs/current/api/org/apache/hadoop/mapred/JobConf.html" target="_blank" rel="external">文档</a>比较清楚.</p>
+<p>一般来讲需要设置</p>
+<ul>
+<li>job.setJarByClass//哪个类执行这次mr</li>
+<li>job.setJobName//给mr起个名字</li>
+<li>FileInputFormat.addInputPath//input的路径，可以是单个文件，或者一个文件夹，或者a filte pattern(文件匹配表达式？)。</li>
+<li>FileOutputFormat.setOutputPath</li>
+<li>job.setOutputKeyClass/setOutputValueClass/setMapOutputKeyClass/setMapOutputValueClass设置mr任务输出的格式</li>
+</ul>
+<h1 id="Scaling-Out"><a href="#Scaling-Out" class="headerlink" title="Scaling Out"></a>Scaling Out</h1><h2 id="Data-Flow"><a href="#Data-Flow" class="headerlink" title="Data Flow"></a>Data Flow</h2><ol>
+<li>一个mr job包括input data， mr program和configure。</li>
+<li>map端将任务划分为input splits。默认情况下MR会为每个split创建一个map task</li>
+<li>通常情况下，一个splits大小是和hdfs的block大小一致，为128mb。splits过大会有load balance问题，太小会有很多overhead。同时和block一致有助于任务划分。</li>
+<li>任务划分有一个data locality optimization。因为hdfs是分布式存储，所以input也是分布式。首先任务倾向于node含有input文件的机器，其次是同一机架的node，其次是其他机架。(figure2-2)</li>
+<li>map的结果写在local disk，不写入hdfs是因为这些结果只是中间结果。</li>
+<li>reduce没有空间局部性，因为每个map task都为每个reduce创建了输入文件。当reduce有多个时，map tasks <strong>partition</strong> their output。partition和key对应的规则可以自定义，但是每个key对应唯一一个reduce。</li>
+<li>map和reduce文件的传输是一个shuffle的过程，可以参考“shuffle and sort” on page 197</li>
+<li>reduce tasks可以有0个，如果你不需要shuffle你的数据</li>
+</ol>
+<blockquote>
+<p>Finally, it’s also possible to have zero reduce tasks. This can be appropriate when you don’t need the shuffle because the processing can be carried out entirely in parallel (a few examples are discussed in “NLineInputFormat” on page 234). In this case, the only off-node data transfer is when the map tasks write to HDFS (see Figure 2-5).(p34) 这一段的确没理解</p>
+</blockquote>
+<h2 id="Combiner-Functions"><a href="#Combiner-Functions" class="headerlink" title="Combiner Functions"></a>Combiner Functions</h2><ol>
+<li>MR的一大延迟就是在map向reduce传递数据，因此map task结束后可以用combiner处理数据，进行压缩。MR不保证combiner的调用次数。</li>
+<li>combiner继承reduce class</li>
+</ol>
+<h1 id="Hadoop-Streaming"><a href="#Hadoop-Streaming" class="headerlink" title="Hadoop Streaming"></a>Hadoop Streaming</h1><p>用其他语言编写map task和reduce task。书中给了ruby和python的例子，都是直接读标准输入，tab分割key，value。输出也是直接print<br>比如python</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#map</span></div><div class="line"><span class="comment">#!/usr/bin/env python</span></div><div class="line"><span class="keyword">import</span> re<span class="keyword">import</span> sys<span class="keyword">for</span> line <span class="keyword">in</span> sys.stdin:	val = line.strip()	(year, temp, q) = (val[<span class="number">15</span>:<span class="number">19</span>], val[<span class="number">87</span>:<span class="number">92</span>], val[<span class="number">92</span>:<span class="number">93</span>]) </div><div class="line">	<span class="keyword">if</span> (temp != <span class="string">"+9999"</span> <span class="keyword">and</span> re.match(<span class="string">"[01459]"</span>, q)):		<span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (year, temp)</div><div class="line">		</div><div class="line"><span class="comment">#reduce</span></div><div class="line"><span class="comment">#!/usr/bin/env python</span><span class="keyword">import</span> sys(last_key, max_val) = (<span class="keyword">None</span>, -sys.maxint) </div><div class="line"><span class="keyword">for</span> line <span class="keyword">in</span> sys.stdin:	(key, val) = line.strip().split(<span class="string">"\t"</span>) </div><div class="line">	<span class="keyword">if</span> last_key <span class="keyword">and</span> last_key != key:		<span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (last_key, max_val)		(last_key, max_val) = (key, int(val)) </div><div class="line">	<span class="keyword">else</span>:   		(last_key, max_val) = (key, max(max_val, int(val)))</div><div class="line">   <span class="keyword">if</span> last_key:		<span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (last_key, max_val)</div></pre></td></tr></table></figure>
+<p>启动脚本为</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \ </div><div class="line">-input input/ncdc/sample.txt \-output output \-mapper map.py \</div><div class="line">-combiner reduce.py \-reducer reduce.py</div></pre></td></tr></table></figure>
+<p>这种方法在没有性能要求的时候开发难度的确有所降低。但是对性能应该有影响，具体没有测过</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th读书笔记-chapter2/">http://thousandhu.github.io/2015/10/26/Hadoop-The-Definitive-Guide-4th读书笔记-chapter2/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/读书笔记/" rel="tag"># 读书笔记</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/play中使用slick的一些代码片段/" rel="next" title="play中使用slick的一些代码片段">
+                <i class="fa fa-chevron-left"></i> play中使用slick的一些代码片段
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/27/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter3-HDFS/" rel="prev" title="Hadoop: The Definitive Guide 4th 读书笔记—chapter3: HDFS">
+                Hadoop: The Definitive Guide 4th 读书笔记—chapter3: HDFS <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#A-Weather-Dataset"><span class="nav-number">1.</span> <span class="nav-text">A Weather Dataset</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Analyzing-the-Data-with-Unix-tools"><span class="nav-number">2.</span> <span class="nav-text">Analyzing the Data with Unix tools</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Analyzing-the-Data-with-Hadoop"><span class="nav-number">3.</span> <span class="nav-text">Analyzing the Data with Hadoop</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Map-and-Reduce"><span class="nav-number">3.1.</span> <span class="nav-text">Map and Reduce</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-MapReduce"><span class="nav-number">3.2.</span> <span class="nav-text">Java MapReduce</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Scaling-Out"><span class="nav-number">4.</span> <span class="nav-text">Scaling Out</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Data-Flow"><span class="nav-number">4.1.</span> <span class="nav-text">Data Flow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Combiner-Functions"><span class="nav-number">4.2.</span> <span class="nav-text">Combiner Functions</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hadoop-Streaming"><span class="nav-number">5.</span> <span class="nav-text">Hadoop Streaming</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

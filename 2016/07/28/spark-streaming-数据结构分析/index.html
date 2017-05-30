@@ -1,0 +1,764 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark,spark_streaming," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="这篇文章是在阅读了spark streaming Programming Guide以后的一些总结。主要是spark streaming和spark的数据结构DStream和RDD的对比，以及DStream数据接收到发送到spark engine的一些细节。 Streaming 和DStreamspark streaming是一个流式的处理框架，通过从实时数据流接入数据，然后划分为小的批量传递给s">
+<meta name="keywords" content="spark,spark_streaming">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark streaming 数据结构分析">
+<meta property="og:url" content="http://thousandhu.github.io/2016/07/28/spark-streaming-数据结构分析/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="这篇文章是在阅读了spark streaming Programming Guide以后的一些总结。主要是spark streaming和spark的数据结构DStream和RDD的对比，以及DStream数据接收到发送到spark engine的一些细节。 Streaming 和DStreamspark streaming是一个流式的处理框架，通过从实时数据流接入数据，然后划分为小的批量传递给s">
+<meta property="og:image" content="http://spark.apache.org/docs/latest/img/streaming-flow.png">
+<meta property="og:image" content="http://spark.apache.org/docs/latest/img/streaming-dstream-window.png">
+<meta property="og:image" content="http://static.oschina.net/uploads/space/2016/0609/130706_zW56_2405367.jpg">
+<meta property="og:updated_time" content="2016-08-13T04:36:15.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark streaming 数据结构分析">
+<meta name="twitter:description" content="这篇文章是在阅读了spark streaming Programming Guide以后的一些总结。主要是spark streaming和spark的数据结构DStream和RDD的对比，以及DStream数据接收到发送到spark engine的一些细节。 Streaming 和DStreamspark streaming是一个流式的处理框架，通过从实时数据流接入数据，然后划分为小的批量传递给s">
+<meta name="twitter:image" content="http://spark.apache.org/docs/latest/img/streaming-flow.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/07/28/spark-streaming-数据结构分析/"/>
+
+
+
+
+
+  <title>spark streaming 数据结构分析 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/07/28/spark-streaming-数据结构分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">spark streaming 数据结构分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-28T15:48:42+08:00">
+                2016-07-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>这篇文章是在阅读了spark streaming Programming Guide以后的一些总结。主要是spark streaming和spark的数据结构DStream和RDD的对比，以及DStream数据接收到发送到spark engine的一些细节。</p>
+<h1 id="Streaming-和DStream"><a href="#Streaming-和DStream" class="headerlink" title="Streaming 和DStream"></a>Streaming 和DStream</h1><p>spark streaming是一个流式的处理框架，通过从实时数据流接入数据，然后划分为小的批量传递给spark engine处理。</p>
+<p><img src="http://spark.apache.org/docs/latest/img/streaming-flow.png" alt=""></p>
+<p>Spark streaming对这种持续数据做了一个高级抽象DStream（discretized stream,离散数据流）。在DStream里面就包含了一系列的RDDs。而作用于DSteam的算子都会被转化为对内部RDD的操作。作用在DStream上的操作，其实可以看做作用在其中每一个RDD的操作。和RDD类似，他也是先记录计算逻辑，直到遇到类似Dstream的action才进行实际操作。</p>
+<h2 id="Receiver"><a href="#Receiver" class="headerlink" title="Receiver"></a>Receiver</h2><p>每个Dstream都对应着一个接收器Receiver。在spark streaming中，接收器都是长期运行的，在分配cpu是cpu core要大于接收器的总数，负责该应用只会接收数据而不会处理数据。Receiver除了原生的文件系统socker和akka actor以外还有一些是需要增加额外依赖的。比如kafka，flume的receiver。同时，也可以<a href="http://spark.apache.org/docs/latest/streaming-custom-receivers.html" target="_blank" rel="external">自定义receiver</a>。</p>
+<blockquote>
+<p>  自定义Receiver主要就是实现onStart()和onStop()两个非阻塞函数。一般都是在onstart里面启动一个线程来读数据，读到的数据调用store()存到spart中。</p>
+</blockquote>
+<h2 id="transform"><a href="#transform" class="headerlink" title="transform"></a>transform</h2><p>得到Dstream以后会对他进行一系列的transform，这里不具体讲transform有哪些，只是说一下transform有两个大类。一类就是普通的transform，比如map，flatmap等。另一类是基于窗口的transform，这种算子可以对于某一滑动窗口时间内的数据施加特定的transformation算子：</p>
+<p><img src="http://spark.apache.org/docs/latest/img/streaming-dstream-window.png" alt=""></p>
+<p>上面这个是官方的例子，每个窗口大小3个单元，滑动2个单元。这里的单元就是Dstream的批次间隔。每次滑动和大小都必须是单元的整倍数。举一个最简单的例子：<code>countByWindow(windowLength,slideInterval)</code>表示返回数据流在一个滑动窗口内的元素个数 。具体有哪些算子看手册好了。</p>
+<p>还有一种算子是输出算子，就是将数据推送到外部系统的，比如print(),savaAsHadoopFiles()等。这里有一个比较有趣的是foreachRDD(func)，表示该算子接收一个函数func，func将作用于DStream的每个RDD上。这个有一些使用的注意事项和例子，看<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#output-operations-on-dstreams" target="_blank" rel="external">手册</a>吧</p>
+<h2 id="DStream生成的细节"><a href="#DStream生成的细节" class="headerlink" title="DStream生成的细节"></a>DStream生成的细节</h2><p>到上面的了解程度其实Spark Streaming就可以用了，但是也就是能启动起来的程度，完全不知道数据怎么从哪些executor以什么形式进入spark engine。这一章就从原理层面讨论下这个问题。看的参考文献都是看源码分析的，但是我连spark源码都没看 ，看streaming有点远。。。</p>
+<blockquote>
+<p>   注：spark里面应该是有一个BlockManager的东西来管理rdd数据的分布，这个是属于spark的storage模块，这里就不展开了（主要我也不会 - -）。他是一个master-slave架构。这里结合对streaming的了解，猜测应该是实现了集群之间远程数据传输。</p>
+</blockquote>
+<h2 id="数据接收"><a href="#数据接收" class="headerlink" title="数据接收"></a>数据接收</h2><p>启动spark streaming以后集群会选择一台executor作为某一个receiver的supervisor并标记为active状态。之后</p>
+<ol>
+<li>receiverSupervisor会启动对应的receiver。</li>
+<li>receiver会启动新线程接收数据，通过调用<code>ReceiverSupervisor.store</code> 一条一条接收。</li>
+<li>ReceiverSupervisor调用blockGenerator.addData进行数据填充，这里实际上是把数据存到一个ArrayBuffer[Any]的currentBuffer中。</li>
+</ol>
+<p>把currentbuffer中的数据转化为数据块有两个BlockGenerator线程：</p>
+<ol>
+<li>第一个线程定期地调用updateCurrentBuffer函数生成batch，然后将batch封装成block，时间是由spark.streaming.blockInterval参数配置的，默认是200ms。然后将生成的black放到一个blocksForPushing的队列里</li>
+<li>第二个线程不断调用keepPushingBlocks函数从blocksForPushing里拿到blocks，然后调用pushBlock方法将Block储存到BlockManager中。</li>
+</ol>
+<p>中间我就一直很奇怪Receiver的block最后写在哪里，感觉是写在本地很大，但是感觉写到其他机子上有很奇怪。直到找到<a href="http://stackoverflow.com/questions/32989171/rdd-partitioning-in-spark-streaming" target="_blank" rel="external">stackoverflow这篇</a></p>
+<blockquote>
+<p>One streaming batch corresponds to one RDD. That RDD will have n partitions, where n = batch interval / block interval. Let’s say you have the standard 200ms block interval and a batch interval of 2 seconds, then you will have 10 partitions. Blocks are created by a receiver, and each receiver is allocated in a host. So, those 10 partitions are in a single node and are replicated to a second node.</p>
+<p>When the RDD is submitted for processing, the hosts running the task will read the data from that host. Tasks executing on the same node will have “NODE_LOCAL” locality, while tasks executing on other nodes will have “ANY” locality and will take longer.</p>
+</blockquote>
+<p>其实数据就是写在receiver所在的那个机器，只不过rdd真正搞起来执行任务时其他executor可以从这个机器拿数据。至于rdd和block的关系，其实partition是一个逻辑分区的概念，对于的物理分区就是一个block。具体可以见这个<a href="http://www.tqcto.com/article/internet/9985.html" target="_blank" rel="external">文章</a></p>
+<p><img src="http://static.oschina.net/uploads/space/2016/0609/130706_zW56_2405367.jpg" alt=""></p>
+<h2 id="如何增加并行度"><a href="#如何增加并行度" class="headerlink" title="如何增加并行度"></a>如何增加并行度</h2><p>增加并行度有两个方法</p>
+<ol>
+<li>优化里有讲一个参数<code>spark.streaming.blockInterval</code>，是这只接收器的阻塞间隔。这个是生成block的时间间隔，时间越短block约多，对应rdd的partition也就越多</li>
+<li>用多个Receiver去读取数据，操作的时候再union。</li>
+</ol>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p>这个文章问了搞清楚这个block查了很多东西，主要就是对spark还不熟，直接看streaming底层太费劲了</p>
+<ul>
+<li><a href="http://www.jianshu.com/p/9e44d3fd62af" target="_blank" rel="external">Spark Streaming 数据产生与导入相关的内存分析</a>：好文，对于block生成过程讲的比较清楚</li>
+<li><a href="http://my.oschina.net/gently/blog/689133" target="_blank" rel="external">Spark（十一）：Spark Streaming 原理剖析</a>：另一篇将数据生成的文章</li>
+<li><a href="http://www.cnblogs.com/shenh062326/p/3946341.html" target="_blank" rel="external">Spark Streaming 执行流程</a>：将streaming整体的一个东西</li>
+<li><a href="https://github.com/lw-lin/CoolplaySpark/tree/master/Spark%20Streaming%20%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%E7%B3%BB%E5%88%97" target="_blank" rel="external">CoolplaySpark/Spark Streaming 源码解析系列</a>：广点通的讲spark streaming的一套</li>
+<li><a href="https://github.com/shijinkui/spark_study" target="_blank" rel="external">shijinkui/spark_study</a>:一个spark的资料</li>
+<li><a href="http://www.tqcto.com/article/internet/9985.html" target="_blank" rel="external">Spark问题笔记2</a>：讲spark一些基本概念，比如rdd和block关系的入门笔记</li>
+<li><a href="http://jerryshao.me/architecture/2013/10/08/spark-storage-module-analysis/" target="_blank" rel="external">Spark源码分析之-Storage模块</a>：spark物理层存储的源码分析，比较深</li>
+<li><a href="http://www.slideshare.net/Typesafe_Inc/four-things-to-know-about-reliable-spark-streaming-with-typesafe-and-databricks" target="_blank" rel="external">Four Things to Know About Reliable Spark Streaming with Typesafe and Databricks</a>：一个讲容错的ppt，图画的不错。</li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/07/28/spark-streaming-数据结构分析/">http://thousandhu.github.io/2016/07/28/spark-streaming-数据结构分析/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spark/" rel="tag"># spark</a>
+          
+            <a href="/tags/spark-streaming/" rel="tag"># spark_streaming</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/27/深入解析yarn架构设计与技术实现-Resource-Manager剖析2/" rel="next" title="深入解析yarn架构设计与技术实现-Resource Manager剖析2">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-Resource Manager剖析2
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/29/深入解析yarn架构设计与技术实现-Resource-Manager剖析3/" rel="prev" title="深入解析yarn架构设计与技术实现-Resource Manager剖析3">
+                深入解析yarn架构设计与技术实现-Resource Manager剖析3 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Streaming-和DStream"><span class="nav-number">1.</span> <span class="nav-text">Streaming 和DStream</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Receiver"><span class="nav-number">1.1.</span> <span class="nav-text">Receiver</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#transform"><span class="nav-number">1.2.</span> <span class="nav-text">transform</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DStream生成的细节"><span class="nav-number">1.3.</span> <span class="nav-text">DStream生成的细节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据接收"><span class="nav-number">1.4.</span> <span class="nav-text">数据接收</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何增加并行度"><span class="nav-number">1.5.</span> <span class="nav-text">如何增加并行度</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">2.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

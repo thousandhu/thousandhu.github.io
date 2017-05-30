@@ -1,0 +1,738 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="jena,sparql," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Property function编写有两种方法，对应着不同的注册方式。第一种是实现PropertyFunctionFactory 接口，第二种是直接继承PFuncSimple。 继承propertyFunction继承PropertyFunctionFactory接口的方法需要override create（final String url）函数。该函数返回一个PropertyFunction类">
+<meta name="keywords" content="jena,sparql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sparql自定义propertyFunction">
+<meta property="og:url" content="http://thousandhu.github.io/2016/04/27/Sparql自定义propertyFunction/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="Property function编写有两种方法，对应着不同的注册方式。第一种是实现PropertyFunctionFactory 接口，第二种是直接继承PFuncSimple。 继承propertyFunction继承PropertyFunctionFactory接口的方法需要override create（final String url）函数。该函数返回一个PropertyFunction类">
+<meta property="og:updated_time" content="2016-04-27T11:21:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Sparql自定义propertyFunction">
+<meta name="twitter:description" content="Property function编写有两种方法，对应着不同的注册方式。第一种是实现PropertyFunctionFactory 接口，第二种是直接继承PFuncSimple。 继承propertyFunction继承PropertyFunctionFactory接口的方法需要override create（final String url）函数。该函数返回一个PropertyFunction类">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/04/27/Sparql自定义propertyFunction/"/>
+
+
+
+
+
+  <title>Sparql自定义propertyFunction | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/04/27/Sparql自定义propertyFunction/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Sparql自定义propertyFunction</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-27T19:18:09+08:00">
+                2016-04-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Property function编写有两种方法，对应着不同的注册方式。第一种是实现PropertyFunctionFactory 接口，第二种是直接继承PFuncSimple。</p>
+<h1 id="继承propertyFunction"><a href="#继承propertyFunction" class="headerlink" title="继承propertyFunction"></a>继承propertyFunction</h1><p>继承PropertyFunctionFactory接口的方法需要override create（final String url）函数。该函数返回一个PropertyFunction类，在里面我们可以return new PFuncSimple(){//dosth.}的一个匿名类，重载相关函数。（其实重写里面的和直接继承PFuncSimple也没啥区别了）</p>
+<p>具体框架如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyFunc1</span> <span class="keyword">implements</span> <span class="title">PropertyFunctionFactory</span></span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> PropertyFunction <span class="title">create</span><span class="params">(<span class="keyword">final</span> String uri)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PFuncSimple()</div><div class="line">        &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> QueryIterator <span class="title">execEvaluated</span><span class="params">(<span class="keyword">final</span> Binding parent, <span class="keyword">final</span> Node subject, <span class="keyword">final</span> Node predicate, <span class="keyword">final</span> Node object, <span class="keyword">final</span> ExecutionContext execCxt)</span></span></div><div class="line">            &#123;</div><div class="line">                Graph graph = execCxt.getActiveGraph() ;</div><div class="line">                <span class="comment">//dosth ...</span></div><div class="line">                <span class="keyword">return</span> sth.;</div><div class="line">            &#125;</div><div class="line">        &#125;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>注册该函数的方法有两种，注册到全局和注册到具体的dataset。另外也可以通过<code>java：</code>这个fake URI动态注册</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//全局</span></div><div class="line"><span class="keyword">final</span> PropertyFunctionRegistry reg = PropertyFunctionRegistry.chooseRegistry(ARQ.getContext());</div><div class="line">reg.put(<span class="string">"urn:ex:fn#example"</span>, <span class="keyword">new</span> ExamplePropertyFunctionFactory);</div><div class="line">PropertyFunctionRegistry.set(ARQ.getContext(), reg);</div><div class="line"></div><div class="line"><span class="comment">//dataset</span></div><div class="line"><span class="keyword">final</span> Dataset ds = DatasetFactory.createMem();</div><div class="line"><span class="keyword">final</span> PropertyFunctionRegistry reg = PropertyFunctionRegistry.chooseRegistry(ds.getContext());</div><div class="line">reg.put(<span class="string">"urn:ex:fn#example"</span>, <span class="keyword">new</span> ExamplePropertyFunctionFactory);</div><div class="line">PropertyFunctionRegistry.set(ds.getContext(), reg);</div></pre></td></tr></table></figure>
+<p>这种方法是<a href="https://jena.apache.org/documentation/query/writing_propfuncs.html" target="_blank" rel="external">官方文档</a>中给出的</p>
+<h1 id="继承PFuncSimple"><a href="#继承PFuncSimple" class="headerlink" title="继承PFuncSimple"></a>继承PFuncSimple</h1><p>第二种方法是继承PFuncSimple。继承以后重写build函数和execEvaluated函数。</p>
+<ul>
+<li>build：Called during query plan construction immediately after the construction of the property function instance.</li>
+<li>execEvaluated函数:这个函数本质上是实现了PropertyFunction的exec接口，生成一个结果的queryIterartor。</li>
+</ul>
+<p>这东西就和之前new PFuncSimple的时候一样了。官方例子里面localname那个例子用了这种方法。</p>
+<p>这个注册的时候就是用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">PropertyFunctionRegistry.get().put(<span class="string">"http://example/f#search"</span>, labelSearch.class) ;</div></pre></td></tr></table></figure>
+<p>query里面</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">PREFIX ext: &lt;http://example/f#&gt;</div><div class="line">SELECT * &#123; ?x ext:search &apos;EF&apos; &#125;</div></pre></td></tr></table></figure>
+<p>或者直接用<code>java:</code>动态注册.prefix是包名，冒号后面是类名</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">PREFIX ext: &lt;java:arq.examples.propertyfunction.&gt;</div><div class="line">SELECT * &#123; ?x ext:labelSearch &apos;EF&apos; &#125;</div></pre></td></tr></table></figure>
+<h1 id="函数返回值"><a href="#函数返回值" class="headerlink" title="函数返回值"></a>函数返回值</h1><p>PFuncSimple的execEvaluated函数返回值有三种：</p>
+<ul>
+<li><a href="https://jena.apache.org/documentation/javadoc/arq/org/apache/jena/sparql/engine/iterator/QueryIterNullIterator.html" target="_blank" rel="external"><code>QueryIterNullIterator</code></a> - 返回一个空</li>
+<li><a href="https://jena.apache.org/documentation/javadoc/arq/org/apache/jena/sparql/engine/iterator/QueryIterSingleton.html" target="_blank" rel="external"><code>QueryIterSingleton</code></a> - 返回只有一个binding的结果</li>
+<li><a href="http://jena.apache.org/documentation/javadoc/arq/org/apache/jena/sparql/engine/iterator/QueryIterPlainWrapper.html" target="_blank" rel="external"><code>QueryIterPlainWrapper</code></a> - 返回多个binding的结果</li>
+</ul>
+<p>另外也可以用IterLib提供的函数直接返回空和一个结果的binding。</p>
+<p>稍微说一下binding和QueryIterator的关系。QueryIterator接口是<code>public interface QueryIterator extends Closeable, Iterator&lt;Binding&gt;, PrintSerializable</code>，他extends了<code>Iterator&lt;Binding&gt;</code>。其实QueryIterator的iterator就是一个Iterator<binding>加了一些其他东西，对于QueryIterPlainWrapper，直接return new QueryIterPlainWrapper(Iterator<binding> iter, ExecutionContext context)。</binding></binding></p>
+<p>binding本身是一个变量名和值的mapping。同时它使用了chain的形式可以一直找父节点。所以新建binding就是调用BindFactory.binding(Binding parent, Var var, Node node)，var是变量，node是值，比如URI的node或者Literal的node。可以用NodeFactory.createLiteral等函数来构造这个node</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/04/27/Sparql自定义propertyFunction/">http://thousandhu.github.io/2016/04/27/Sparql自定义propertyFunction/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/jena/" rel="tag"># jena</a>
+          
+            <a href="/tags/sparql/" rel="tag"># sparql</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/23/2016-QCon北京参会感想/" rel="next" title="2016 QCon北京参会感想">
+                <i class="fa fa-chevron-left"></i> 2016 QCon北京参会感想
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/28/propertyFunc-内部编译和调用过程/" rel="prev" title="propertyFunc 内部编译和调用过程">
+                propertyFunc 内部编译和调用过程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#继承propertyFunction"><span class="nav-number">1.</span> <span class="nav-text">继承propertyFunction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#继承PFuncSimple"><span class="nav-number">2.</span> <span class="nav-text">继承PFuncSimple</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数返回值"><span class="nav-number">3.</span> <span class="nav-text">函数返回值</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

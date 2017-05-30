@@ -1,0 +1,761 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="ResourceManager总体架构RM主要职责有4部分：  ResourceTracker: 与NodeManager通信并控制NM上的Container ApplicationMasterProtocol： 管理ApplicationMaster ApplicationClientProtocol： 与客户端交互，处理客户端的请求 另外RM还负责资源管理和调度  resourceManage">
+<meta name="keywords" content="yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-Resource Manager剖析1">
+<meta property="og:url" content="http://thousandhu.github.io/2016/07/24/深入解析yarn架构设计与技术实现-Resource-Manager剖析1/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="ResourceManager总体架构RM主要职责有4部分：  ResourceTracker: 与NodeManager通信并控制NM上的Container ApplicationMasterProtocol： 管理ApplicationMaster ApplicationClientProtocol： 与客户端交互，处理客户端的请求 另外RM还负责资源管理和调度  resourceManage">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/2016/07/24/defb967354c2a0c0a9d14a07e7ba8249.jpeg">
+<meta property="og:updated_time" content="2016-07-24T10:59:00.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-Resource Manager剖析1">
+<meta name="twitter:description" content="ResourceManager总体架构RM主要职责有4部分：  ResourceTracker: 与NodeManager通信并控制NM上的Container ApplicationMasterProtocol： 管理ApplicationMaster ApplicationClientProtocol： 与客户端交互，处理客户端的请求 另外RM还负责资源管理和调度  resourceManage">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/2016/07/24/defb967354c2a0c0a9d14a07e7ba8249.jpeg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/07/24/深入解析yarn架构设计与技术实现-Resource-Manager剖析1/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-Resource Manager剖析1 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/07/24/深入解析yarn架构设计与技术实现-Resource-Manager剖析1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-Resource Manager剖析1</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-24T18:58:32+08:00">
+                2016-07-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="ResourceManager总体架构"><a href="#ResourceManager总体架构" class="headerlink" title="ResourceManager总体架构"></a>ResourceManager总体架构</h1><p>RM主要职责有4部分：</p>
+<ul>
+<li>ResourceTracker: 与NodeManager通信并控制NM上的Container</li>
+<li>ApplicationMasterProtocol： 管理ApplicationMaster</li>
+<li>ApplicationClientProtocol： 与客户端交互，处理客户端的请求</li>
+<li>另外RM还负责资源管理和调度</li>
+</ul>
+<p>resourceManager内部架构主要分为一下几块：</p>
+<ul>
+<li>用户交互模块</li>
+<li>NM管理模块</li>
+<li>AM管理模块</li>
+<li>Application管理模块</li>
+<li>状态机管理模块</li>
+<li>安全管理模块</li>
+<li>资源分配模块</li>
+</ul>
+<h1 id="用户交互模块"><a href="#用户交互模块" class="headerlink" title="用户交互模块"></a>用户交互模块</h1><p>用户交互模块分为ClientRMService和AdminService两部分。分开的原因主要是防止client用户过多导致admin需求被阻塞。</p>
+<p>ClientRMService 继承了AbstractService并且实现了ApplicationClientProtocol接口。咱们来一次看Abstractservice和ApplicationClientProtocol需要实现的接口</p>
+<p>serviceStart：设置并启动一个rpc.server并做了一次auth。</p>
+<blockquote>
+<p>注：这里我犯了个傻，一直在找他到底那里设置了和protocol对应的实现。结果发现其实rpc.getServer的第二个参数就是protocol的实现，这里传的是this，ClientRMService他是实现了ApplicationClientProtocol。。。</p>
+<p>另外再说一下getProxy吧。proxy至少我在RpcClientFactoryPBImpl中看他是直接通过拼一个pb的名字然后反射拿到这个类的，所以pb的protocol实现名字是很重要的，不能瞎起。。。</p>
+</blockquote>
+<p>除了server，另一个重要的成员变量是rmAppManager，这是一个eventHandler，主要是将ClientRMService的各种操作异步的处理起来。而rmAppManager的dispatcher又在他的成员变量rmContext里，有点复杂，先这样吧。</p>
+<p>AdminService和clientRMServie类似，只不过它实现的是ResourceManagerAdministrationProtocol这个rpc协议。</p>
+<h1 id="ApplicationMaster管理"><a href="#ApplicationMaster管理" class="headerlink" title="ApplicationMaster管理"></a>ApplicationMaster管理</h1><p>applicationMaster主要由3个部分组成:ApplicationMasterLauncher,AMLivelinessMonitor和ApplicationMasterService。</p>
+<p>ApplicationMasterLauncher既是一个服务又是一个事件handler：<code>public class ApplicationMasterLauncher extends AbstractService implements EventHandler&lt;AMLauncherEvent&gt;</code>. 这里再复习一遍：</p>
+<ul>
+<li>服务意味着他会实现serviceInit，serviceStart和serviceStop 3个函数。serviceStart启动了一个LauncherThread线程。这个线程负责从事件MasterEvents这个队列里取数据进行处理。</li>
+<li>而handler意味着要通过实现handle函数来对对应事件进行处理。这里的handle函数会把对应的<code>RMAppAttempt application</code>通过lunch函数或者cleanup函数变成一个runnable加入事件队列，launcherThread从队列取出这个runnable进行下一步处理。</li>
+</ul>
+<p>ApplicaitionMasterService实现了RPC协议ApplicationMasterProtocol，来处理ApplicationMaster的请求，包括注册，心跳和清理三种。</p>
+<p>AMLivilinessMonitor：周期性遍历所有应用的ApplicaitionMaster，并重启10分钟没响应的AM</p>
+<p>RM管理一个AM的过程主要分为7步：</p>
+<ol>
+<li>用户向RM提交应用程序，RM收到提交请求后，先向资源调度器申请用以启动AM的资源，得到资源后由ApplicationMasterLauncher与对应NM同行，启动AM</li>
+<li>AM启动后，ApplicationMasterLauncher会通过事件将刚启动的AM注册到AMLivelinessMonitor以监控心跳。（Launcher函数就是注册操作）</li>
+<li>AM向ApplicationMasterService注册自己，并周期性汇报</li>
+<li>AM周期性发送心跳给ApplicationMasterService</li>
+<li>ApplicationMasterService每次收到AM心跳后，，向AMLivelinessMonitor更新同步时间</li>
+<li>应用程序结束后AM想ApplicationMasterService注销自己</li>
+<li>ApplicationMasterService通知AMLivelinessMonitor移除这个AM</li>
+</ol>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/2016/07/24/defb967354c2a0c0a9d14a07e7ba8249.jpeg" alt="160721 ApplicationMaster启动流程.jpeg" title="160721 ApplicationMaster启动流程.jpeg"></p>
+<p>#NodeManager管理</p>
+<ul>
+<li>NMLivelinessMonitor： 监控NodeManager的心跳。当一个node 10分钟没有联系时就认为他死掉了，所有在它上面的container被标记为失效。这个模块作用类似于AMLivelinessMonitor</li>
+<li>NodesListManager: 管理node的黑名单和白名单</li>
+<li>ResourceTrackerService： 实现了RPC协议ResourceTracker，负责处理NodeManager的请求，主要是注册和心跳两种请求。</li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/07/24/深入解析yarn架构设计与技术实现-Resource-Manager剖析1/">http://thousandhu.github.io/2016/07/24/深入解析yarn架构设计与技术实现-Resource-Manager剖析1/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/24/atom-配置/" rel="next" title="atom 配置">
+                <i class="fa fa-chevron-left"></i> atom 配置
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/27/深入解析yarn架构设计与技术实现-Resource-Manager剖析2/" rel="prev" title="深入解析yarn架构设计与技术实现-Resource Manager剖析2">
+                深入解析yarn架构设计与技术实现-Resource Manager剖析2 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ResourceManager总体架构"><span class="nav-number">1.</span> <span class="nav-text">ResourceManager总体架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用户交互模块"><span class="nav-number">2.</span> <span class="nav-text">用户交互模块</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ApplicationMaster管理"><span class="nav-number">3.</span> <span class="nav-text">ApplicationMaster管理</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

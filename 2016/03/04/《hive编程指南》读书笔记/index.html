@@ -1,0 +1,839 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hive," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="hive 一般数据库是写时模式，写入时对数据合法性进行检查，而hive是读时模式，读取数据时进行数据合法性检查 create database可以加comment子句，describe database时会显示comment 而create database时的with dbproperties（’key1’ = ‘val1’,’key2=’val2’）keyiyong describe data">
+<meta name="keywords" content="hive">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《hive编程指南》读书笔记">
+<meta property="og:url" content="http://thousandhu.github.io/2016/03/04/《hive编程指南》读书笔记/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="hive 一般数据库是写时模式，写入时对数据合法性进行检查，而hive是读时模式，读取数据时进行数据合法性检查 create database可以加comment子句，describe database时会显示comment 而create database时的with dbproperties（’key1’ = ‘val1’,’key2=’val2’）keyiyong describe data">
+<meta property="og:updated_time" content="2016-03-04T08:59:41.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="《hive编程指南》读书笔记">
+<meta name="twitter:description" content="hive 一般数据库是写时模式，写入时对数据合法性进行检查，而hive是读时模式，读取数据时进行数据合法性检查 create database可以加comment子句，describe database时会显示comment 而create database时的with dbproperties（’key1’ = ‘val1’,’key2=’val2’）keyiyong describe data">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/03/04/《hive编程指南》读书笔记/"/>
+
+
+
+
+
+  <title>《hive编程指南》读书笔记 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/03/04/《hive编程指南》读书笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">《hive编程指南》读书笔记</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-03-04T16:59:08+08:00">
+                2016-03-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>hive</p>
+<p>一般数据库是写时模式，写入时对数据合法性进行检查，而hive是读时模式，读取数据时进行数据合法性检查</p>
+<p>create database可以加comment子句，describe database时会显示comment</p>
+<p>而create database时的with dbproperties（’key1’ = ‘val1’,’key2=’val2’）keyiyong describe database extended tablename 显示。</p>
+<h2 id="分区表"><a href="#分区表" class="headerlink" title="分区表"></a>分区表</h2><p>partitiioned by（col1 format, col2 format） </p>
+<p>储存时会按照col1=xxx，col2=xxx设置子目录</p>
+<p>摄者strict（严格）模式则可以指定hive查询时一定要进行分区过滤（也就是where）</p>
+<p>设置方法：<code>hive&gt; set hive.mapred.mode=strict</code></p>
+<p>分区外部表可以用<code>alter table 。。。 add partition（）</code>来添加新的分区，同时不同分区可以在不同的路径下</p>
+<h2 id="装载数据"><a href="#装载数据" class="headerlink" title="装载数据"></a>装载数据</h2><p>load data local。。。 将本地数据拷贝到hive</p>
+<p>动态分区插入</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> overwrite <span class="keyword">TABLE</span> employees </div><div class="line"><span class="keyword">partition</span> (country, STATE)</div><div class="line"><span class="keyword">SELECT</span> ..., </div><div class="line">       se.cnty,</div><div class="line">       se.st</div><div class="line"><span class="keyword">FROM</span> stated_employees se;</div></pre></td></tr></table></figure>
+<p>这里最后两列就是动态分区的两列。load以后将会出现100个分区</p>
+<p>也可以用动态静态混合模式，即</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> overwrite <span class="keyword">TABLE</span> employees </div><div class="line"><span class="keyword">partition</span> (country=<span class="string">"US"</span>, STATE)</div><div class="line"><span class="keyword">SELECT</span> ..., </div><div class="line">       se.cnty,</div><div class="line">       se.st</div><div class="line"><span class="keyword">FROM</span> stated_employees se</div><div class="line"><span class="keyword">where</span> cnty= <span class="string">'US'</span>;</div></pre></td></tr></table></figure>
+<h2 id="导出数据"><a href="#导出数据" class="headerlink" title="导出数据"></a>导出数据</h2><p>用insert。。。directory。。。子句可以将数据导出到本地</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">from table_name tb_alias</div><div class="line"><span class="keyword">insert</span> overwrite <span class="keyword">directory</span> <span class="string">'/tmp/local_dir'</span></div><div class="line">	<span class="keyword">select</span> * <span class="keyword">where</span> ....</div></pre></td></tr></table></figure>
+<h2 id="本地模式"><a href="#本地模式" class="headerlink" title="本地模式"></a>本地模式</h2><p>hive对于select * from table，或者where中全是分区列则使用本地模式</p>
+<p>可以设置hive。exec.mode.local.auto=true来让hive尝试用本地模式完成更多任务</p>
+<h2 id="where查询"><a href="#where查询" class="headerlink" title="where查询"></a>where查询</h2><p>like谓词： x%表示以x开头的string，%x为以x结尾，%x%表示含有x。_表示匹配单个字符</p>
+<p>A rlike/regexp B: B为一个jdk格式的正则表达式。</p>
+<p>float比较时注意进度问题 p98</p>
+<h2 id="Having语句"><a href="#Having语句" class="headerlink" title="Having语句"></a>Having语句</h2><p>和group by一起使用，做过滤。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">year</span>, <span class="keyword">avg</span>(price) <span class="keyword">from</span> stocks</div><div class="line"><span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">year</span></div><div class="line"><span class="keyword">having</span> <span class="keyword">avg</span>(price) &gt; <span class="number">50</span>;</div></pre></td></tr></table></figure>
+<p>having选出了group by后平均价格大于50的结果</p>
+<h2 id="left-semi-join"><a href="#left-semi-join" class="headerlink" title="left semi-join"></a>left semi-join</h2><p>select s.a, s.b from stocks s left semi join another_table t on s.a=t.a;</p>
+<p>这个是搜左边的表满足右边某些条件的语句，其中select和where不能用到右边的表。因为对于左边的记录，搜到一条和右边匹配的就会退出，所以效率比inner join高。</p>
+<h2 id="mapside-join"><a href="#mapside-join" class="headerlink" title="mapside join"></a>mapside join</h2><p>set hive.auto.convert.join=true，则hive会将小表自动mapside join。<br>大小默认是hive.mapjoin.smalltable.filesize=25000000</p>
+<h2 id="order-by、sort-by、-distribute-by，-cluster-by"><a href="#order-by、sort-by、-distribute-by，-cluster-by" class="headerlink" title="order by、sort by、 distribute by， cluster by"></a>order by、sort by、 distribute by， cluster by</h2><p>ordre by，全局有序，一个reduce<br>sort by，每个reduce内部有序<br>distribute by，影响hive如何将数据分发到reduce，默认是按照key的hashcode，用了这个可以按照指定列划分</p>
+<h2 id="9-4-同一份数据多种处理"><a href="#9-4-同一份数据多种处理" class="headerlink" title="9.4 同一份数据多种处理"></a>9.4 同一份数据多种处理</h2><p>hive每次运行都会扫描全表，因此如果要select两份不同的数据，用select。。。from。。。的方法需要扫描两次表。</p>
+<p>但是用from table balabal的方式可以只扫描一次：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">from table</div><div class="line"><span class="keyword">insert</span> overwrite <span class="keyword">table</span> <span class="keyword">select</span> * <span class="keyword">where</span> condition1</div><div class="line"><span class="keyword">insert</span> overwrite <span class="keyword">table</span> <span class="keyword">select</span> * <span class="keyword">where</span> condition2</div></pre></td></tr></table></figure>
+<p>这样只扫描一次就可以得到两个表</p>
+<h2 id="命令行参数"><a href="#命令行参数" class="headerlink" title="命令行参数"></a>命令行参数</h2><ul>
+<li>-f filename： filename里面储存了sql语句。执行该sql</li>
+<li>-d，-define <key=value>: 执行$HIVE_HOME/bin/hive -d k1=v1 表示，定义了一个变量k1,值为v1,进入Hive交互Shell之后，可以使用${k1}来引用该变量，比如：<code>hive&gt; select ‘${k1}’ from t_lxw1234 limit 1;</code></key=value></li>
+<li>–hivevar <key=value>:用法同-d和—define</key=value></li>
+<li>-hiveconf <property=value> 定义property或者变量，比如</property=value></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ hive -hiveconf dt=2015-01-01</div><div class="line">hive &gt; insert overwrite table tableA </div><div class="line">     &gt; select * from tableB where date=&apos;$&#123;hiveconf:dt&#125;&apos;;</div></pre></td></tr></table></figure>
+<p>HIVE比较重要的优化是分区和分桶</p>
+<h2 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h2><p>udtf 可以支持返回一行多列 p185</p>
+<p>udf可以使用distributed cache,主要用到了LookupService类 p189</p>
+<p>13.12 以函数的方式使用注解<br><a href="https://hive.apache.org/javadocs/r2.0.0/api/org/apache/hadoop/hive/ql/udf/UDFType.html" target="_blank" rel="external">https://hive.apache.org/javadocs/r2.0.0/api/org/apache/hadoop/hive/ql/udf/UDFType.html</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="meta">@interface</span> UDFType &#123;</div><div class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">deterministic</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">true</span></span>;</div><div class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">stateful</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;</div><div class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">distinctLike</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>用法，在函数注解中加入<code>@UDFType(deterministic = false)</code>这种.</p>
+<ul>
+<li>deterministic:定数性，指的是这个函数的运行结果是不是确定的。如果是，则对于没参数的函数只执行一遍。有参数的不确定是不是同样参数只执行一遍。对于类似rand（）这样的函数就要设为false</li>
+<li>stateful： 让udf有状态，最简单的例子就是在每行计算他和他之前的累加和。<ul>
+<li>只能用在select语句中，不能用在where，on，order，group语句后面</li>
+<li>stateful=true是deterministic=false</li>
+<li><a href="https://issues.apache.org/jira/browse/HIVE-1994" target="_blank" rel="external">https://issues.apache.org/jira/browse/HIVE-1994</a></li>
+</ul>
+</li>
+<li>distincLike： 这个标记通常出现在聚合函数中，在做聚合时，如果碰到两个相同的值，我们只取其中一个不影响最后的聚合结果，那么distinctLike为真，否则为假。</li>
+<li>impliesOrder： Using in analytical functions to specify that UDF implies an ordering（没懂干嘛用的）</li>
+</ul>
+<p>宏命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">hive&gt; CREATE TEMPORARY MACRO SIGMOD(x double) 1.0 / (1.0 + EXP(-x));</div><div class="line">hive&gt; SELECT SIGMOID(2) FROM src LIMIT 1;</div></pre></td></tr></table></figure>
+<h2 id="hive-streaming"><a href="#hive-streaming" class="headerlink" title="hive streaming"></a>hive streaming</h2><p>利用map()，reduce()，transform()编程。比如</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">hive&gt; SELECT TRANSFORM (a,b)</div><div class="line">	&gt; USING '/bin/cat' AS newA, newB</div><div class="line">	&gt; FROM table_name;</div></pre></td></tr></table></figure>
+<p>p195<br>使用分布式缓存<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">hive &gt; ADD FILE $&#123;env:HOVE&#125;/my.sh;</div><div class="line">Added....</div><div class="line">	</div><div class="line">hive &gt; SELECT TRANSFORM(col1) USING 'my.sh' as convert FRO&lt; a;</div></pre></td></tr></table></figure></p>
+<p>p210<br>利用SerDe可以在inputFormat读取一行数据后调用SerDe.deserialize()进行处理。Create table时加上<code>ROW FORMAT SERDE</code>。可以在对数据序列化或者反序列化时进行处理。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">EXTERNAL</span> <span class="keyword">TABLE</span> message (</div><div class="line">	msg_id <span class="built_in">BIGINT</span>,</div><div class="line">	tstamp <span class="keyword">STRING</span>,</div><div class="line">	<span class="built_in">text</span>	<span class="keyword">STRING</span></div><div class="line">)</div><div class="line"><span class="keyword">ROW</span> <span class="keyword">FORMAT</span> SERDE <span class="string">"org.apache.hadoop.hive.contrib.serde2.JsonSerde"</span></div><div class="line"><span class="keyword">WITH</span> SERDEPROPERTIES (</div><div class="line">	<span class="string">"msg_id"</span> = <span class="string">"$.id"</span>,</div><div class="line">	<span class="string">"tstamp"</span>=<span class="string">"$.created_at"</span>,</div><div class="line">	<span class="string">"text"</span>=<span class="string">"$.text"</span></div><div class="line">)</div><div class="line">LOCATION <span class="string">'/data/messages'</span>;</div></pre></td></tr></table></figure>
+<ul>
+<li><a href="https://blog.cloudera.com/blog/2012/12/how-to-use-a-serde-in-apache-hive/" target="_blank" rel="external">cloudera: how-to: use a serde in apache hive</a></li>
+<li><a href="http://www.iteblog.com/archives/1256" target="_blank" rel="external">用csv serde的例子</a></li>
+<li><a href="http://blog.csdn.net/sxf_824/article/details/9311927" target="_blank" rel="external">serde/inspector介绍</a></li>
+</ul>
+<h2 id="储存过程"><a href="#储存过程" class="headerlink" title="储存过程"></a>储存过程</h2><p>P226</p>
+<ul>
+<li>inputFormat：如何将给定路径下的文件分割成多分</li>
+<li>recordReader： 提供如何从每个划分中读取数据</li>
+<li>outputFormat： 获取一个job的输出，然后将其输入到一个实体中。</li>
+</ul>
+<p>hiveStoragteHandler可以用来连接Nosql储存的接口。但是由于服务器的socket连接，访问效率会比较慢。</p>
+<p>利用StorageHandler可以连接hbase：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">create</span> <span class="string">'hzq_test'</span>,<span class="string">'grade'</span>, <span class="string">'course'</span> </div><div class="line"></div><div class="line">put <span class="string">'hzq_test'</span>,<span class="string">'Tom'</span>,<span class="string">'grade:'</span>,<span class="string">'5'</span> </div><div class="line">put <span class="string">'hzq_test'</span>,<span class="string">'Tom'</span>,<span class="string">'course:math'</span>,<span class="string">'97'</span> </div><div class="line">put <span class="string">'hzq_test'</span>,<span class="string">'Tom'</span>,<span class="string">'course:art'</span>,<span class="string">'87'</span> </div><div class="line">put <span class="string">'hzq_test'</span>,<span class="string">'Jim'</span>,<span class="string">'grade'</span>,<span class="string">'4'</span> </div><div class="line">put <span class="string">'hzq_test'</span>,<span class="string">'Jim'</span>,<span class="string">'course:math'</span>,<span class="string">'89'</span> </div><div class="line">put <span class="string">'hzq_test'</span>,<span class="string">'Jim'</span>,<span class="string">'course:art'</span>,<span class="string">'80'</span> </div><div class="line"></div><div class="line"><span class="keyword">CREATE</span> <span class="keyword">EXTERNAL</span> <span class="keyword">TABLE</span> hzq_test(</div><div class="line"><span class="keyword">key</span> <span class="keyword">string</span>, </div><div class="line">grade <span class="keyword">map</span>&lt;<span class="keyword">string</span>,<span class="built_in">int</span>&gt; ,//<span class="keyword">column</span> family必须要是<span class="keyword">map</span></div><div class="line">math <span class="keyword">string</span>,</div><div class="line">art <span class="keyword">string</span>)   </div><div class="line"><span class="keyword">STORED</span> <span class="keyword">BY</span> <span class="string">'org.apache.hadoop.hive.hbase.HBaseStorageHandler'</span>   </div><div class="line"><span class="keyword">WITH</span> SERDEPROPERTIES (<span class="string">"hbase.columns.mapping"</span> = <span class="string">":key,grade:,course:math,course:art"</span>)   </div><div class="line">TBLPROPERTIES(<span class="string">"hbase.table.name"</span> = <span class="string">"hzq_test"</span>);</div></pre></td></tr></table></figure>
+<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>p234</p>
+<p>权限管理有user，group和role三个级别。user和group是和posix是一样的，而role是hive自己定的。<br>首先需要开启设定：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.security.authorization.enabled<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span>(给表拥有者设定权限，否则没法操作)</div><div class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.security.authorization.createtable.owner.grants<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">value</span>&gt;</span>all<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&gt; set system:user.name;</div><div class="line">system:user.name= user1</div><div class="line">//role</div><div class="line">&gt; GRANT CREATE ON DATABASE default TO USER user1;</div><div class="line"></div><div class="line">//group</div><div class="line">&gt; GRANT SELECT ON TABLE talbe1 TO GROUP user1;</div><div class="line"></div><div class="line">//role</div><div class="line">&gt; CREATE ROLE role1；</div><div class="line">&gt; GRANT ROLE role1 ON user1；</div><div class="line">&gt; GRANT SELECT ON TABLE table1 to role1;</div></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ALL</td>
+<td>赋予所有权限</td>
+</tr>
+<tr>
+<td>ALERT</td>
+<td>修改表的权限</td>
+</tr>
+<tr>
+<td>CREATE</td>
+<td>创建表</td>
+</tr>
+<tr>
+<td>DROP</td>
+<td>删除表或者表分区</td>
+</tr>
+<tr>
+<td>INDEX</td>
+<td>创建索引</td>
+</tr>
+<tr>
+<td>LOCK</td>
+<td>开启并发后锁定和解锁权限</td>
+</tr>
+<tr>
+<td>SELECT</td>
+<td>查询</td>
+</tr>
+<tr>
+<td>SHOW_DATABASE</td>
+<td>查看所有数据库</td>
+</tr>
+<tr>
+<td>UPDATE</td>
+<td>向表中插入或者加载数据的权限（比如load命令）</td>
+</tr>
+</tbody>
+</table>
+<p>授权同样可以基于分区进行p238</p>
+<p>可以设置为用户自动授权<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.security.authorization.createtable.owner.grants<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">value</span>&gt;</span>select,drop<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<h2 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h2><p>p241</p>
+<p>通过配置zookeeper，hive可以对表进行锁操作。默认的，hive会对特定查询加锁。可以通过<code>SHOW LOCKS</code>查看。另外也可以显示的加解锁：<code>LOCK TABLE people EXCLUSIVE; UNLOCK TABLE people;</code></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/03/04/《hive编程指南》读书笔记/">http://thousandhu.github.io/2016/03/04/《hive编程指南》读书笔记/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hive/" rel="tag"># hive</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/02/python做behave-test/" rel="next" title="python做behave test">
+                <i class="fa fa-chevron-left"></i> python做behave test
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/15/虚拟机搭建hadoop集群/" rel="prev" title="虚拟机搭建hadoop集群">
+                虚拟机搭建hadoop集群 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#分区表"><span class="nav-number">1.</span> <span class="nav-text">分区表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#装载数据"><span class="nav-number">2.</span> <span class="nav-text">装载数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导出数据"><span class="nav-number">3.</span> <span class="nav-text">导出数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#本地模式"><span class="nav-number">4.</span> <span class="nav-text">本地模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#where查询"><span class="nav-number">5.</span> <span class="nav-text">where查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Having语句"><span class="nav-number">6.</span> <span class="nav-text">Having语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#left-semi-join"><span class="nav-number">7.</span> <span class="nav-text">left semi-join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mapside-join"><span class="nav-number">8.</span> <span class="nav-text">mapside join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#order-by、sort-by、-distribute-by，-cluster-by"><span class="nav-number">9.</span> <span class="nav-text">order by、sort by、 distribute by， cluster by</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-4-同一份数据多种处理"><span class="nav-number">10.</span> <span class="nav-text">9.4 同一份数据多种处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#命令行参数"><span class="nav-number">11.</span> <span class="nav-text">命令行参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数"><span class="nav-number">12.</span> <span class="nav-text">函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hive-streaming"><span class="nav-number">13.</span> <span class="nav-text">hive streaming</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#储存过程"><span class="nav-number">14.</span> <span class="nav-text">储存过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安全"><span class="nav-number">15.</span> <span class="nav-text">安全</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#锁"><span class="nav-number">16.</span> <span class="nav-text">锁</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

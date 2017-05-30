@@ -1,0 +1,759 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="java,effective java," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="第一条 考虑使用静态工厂方法来代替构造器静态构造方法相比如构造器的优势：  可以自主命名  不必每次调用的时候都创建一个新对象。（flyweight模式）： 12345public static Boolean valueOf(boolean b) &amp;#123;    return (b ? TRUE : FALSE);&amp;#125;public static final Boolean TRUE">
+<meta name="keywords" content="java,effective java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第二章_创建和销毁对象_effective java">
+<meta property="og:url" content="http://thousandhu.github.io/2016/10/01/第二章-创建和销毁对象-effective-java/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="第一条 考虑使用静态工厂方法来代替构造器静态构造方法相比如构造器的优势：  可以自主命名  不必每次调用的时候都创建一个新对象。（flyweight模式）： 12345public static Boolean valueOf(boolean b) &amp;#123;    return (b ? TRUE : FALSE);&amp;#125;public static final Boolean TRUE">
+<meta property="og:updated_time" content="2016-10-01T13:44:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="第二章_创建和销毁对象_effective java">
+<meta name="twitter:description" content="第一条 考虑使用静态工厂方法来代替构造器静态构造方法相比如构造器的优势：  可以自主命名  不必每次调用的时候都创建一个新对象。（flyweight模式）： 12345public static Boolean valueOf(boolean b) &amp;#123;    return (b ? TRUE : FALSE);&amp;#125;public static final Boolean TRUE">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/10/01/第二章-创建和销毁对象-effective-java/"/>
+
+
+
+
+
+  <title>第二章_创建和销毁对象_effective java | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/10/01/第二章-创建和销毁对象-effective-java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">第二章_创建和销毁对象_effective java</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-01T21:44:12+08:00">
+                2016-10-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="第一条-考虑使用静态工厂方法来代替构造器"><a href="#第一条-考虑使用静态工厂方法来代替构造器" class="headerlink" title="第一条 考虑使用静态工厂方法来代替构造器"></a>第一条 考虑使用静态工厂方法来代替构造器</h1><p>静态构造方法相比如构造器的优势：</p>
+<ol>
+<li><p>可以自主命名</p>
+</li>
+<li><p>不必每次调用的时候都创建一个新对象。（flyweight模式）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Boolean <span class="title">valueOf</span><span class="params">(<span class="keyword">boolean</span> b)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> (b ? TRUE : FALSE);</div><div class="line">&#125;</div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Boolean TRUE = <span class="keyword">new</span> Boolean(<span class="keyword">true</span>);</div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Boolean FALSE = <span class="keyword">new</span> Boolean(<span class="keyword">false</span>);</div></pre></td></tr></table></figure>
+</li>
+<li><p>可以返回源类型的任何子类。比如EnumSet会按照元素个数分别返回RegalarEumnset和JumboenumSet。这些都是对用户透明的</p>
+</li>
+<li><p>创建参数化类型实例时使代码变得简介（1.8中jvm已经可以使用类型推断做这件事了）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Map&lt;String, List&lt;String&gt;&gt; m = <span class="keyword">new</span> HashMap&lt;String, List&lt;String&gt;&gt; </div><div class="line">vs</div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;K,V&gt; <span class="function">HashMap&lt;K,V&gt; <span class="title">newinstance</span><span class="params">()</span> </span>&#123; <span class="keyword">new</span> newHahMap&lt;K,V&gt;()&#125;；</div><div class="line">Map&lt;String, List&lt;String&gt;&gt; m = Hashmap.newInstance();</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li>如果类不含有共有的或者受保护的构造器，就不能被子例化</li>
+<li>他们与其他的静态方法实质上没有区别</li>
+</ol>
+<h1 id="第二条：遇到多个构造器参数时考虑使用builder"><a href="#第二条：遇到多个构造器参数时考虑使用builder" class="headerlink" title="第二条：遇到多个构造器参数时考虑使用builder"></a>第二条：遇到多个构造器参数时考虑使用builder</h1><p>生成类需要使用多个参数并且每个参数都可能出现也可能不出现时通常有3类方法：</p>
+<ol>
+<li><p>重叠构造器模式：写多个构造器，参数少的调用参数多的，不存在的参数传默认值。缺点，参数太多难以编写，并且参数顺序错误不好被发现</p>
+</li>
+<li><p>javaBeans模式：无参构造器+setter。不是线程安全，参数无法设置成final类型</p>
+</li>
+<li><p>builder模式：先生成一个Builder对象，在Builder上调用setter，然后客户端调用build方法生成对象。同时后期动态添加参数也很容易。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NutritionFacts</span> </span>&#123;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servingSize;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servings;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> calories;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> fat;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> sodium;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> carbohydrate;</div><div class="line"></div><div class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</div><div class="line">		<span class="comment">// Required parameters</span></div><div class="line">		<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servingSize;</div><div class="line">		<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servings;</div><div class="line"></div><div class="line">		<span class="comment">// Optional parameters - initialized to default values</span></div><div class="line">		<span class="keyword">private</span> <span class="keyword">int</span> calories = <span class="number">0</span>;</div><div class="line">		<span class="keyword">private</span> <span class="keyword">int</span> fat = <span class="number">0</span>;</div><div class="line"></div><div class="line">		<span class="function"><span class="keyword">public</span> <span class="title">Builder</span><span class="params">(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings)</span> </span>&#123;</div><div class="line">			<span class="keyword">this</span>.servingSize = servingSize;</div><div class="line">			<span class="keyword">this</span>.servings = servings;</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="function"><span class="keyword">public</span> Builder <span class="title">calories</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</div><div class="line">			calories = val;</div><div class="line">			<span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="function"><span class="keyword">public</span> Builder <span class="title">fat</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</div><div class="line">			fat = val;</div><div class="line">			<span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="function"><span class="keyword">public</span> Builder <span class="title">carbohydrate</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</div><div class="line">			carbohydrate = val;</div><div class="line">			<span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">private</span> <span class="title">NutritionFacts</span><span class="params">(Builder builder)</span> </span>&#123;</div><div class="line">		servingSize = builder.servingSize;</div><div class="line">		servings = builder.servings;</div><div class="line">		calories = builder.calories;</div><div class="line">		fat = builder.fat;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">		NutritionFacts cocaCola = <span class="keyword">new</span> NutritionFacts.Builder(<span class="number">240</span>, <span class="number">8</span>)</div><div class="line">				.calories(<span class="number">100</span>).build();</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>缺点：为了创建对象先创建了构造器，一定程度上损失了性能</p>
+</li>
+</ol>
+<h1 id="第三条：用私有构造器或者枚举类型强化Singleton属性"><a href="#第三条：用私有构造器或者枚举类型强化Singleton属性" class="headerlink" title="第三条：用私有构造器或者枚举类型强化Singleton属性"></a>第三条：用私有构造器或者枚举类型强化Singleton属性</h1><p>单例还是推荐用这种，不知道为啥书上没有写</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123; </div><div class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">SingletonHolder</span> </span>&#123; </div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton INSTANCE = <span class="keyword">new</span> Singleton(); </div><div class="line">  &#125; </div><div class="line">  <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span> <span class="params">()</span></span>&#123;&#125; </div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123; </div><div class="line">    <span class="keyword">return</span> SingletonHolder.INSTANCE; </div><div class="line">  &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="第四条：通过私有构造器强化不可实例化"><a href="#第四条：通过私有构造器强化不可实例化" class="headerlink" title="第四条：通过私有构造器强化不可实例化"></a>第四条：通过私有构造器强化不可实例化</h1><p>有些工具类，比如java.lang.Math或者Java.util.Collections没有必要被实例化，这时如果：</p>
+<ol>
+<li>不提供构造器：编译器会生成一个默认无参构造器，用户会在不经意间使用</li>
+<li>做成抽象类：可被继承，而且会误导用户以为他就是要被继承而被设计的</li>
+<li>将构造器声明为private：可以达到目的，因为外界无法调用构造器。缺点是该类不可以被子类化了。</li>
+</ol>
+<h1 id="第五条：避免创建不必要的对象"><a href="#第五条：避免创建不必要的对象" class="headerlink" title="第五条：避免创建不必要的对象"></a>第五条：避免创建不必要的对象</h1><p>最简单例子就是</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">String s = <span class="keyword">new</span> String(<span class="string">"string"</span>); </div><div class="line"><span class="comment">//vs</span></div><div class="line">String s =<span class="string">"string"</span>;</div></pre></td></tr></table></figure>
+<p>如果在循环中的话1会生成多个string对象，而3只会生成一个。</p>
+<p>map的keyset()函数也是类似的思想，看起来每次调用都是创建了一个新的set，但是其实每次返回的keyset都是同样的set实例（需要注意的是这样当一个keyset返回值变化时，所有的都会变化）。这里看一下源代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">transient</span> <span class="keyword">volatile</span> Set&lt;K&gt;        keySet;<span class="comment">//transient:实现Serilizable接口时，将不需要序列化的属性前添加关键字transient，序列化对象的时候，这个属性就不会序列化到指定的目的地中。</span></div><div class="line"><span class="function"><span class="keyword">public</span> Set&lt;K&gt; <span class="title">keySet</span><span class="params">()</span> </span>&#123;</div><div class="line">  Set&lt;K&gt; ks;</div><div class="line">  <span class="keyword">return</span> (ks = keySet) == <span class="keyword">null</span> ? (keySet = <span class="keyword">new</span> KeySet()) : ks;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">KeySet</span> <span class="keyword">extends</span> <span class="title">AbstractSet</span>&lt;<span class="title">K</span>&gt; </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span>                 </span>&#123; <span class="keyword">return</span> size; &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span>               </span>&#123; HashMap.<span class="keyword">this</span>.clear(); &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Iterator&lt;K&gt; <span class="title">iterator</span><span class="params">()</span>     </span>&#123; <span class="keyword">return</span> <span class="keyword">new</span> KeyIterator(); &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">contains</span><span class="params">(Object o)</span> </span>&#123; <span class="keyword">return</span> containsKey(o); &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">remove</span><span class="params">(Object key)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> removeNode(hash(key), key, <span class="keyword">null</span>, <span class="keyword">false</span>, <span class="keyword">true</span>) != <span class="keyword">null</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Spliterator&lt;K&gt; <span class="title">spliterator</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> KeySpliterator&lt;&gt;(HashMap.<span class="keyword">this</span>, <span class="number">0</span>, -<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">forEach</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> K&gt; action)</span> </span>&#123;</div><div class="line">    Node&lt;K,V&gt;[] tab;</div><div class="line">    <span class="keyword">if</span> (action == <span class="keyword">null</span>)</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</div><div class="line">    <span class="keyword">if</span> (size &gt; <span class="number">0</span> &amp;&amp; (tab = table) != <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">int</span> mc = modCount;</div><div class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; tab.length; ++i) &#123;</div><div class="line">        <span class="keyword">for</span> (Node&lt;K,V&gt; e = tab[i]; e != <span class="keyword">null</span>; e = e.next)</div><div class="line">          action.accept(e.key);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (modCount != mc)</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ConcurrentModificationException();</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>另外在运算时，要优先使用基本类型而不是装箱基本类型，要当心无意识的使用自动装箱，比如long能干的事使用了Long。<a href="http://blog.csdn.net/javawcj123/article/details/47344263" target="_blank" rel="external">自动装箱简介</a></p>
+<h1 id="第六条：消除过期的对象引用"><a href="#第六条：消除过期的对象引用" class="headerlink" title="第六条：消除过期的对象引用"></a>第六条：消除过期的对象引用</h1><p>书里举的是一个stack的例子</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Stack</span> </span>&#123;</div><div class="line">	<span class="keyword">private</span> Object[] elements;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">int</span> size = <span class="number">0</span>;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DEFAULT_INITIAL_CAPACITY = <span class="number">16</span>;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Stack</span><span class="params">()</span> </span>&#123;</div><div class="line">		elements = <span class="keyword">new</span> Object[DEFAULT_INITIAL_CAPACITY];</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">push</span><span class="params">(Object e)</span> </span>&#123;</div><div class="line">		ensureCapacity();</div><div class="line">		elements[size++] = e;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> Object <span class="title">pop</span><span class="params">()</span> </span>&#123;</div><div class="line">		<span class="keyword">if</span> (size == <span class="number">0</span>)</div><div class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> EmptyStackException();</div><div class="line">		<span class="keyword">return</span> elements[--size];</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	 * Ensure space for at least one more element, roughly doubling the capacity</div><div class="line">	 * each time the array needs to grow.</div><div class="line">	 */</div><div class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">ensureCapacity</span><span class="params">()</span> </span>&#123;</div><div class="line">		<span class="keyword">if</span> (elements.length == size)</div><div class="line">			elements = Arrays.copyOf(elements, <span class="number">2</span> * size + <span class="number">1</span>);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>泄漏的原因是elements里面大于size的元素都没有用，但是因为elements本身指向他，所以不会被删除。这种永远不会被解除的引用叫做<strong>过期引用</strong>。</p>
+<p>解决这个问题的芳芳很简单，就是pop的时候加上<code>elements[size]=null</code>解除elements和对象的引用关系即可。一般而言<strong>只要类是自己管理内存，程序就应该警惕内存泄漏问题</strong>。</p>
+<p>另外常见的内存泄漏会出现在缓存，监听器和其它回调中，这时最佳方法是使用弱引用，比如保存在weakHashMap中。</p>
+<h1 id="第七条：避免使用finalizer方法"><a href="#第七条：避免使用finalizer方法" class="headerlink" title="第七条：避免使用finalizer方法"></a>第七条：避免使用finalizer方法</h1><p>finalizer方法不能保证一定被执行，并且有性能损失，所以不建议使用。通常使用try-finally是更好的选择</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/10/01/第二章-创建和销毁对象-effective-java/">http://thousandhu.github.io/2016/10/01/第二章-创建和销毁对象-effective-java/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/effective-java/" rel="tag"># effective java</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/" rel="next" title="深入解析yarn架构设计与技术实现-离线计算框架MapReduce">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-离线计算框架MapReduce
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/02/第三章-对所有对象都通用的方法-effective-java/" rel="prev" title="第三章_对所有对象都通用的方法_effective java">
+                第三章_对所有对象都通用的方法_effective java <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第一条-考虑使用静态工厂方法来代替构造器"><span class="nav-number">1.</span> <span class="nav-text">第一条 考虑使用静态工厂方法来代替构造器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二条：遇到多个构造器参数时考虑使用builder"><span class="nav-number">2.</span> <span class="nav-text">第二条：遇到多个构造器参数时考虑使用builder</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第三条：用私有构造器或者枚举类型强化Singleton属性"><span class="nav-number">3.</span> <span class="nav-text">第三条：用私有构造器或者枚举类型强化Singleton属性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第四条：通过私有构造器强化不可实例化"><span class="nav-number">4.</span> <span class="nav-text">第四条：通过私有构造器强化不可实例化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第五条：避免创建不必要的对象"><span class="nav-number">5.</span> <span class="nav-text">第五条：避免创建不必要的对象</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第六条：消除过期的对象引用"><span class="nav-number">6.</span> <span class="nav-text">第六条：消除过期的对象引用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第七条：避免使用finalizer方法"><span class="nav-number">7.</span> <span class="nav-text">第七条：避免使用finalizer方法</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,890 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="第二章 大型网站架构模式模式的关键在于模式的可重复性，问题与场景的可重复性带来解决方案的可重复使用（类似于设计模式中的模式）。 2.1 网站架构模式2.1.1 分层将系统在横向维度上切分成几个部分，每个部分负责一部分相对比较单一的职责，然后通过上层对下层的依赖和调用组成一个完整的系统。 在大型网站架构中也采用分层结构，将网站软件系统分为应用层、服务层、数据层等。 优势：便于分工合作开发和维护 挑战">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大型网站技术架构读书笔记">
+<meta property="og:url" content="http://thousandhu.github.io/2017/01/23/大型网站技术架构读书笔记/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="第二章 大型网站架构模式模式的关键在于模式的可重复性，问题与场景的可重复性带来解决方案的可重复使用（类似于设计模式中的模式）。 2.1 网站架构模式2.1.1 分层将系统在横向维度上切分成几个部分，每个部分负责一部分相对比较单一的职责，然后通过上层对下层的依赖和调用组成一个完整的系统。 在大型网站架构中也采用分层结构，将网站软件系统分为应用层、服务层、数据层等。 优势：便于分工合作开发和维护 挑战">
+<meta property="og:image" content="http://img.blog.csdn.net/20151210222920321?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-22-123946.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-22-125324.png">
+<meta property="og:image" content="http://images.cnitblog.com/i/381412/201407/231701152447973.jpg">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-23-154802.png">
+<meta property="og:image" content="http://images.cnitblog.com/i/381412/201407/240022281976070.png">
+<meta property="og:updated_time" content="2017-01-23T09:19:28.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="大型网站技术架构读书笔记">
+<meta name="twitter:description" content="第二章 大型网站架构模式模式的关键在于模式的可重复性，问题与场景的可重复性带来解决方案的可重复使用（类似于设计模式中的模式）。 2.1 网站架构模式2.1.1 分层将系统在横向维度上切分成几个部分，每个部分负责一部分相对比较单一的职责，然后通过上层对下层的依赖和调用组成一个完整的系统。 在大型网站架构中也采用分层结构，将网站软件系统分为应用层、服务层、数据层等。 优势：便于分工合作开发和维护 挑战">
+<meta name="twitter:image" content="http://img.blog.csdn.net/20151210222920321?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2017/01/23/大型网站技术架构读书笔记/"/>
+
+
+
+
+
+  <title>大型网站技术架构读书笔记 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2017/01/23/大型网站技术架构读书笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">大型网站技术架构读书笔记</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-23T17:18:12+08:00">
+                2017-01-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="第二章-大型网站架构模式"><a href="#第二章-大型网站架构模式" class="headerlink" title="第二章 大型网站架构模式"></a>第二章 大型网站架构模式</h2><p>模式的关键在于模式的可重复性，问题与场景的可重复性带来解决方案的可重复使用（类似于设计模式中的模式）。</p>
+<h3 id="2-1-网站架构模式"><a href="#2-1-网站架构模式" class="headerlink" title="2.1 网站架构模式"></a>2.1 网站架构模式</h3><h4 id="2-1-1-分层"><a href="#2-1-1-分层" class="headerlink" title="2.1.1 分层"></a>2.1.1 分层</h4><p>将系统在<strong>横向维度</strong>上切分成几个部分，每个部分负责一部分相对比较单一的职责，然后通过上层对下层的依赖和调用组成一个完整的系统。</p>
+<p>在大型网站架构中也采用分层结构，将网站软件系统分为应用层、服务层、数据层等。</p>
+<p>优势：便于分工合作开发和维护</p>
+<p>挑战：必须合理规划层次边界和接口，以及在开发过程中要严格遵循分层架构的约束，禁止跨层次的调用以及逆向调用。</p>
+<h4 id="2-1-2-分割"><a href="#2-1-2-分割" class="headerlink" title="2.1.2 分割"></a>2.1.2 分割</h4><p>在<strong>纵向</strong>方面对软件进行切分。分割形成高内聚低耦合的模块单元。</p>
+<h4 id="2-1-3-分布式"><a href="#2-1-3-分布式" class="headerlink" title="2.1.3 分布式"></a>2.1.3 分布式</h4><p>对于大型网站，分层和分割的一个主要目的就是为了切分后的模块便于分布式部署。</p>
+<p>分布式可能遇到的问题：</p>
+<p>\1. 网络延迟的影响</p>
+<p>\2. 服务器宕机</p>
+<p>\3. 数据一致性保证</p>
+<p>\4. 开发维护的问题</p>
+<p>在网站应用中，常见的分布式方案有以下几种：</p>
+<ul>
+<li>分布式应用和服务</li>
+<li>分布式静态资源</li>
+<li>分布式数据和存储（传统的关系数据库分布式部署 / NoSQL ）</li>
+<li>分布式计算（MapReduce）</li>
+</ul>
+<h4 id="2-1-4-集群"><a href="#2-1-4-集群" class="headerlink" title="2.1.4 集群"></a>2.1.4 集群</h4><p>将独立部署的服务器集群化，即多台服务器部署相同应用构成一个集群，通过负载均衡设备共同对外提供服务。</p>
+<h4 id="2-1-5-缓存"><a href="#2-1-5-缓存" class="headerlink" title="2.1.5 缓存"></a>2.1.5 缓存</h4><ul>
+<li>CDN</li>
+<li>反向代理</li>
+<li>本地缓存：在应用服务器本地缓存这热点数据</li>
+<li>分布式缓存：将数据缓存在一个专门的<strong>分布式缓存集群</strong>中</li>
+</ul>
+<h4 id="2-1-6-异步"><a href="#2-1-6-异步" class="headerlink" title="2.1.6 异步"></a>2.1.6 异步</h4><p>在分布式系统中，多个服务器集群通过分布式消息队列实现异步，分布式消息队列可以看作内存队列的分布式部署。</p>
+<ul>
+<li>网站扩展新功能非常便利</li>
+<li>提高系统可用性</li>
+<li>加快网站响应速度</li>
+<li>消除并发访问高峰：将突然增加的访问请求数据加入消息队列中，等待消费者服务器依次处理，就不会对整个网站负载造成太大压力</li>
+</ul>
+<h4 id="2-1-7-冗余"><a href="#2-1-7-冗余" class="headerlink" title="2.1.7 冗余"></a>2.1.7 冗余</h4><p>服务器冗余运行+数据冗余备份</p>
+<p>数据库——冷备份+热备份</p>
+<p>灾备数据中心</p>
+<h4 id="2-1-8-自动化"><a href="#2-1-8-自动化" class="headerlink" title="2.1.8 自动化"></a>2.1.8 自动化</h4><h4 id="2-1-9-安全"><a href="#2-1-9-安全" class="headerlink" title="2.1.9 安全"></a>2.1.9 安全</h4><h3 id="2-2-架构模式在新浪微博的应用"><a href="#2-2-架构模式在新浪微博的应用" class="headerlink" title="2.2 架构模式在新浪微博的应用"></a>2.2 架构模式在新浪微博的应用</h3><p><img src="http://img.blog.csdn.net/20151210222920321?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="img"></p>
+<h1 id="第三章-大型网站核心架构要素"><a href="#第三章-大型网站核心架构要素" class="headerlink" title="第三章 大型网站核心架构要素"></a>第三章 大型网站核心架构要素</h1><p>这一章主要是高屋建瓴，这个思维导图非常全面</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-22-123946.png" alt="2017-01-22-123946"></p>
+<h1 id="第四章"><a href="#第四章" class="headerlink" title="第四章"></a>第四章</h1><p>性能测试指标：</p>
+<ul>
+<li><p>响应时间</p>
+</li>
+<li><p>并发数</p>
+</li>
+<li><p>吞吐量：TPS（每秒事务数），HPS（每秒HTTP请求数）,QPS（每秒查询数）。吞吐量随着并发数的变化先是逐渐增加，达到一个集先后随着并发数下降，最后系统资源耗尽，打出gg。这个过程中响应时间显示小幅上升，达到吞吐量集先后快速上升，最后达到崩溃点</p>
+</li>
+<li><p>性能计数器：一些描述系统性能的指标，包括system Load等。system load是当前被执行cpu执行的和等待被执行的进程数的总和，理想情况下该值应该等于cpu的数量</p>
+</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-22-125324.png" alt="2017-01-22-125324"></p>
+<p>a-b，系统正常运行区间，c点是系统最大负载点，d是系统崩溃点</p>
+<h2 id="web端优化"><a href="#web端优化" class="headerlink" title="web端优化"></a>web端优化</h2><ul>
+<li>浏览器访问优化：<ul>
+<li>减少http请求：<strong>因为http是无状态的，每次请求的开销都比较昂贵</strong>（需要建立通信链路、进行数据传输，而服务器端对于每个http请求都需要启动独立的线程去处理）；减少http的主要手段是合并CSS、合并JS、合并图片（CSS精灵，利用偏移定位image）；</li>
+<li>使用浏览器缓存：设置http头中Cache-Control和Expires属性；</li>
+<li>启用压缩：可以对html、css、js文件启用Gzip压缩，可以达到较高的压缩效率，但是压缩会对服务器及浏览器产生一定的压力；</li>
+<li>CSS放页面最上面，JS放页面最下面：<strong>浏览器会在下载完全部CSS之后才开始对整个页面进行渲染</strong>，因此最好将CSS放在页面最上面；而<strong>浏览器在加载JS后会立即执行，有可能会阻塞整个页面，造成页面显示缓慢</strong>，因此最好将JS放在页面最下面；</li>
+<li>减少Cookie传输：一方面，太大的Cookie会严重影响数据传输；另一方面，对于某些静态资源的访问（如CSS、JS等）发送Cookie没有意义；</li>
+</ul>
+</li>
+<li>CDN加速：</li>
+<li>反向代理：</li>
+</ul>
+<h2 id="后端优化"><a href="#后端优化" class="headerlink" title="后端优化"></a>后端优化</h2><ul>
+<li>分布式缓存：memcached</li>
+<li>异步操作</li>
+<li>分布式</li>
+<li>代码优化<ul>
+<li>多线程</li>
+<li>资源复用（单例和对象吃）</li>
+<li>数据结构</li>
+<li>垃圾回收调优（java）</li>
+<li>存储优化</li>
+</ul>
+</li>
+</ul>
+<h1 id="第五章-网站的高可用架构"><a href="#第五章-网站的高可用架构" class="headerlink" title="第五章 网站的高可用架构"></a>第五章 网站的高可用架构</h1><p>考量方式：故障分=故障等级*故障权重</p>
+<p>网站升级时也会宕机，设计时也需要考虑这一点。</p>
+<p>典型架构：应用层，服务层，数据层</p>
+<h2 id="高可用的应用"><a href="#高可用的应用" class="headerlink" title="高可用的应用"></a>高可用的应用</h2><p>应用层的特点是无状态，多个服务实力完全对等。</p>
+<ul>
+<li>无状态服务：通过负载均衡进行无状态的失效转移</li>
+<li>有状态服务，通常通过session管理状态，常用以下四种方式管理session<ul>
+<li>session复制。在不同服务器间复制session，只适用于小项目</li>
+<li>session绑定：其实是用hash等思想将相同session发送大同一服务器，扩展性好，但是不支持高可用</li>
+<li>利用cookie记录session：受cookie大小限制；每次请求都需要传输cookie，影响性能。</li>
+<li>session服务器：session用分布式存储独立维护，应用服务器每次拿到请求去session服务器查找</li>
+</ul>
+</li>
+</ul>
+<h2 id="高可用的服务"><a href="#高可用的服务" class="headerlink" title="高可用的服务"></a>高可用的服务</h2><ul>
+<li>分级管理，不同服务隔离</li>
+<li>超时设置</li>
+<li>异步调用</li>
+<li>服务降级</li>
+<li>幂等性设计</li>
+</ul>
+<h2 id="高可用数据"><a href="#高可用数据" class="headerlink" title="高可用数据"></a>高可用数据</h2><p>数据备份，失效转移等。</p>
+<h2 id="高可用QA"><a href="#高可用QA" class="headerlink" title="高可用QA"></a>高可用QA</h2><ul>
+<li>网站发布：在柔性的发布过程中，每次关闭的服务都是集群中的一小部分，并在发布完成后立即可以访问；</li>
+<li>自动化测试：使用自动测试工具或脚本完成测试；</li>
+<li>预发布验证：引入预发布服务器，与正式服务器几乎一致，只是没有配置在负载均衡服务器上，外部用户无法访问；</li>
+<li>灰度发布：每次只发布一小部分</li>
+</ul>
+<h2 id="网站监控"><a href="#网站监控" class="headerlink" title="网站监控"></a>网站监控</h2><ul>
+<li>监控数据采集<ul>
+<li>用户行为日志收集：服务器端的日志收集和客户端的日志收集；目前许多网站逐步开发基于实时计算框架Storm的日志统计与分析工具；</li>
+<li>服务器性能监控：收集服务器性能指标，如系统Load、内存占用、磁盘IO等，及时判断，防患于未然</li>
+<li>运行数据报告：采集并报告，汇总后统一显示，应用程序需要在代码中处理运行数据采集的逻辑；</li>
+</ul>
+</li>
+<li>监控管理<ul>
+<li>系统报警：配置报警阀值和值守人员联系方式，系统发生报警时，即使工程师在千里之外，也可以被及时通知；</li>
+<li>失效转移：监控系统在发现故障时，主动通知应用进行失效转移；</li>
+<li>自动优雅降级：为了应付网站访问高峰，主动关闭部分功能，释放部分系统资源，保证核心应用服务的正常运行；—&gt;<strong>网站柔性架构的理想状态</strong></li>
+</ul>
+</li>
+</ul>
+<h1 id="第六章-网站的伸缩性架构"><a href="#第六章-网站的伸缩性架构" class="headerlink" title="第六章 网站的伸缩性架构"></a>第六章 网站的伸缩性架构</h1><p>负载均衡</p>
+<ul>
+<li>Http重定向</li>
+<li>DNS域名解析负载均衡</li>
+<li>反向代理负载均衡（反向的意思是代理的目标只有一个，客户有多个）</li>
+<li>ip负载均衡</li>
+<li>数据链路层负载均衡</li>
+</ul>
+<p>分布式缓存：一致性hash可以通过虚拟层来解决服务器负载不均衡的问题</p>
+<p>关系型数据库</p>
+<ul>
+<li>主从</li>
+<li>分片（amoeba，cobar）</li>
+</ul>
+<p>NoSQL</p>
+<h1 id="第七章-网站的可扩展架构"><a href="#第七章-网站的可扩展架构" class="headerlink" title="第七章 网站的可扩展架构"></a>第七章 网站的可扩展架构</h1><h2 id="分布式队列"><a href="#分布式队列" class="headerlink" title="分布式队列"></a>分布式队列</h2><p>利用分布式消息队列降低系统耦合性，采取事件驱动架构，在低耦合模块间传输事件消息完成模块间的合作并保持模块的松散。</p>
+<p><img src="http://images.cnitblog.com/i/381412/201407/231701152447973.jpg" alt=""></p>
+<h2 id="分布式服务"><a href="#分布式服务" class="headerlink" title="分布式服务"></a>分布式服务</h2><p>巨无霸应用带来的问题：</p>
+<ul>
+<li>编译，部署困难</li>
+<li>代码分支管理困难</li>
+<li>数据库连接耗尽</li>
+<li>新增业务困难</li>
+</ul>
+<p>分布式服务的框架需求</p>
+<ul>
+<li>负载均衡</li>
+<li>失效转移</li>
+<li>高效的远程通信</li>
+<li>证合一构系统</li>
+<li>对应用最少侵入：即支持服务在分布式和集中式之间调整</li>
+<li>版本管理</li>
+<li>实时监控</li>
+</ul>
+<p>典型框架 Dubbo</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-23-154802.png" alt="2017-01-23-154802"></p>
+<p>设计要点：</p>
+<ul>
+<li>服务消费者程序通过服务接口使用服务，而服务接口通过代理价再具体服务，具体服务可以使本地代码，也可以是远程服务，因此对应用侵入较少：应用只需要调用服务接口，服务框架更具配置自动调用本地或者远程实现</li>
+<li>服务框架客户端模块通过服务注册中心家在服务提供者列表，并根据负载均很策略选择将调用请求发送给某服务。服务调用失败客户端会自动选择另一台服务器重新请求服务，实现服务的自动失效转移，保证服务的高可用</li>
+<li>使用NIO通信框架，支持多种通信协议和数据序列化协议，具有较高的网络通信性能</li>
+</ul>
+<h2 id="可扩展的数据结构"><a href="#可扩展的数据结构" class="headerlink" title="可扩展的数据结构"></a>可扩展的数据结构</h2><p>类似hbase的源数据组织方式：，创建表的时候，<strong>只需要指定ColumnFamily的名字，无需指定字段（Column），可以在数据写入时再指定</strong>，通过这种方式，数据表可以包含数百万的字段，<strong>使应用程序的数据结构可以随意扩展</strong>。</p>
+<h2 id="利用开放平台建设网站生态圈"><a href="#利用开放平台建设网站生态圈" class="headerlink" title="利用开放平台建设网站生态圈"></a>利用开放平台建设网站生态圈</h2><p><img src="http://images.cnitblog.com/i/381412/201407/240022281976070.png" alt=""></p>
+<h1 id="第八章-网站的安全架构"><a href="#第八章-网站的安全架构" class="headerlink" title="第八章 网站的安全架构"></a>第八章 网站的安全架构</h1><p>常见攻击</p>
+<ul>
+<li>XSS</li>
+<li>注入攻击</li>
+<li>CSRF跨站点请求伪造</li>
+</ul>
+<p>加密技术</p>
+<ul>
+<li><p>单向散列加密：比如加盐MD5</p>
+</li>
+<li><p>对称加密：加解密用同一个密钥，常用语需要安全交换或者储存的场合，如cookie加密和通信加密等。常用DES，RC等</p>
+</li>
+<li><p>非对称加密：公钥开发，私钥只有所有者知道。常用在信息安全传输，数字签名等。如RSA等</p>
+</li>
+<li><p>密钥安全管理：把密钥和算法做成独立服务，或者吧密钥单独存储</p>
+<p>​</p>
+</li>
+</ul>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p><a href="http://www.cnblogs.com/edisonchou/p/3773828.html" target="_blank" rel="external">http://www.cnblogs.com/edisonchou/p/3773828.html</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2017/01/23/大型网站技术架构读书笔记/">http://thousandhu.github.io/2017/01/23/大型网站技术架构读书笔记/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/17/memory-management-in-apache-spark/" rel="next" title="memory management in apache spark">
+                <i class="fa fa-chevron-left"></i> memory management in apache spark
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/30/hello-2/" rel="prev" title="hello 2">
+                hello 2 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#第二章-大型网站架构模式"><span class="nav-number">1.</span> <span class="nav-text">第二章 大型网站架构模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-网站架构模式"><span class="nav-number">1.1.</span> <span class="nav-text">2.1 网站架构模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-1-分层"><span class="nav-number">1.1.1.</span> <span class="nav-text">2.1.1 分层</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-2-分割"><span class="nav-number">1.1.2.</span> <span class="nav-text">2.1.2 分割</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-3-分布式"><span class="nav-number">1.1.3.</span> <span class="nav-text">2.1.3 分布式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-4-集群"><span class="nav-number">1.1.4.</span> <span class="nav-text">2.1.4 集群</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-5-缓存"><span class="nav-number">1.1.5.</span> <span class="nav-text">2.1.5 缓存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-6-异步"><span class="nav-number">1.1.6.</span> <span class="nav-text">2.1.6 异步</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-7-冗余"><span class="nav-number">1.1.7.</span> <span class="nav-text">2.1.7 冗余</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-8-自动化"><span class="nav-number">1.1.8.</span> <span class="nav-text">2.1.8 自动化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-9-安全"><span class="nav-number">1.1.9.</span> <span class="nav-text">2.1.9 安全</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-架构模式在新浪微博的应用"><span class="nav-number">1.2.</span> <span class="nav-text">2.2 架构模式在新浪微博的应用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第三章-大型网站核心架构要素"><span class="nav-number"></span> <span class="nav-text">第三章 大型网站核心架构要素</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第四章"><span class="nav-number"></span> <span class="nav-text">第四章</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#web端优化"><span class="nav-number">1.</span> <span class="nav-text">web端优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后端优化"><span class="nav-number">2.</span> <span class="nav-text">后端优化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第五章-网站的高可用架构"><span class="nav-number"></span> <span class="nav-text">第五章 网站的高可用架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#高可用的应用"><span class="nav-number">1.</span> <span class="nav-text">高可用的应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高可用的服务"><span class="nav-number">2.</span> <span class="nav-text">高可用的服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高可用数据"><span class="nav-number">3.</span> <span class="nav-text">高可用数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高可用QA"><span class="nav-number">4.</span> <span class="nav-text">高可用QA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网站监控"><span class="nav-number">5.</span> <span class="nav-text">网站监控</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第六章-网站的伸缩性架构"><span class="nav-number"></span> <span class="nav-text">第六章 网站的伸缩性架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第七章-网站的可扩展架构"><span class="nav-number"></span> <span class="nav-text">第七章 网站的可扩展架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式队列"><span class="nav-number">1.</span> <span class="nav-text">分布式队列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式服务"><span class="nav-number">2.</span> <span class="nav-text">分布式服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#可扩展的数据结构"><span class="nav-number">3.</span> <span class="nav-text">可扩展的数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用开放平台建设网站生态圈"><span class="nav-number">4.</span> <span class="nav-text">利用开放平台建设网站生态圈</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第八章-网站的安全架构"><span class="nav-number"></span> <span class="nav-text">第八章 网站的安全架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number"></span> <span class="nav-text">参考文献</span></a></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,763 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,hive," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Running HiveHiveQLData Types：复杂数据结构支持array，map，struct，union。比如 12CREATE TABLE complex (      c1 ARRAY&amp;lt;INT&amp;gt;,      c2 MAP&amp;lt;STRING, INT&amp;gt;,      c3 STRUCT&amp;lt;a:STRING, b:INT, c:DOUBLE&amp;gt;,">
+<meta name="keywords" content="hadoop,hive">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop: The Definitive Guide 4th读书笔记: chapter 17 hive">
+<meta property="og:url" content="http://thousandhu.github.io/2015/12/13/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-17-hive/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="Running HiveHiveQLData Types：复杂数据结构支持array，map，struct，union。比如 12CREATE TABLE complex (      c1 ARRAY&amp;lt;INT&amp;gt;,      c2 MAP&amp;lt;STRING, INT&amp;gt;,      c3 STRUCT&amp;lt;a:STRING, b:INT, c:DOUBLE&amp;gt;,">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/151217udaf.png">
+<meta property="og:updated_time" content="2015-12-18T06:41:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hadoop: The Definitive Guide 4th读书笔记: chapter 17 hive">
+<meta name="twitter:description" content="Running HiveHiveQLData Types：复杂数据结构支持array，map，struct，union。比如 12CREATE TABLE complex (      c1 ARRAY&amp;lt;INT&amp;gt;,      c2 MAP&amp;lt;STRING, INT&amp;gt;,      c3 STRUCT&amp;lt;a:STRING, b:INT, c:DOUBLE&amp;gt;,">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/151217udaf.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2015/12/13/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-17-hive/"/>
+
+
+
+
+
+  <title>Hadoop: The Definitive Guide 4th读书笔记: chapter 17 hive | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/12/13/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-17-hive/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Hadoop: The Definitive Guide 4th读书笔记: chapter 17 hive</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-12-13T21:14:20+08:00">
+                2015-12-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Running-Hive"><a href="#Running-Hive" class="headerlink" title="Running Hive"></a>Running Hive</h1><h2 id="HiveQL"><a href="#HiveQL" class="headerlink" title="HiveQL"></a>HiveQL</h2><p>Data Types：<br>复杂数据结构支持array，map，struct，union。<br>比如</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">CREATE TABLE complex (      c1 ARRAY&lt;INT&gt;,      c2 MAP&lt;STRING, INT&gt;,      c3 STRUCT&lt;a:STRING, b:INT, c:DOUBLE&gt;,      c4 UNIONTYPE&lt;STRING, INT&gt;);hive&gt; SELECT c1[0], c2['b'], c3.c, c4 FROM complex; </div><div class="line">1 2 1.0 &#123;1:63&#125;</div></pre></td></tr></table></figure>
+<h1 id="Tables"><a href="#Tables" class="headerlink" title="Tables"></a>Tables</h1><h2 id="managed-tables-and-external-tables"><a href="#managed-tables-and-external-tables" class="headerlink" title="managed tables and external tables"></a>managed tables and external tables</h2><p>普通的table会把数据放在 hive的warehouse directory。<br>external table则不会移动数据</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> managed_table (dummy <span class="keyword">STRING</span>);<span class="keyword">LOAD</span> <span class="keyword">DATA</span> INPATH <span class="string">'/user/tom/data.txt'</span> <span class="keyword">INTO</span> <span class="keyword">table</span> managed_table;</div><div class="line">//数据会被从hdfs://user/tom/data.txt mv出去，<span class="keyword">drop</span> <span class="keyword">table</span>以后数据会丢失</div><div class="line"></div><div class="line"><span class="keyword">CREATE</span> <span class="keyword">EXTERNAL</span> <span class="keyword">TABLE</span> external_table (dummy <span class="keyword">STRING</span>) LOCATION <span class="string">'/user/tom/external_table'</span>;<span class="keyword">LOAD</span> <span class="keyword">DATA</span> INPATH <span class="string">'/user/tom/data.txt'</span> <span class="keyword">INTO</span> <span class="keyword">TABLE</span> external_table;//数据会移动到external table 的location。</div><div class="line">//<span class="keyword">drop</span>的时候只<span class="keyword">drop</span> metadata</div><div class="line">//<span class="keyword">external</span> <span class="keyword">table</span>创建<span class="keyword">table</span>时不检查数据合法性，意味着可以先创建<span class="keyword">table</span>，延迟创建数据</div></pre></td></tr></table></figure>
+<h2 id="Partitions-and-Buckets"><a href="#Partitions-and-Buckets" class="headerlink" title="Partitions and Buckets"></a>Partitions and Buckets</h2><p>通过对table的指定列进行partation和buckets可以更迅速的进行搜索</p>
+<p>Partitions：</p>
+<ul>
+<li><p>partition可以在一个有很多值的列上做，hive对于多partitions的查询依然迅速（但是感觉还是应该在有限的列上做partition。比如日期之类）</p>
+</li>
+<li>  <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="keyword">logs</span> (ts <span class="built_in">BIGINT</span>, line <span class="keyword">STRING</span>)    PARTITIONED <span class="keyword">BY</span> (dt <span class="keyword">STRING</span>, country <span class="keyword">STRING</span>);    <span class="keyword">LOAD</span> <span class="keyword">DATA</span> <span class="keyword">LOCAL</span> INPATH <span class="string">'input/hive/partitions/file1'</span>    <span class="keyword">INTO</span> <span class="keyword">TABLE</span> <span class="keyword">logs</span>    <span class="keyword">PARTITION</span> (dt=<span class="string">'2001-01-01'</span>, country=<span class="string">'GB'</span>);</div><div class="line">    </div><div class="line">    //用alert table命令也可以操作partition</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li>对于partation，hive储存时实际上用了子文件夹的方式。</li>
+<li>partition column并未存在文件中，实际上他们是通过文件夹名记录的</li>
+</ul>
+<p>bucket：</p>
+<p>bucket是通过将文件按照特定的列hash存储成多个小文件。他的好处有两个：</p>
+<ul>
+<li>更快的query。比如join时对于同样bucket的表就可以简化join操作。</li>
+<li>更快的sample操作</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> bucketed_users (<span class="keyword">id</span> <span class="built_in">INT</span>, <span class="keyword">name</span> <span class="keyword">STRING</span>)CLUSTERED <span class="keyword">BY</span> (<span class="keyword">id</span>) <span class="keyword">INTO</span> <span class="number">4</span> BUCKETS;</div><div class="line"></div><div class="line">//还可以sort</div><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> bucketed_users (<span class="keyword">id</span> <span class="built_in">INT</span>, <span class="keyword">name</span> <span class="keyword">STRING</span>) CLUSTERED <span class="keyword">BY</span> (<span class="keyword">id</span>) SORTED <span class="keyword">BY</span> (<span class="keyword">id</span> <span class="keyword">ASC</span>) <span class="keyword">INTO</span> <span class="number">4</span> BUCKETS;</div></pre></td></tr></table></figure>
+<h1 id="Querying-Data"><a href="#Querying-Data" class="headerlink" title="Querying Data"></a>Querying Data</h1><h2 id="MapReduce-Scripts"><a href="#MapReduce-Scripts" class="headerlink" title="MapReduce Scripts"></a>MapReduce Scripts</h2><p>感觉是简单的UDf：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin/env python</span><span class="keyword">import</span> re<span class="keyword">import</span> sys<span class="keyword">for</span> line <span class="keyword">in</span> sys.stdin:	(year, temp, q) = line.strip().split()	<span class="keyword">if</span> (temp != <span class="string">"9999"</span> <span class="keyword">and</span> re.match(<span class="string">"[01459]"</span>, q)):		<span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (year, temp)</div></pre></td></tr></table></figure>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hive&gt; ADD FILE /Users/tom/book-workspace/hadoop-book/ch17-hive/ src/main/python/is_good_quality.py;hive&gt; FROM records2&gt; SELECT TRANSFORM(year, temperature, quality) &gt; USING 'is_good_quality.py'&gt; AS year, temperature;</div></pre></td></tr></table></figure>
+<p>更进一步</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">FROM (FROM records2MAP year, temperature, quality USING 'is_good_quality.py'AS year, temperature) map_outputREDUCE year, temperatureUSING 'max_temperature_reduce.py' AS year, temperature;</div></pre></td></tr></table></figure>
+<h2 id="view"><a href="#view" class="headerlink" title="view"></a>view</h2><p>通过create view的方式。数据并未被产生，但是产生方式被存在了metadata中，从而可以在后面的查询中被使用。（一个view使用时类似一个查询子句，并且可以被desc查看）</p>
+<h1 id="User-Defined-Functions"><a href="#User-Defined-Functions" class="headerlink" title="User Defined Functions"></a>User Defined Functions</h1><p>UDF</p>
+<p>UDAF</p>
+<p>UDTF</p>
+<h2 id="Write-a-UDF"><a href="#Write-a-UDF" class="headerlink" title="Write a UDF"></a>Write a UDF</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.hadoopbook.hive;<span class="keyword">import</span> org.apache.commons.lang.StringUtils;</div><div class="line"><span class="keyword">import</span> org.apache.hadoop.hive.ql.exec.UDF;</div><div class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Strip</span> <span class="keyword">extends</span> <span class="title">UDF</span> </span>&#123; </div><div class="line">	<span class="keyword">private</span> Text result = <span class="keyword">new</span> Text();	<span class="function"><span class="keyword">public</span> Text <span class="title">evaluate</span><span class="params">(Text str)</span> </span>&#123; </div><div class="line">		<span class="keyword">if</span> (str == <span class="keyword">null</span>) &#123;			<span class="keyword">return</span> <span class="keyword">null</span>; </div><div class="line">		&#125;    	result.set(StringUtils.strip(str.toString()));		<span class="keyword">return</span> result;	&#125; </div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">public</span> Text <span class="title">evaluate</span><span class="params">(Text str, String stripChars)</span> </span>&#123;		<span class="keyword">if</span> (str == <span class="keyword">null</span>) &#123; </div><div class="line">			<span class="keyword">return</span> <span class="keyword">null</span>;    	&#125;    	result.set(StringUtils.strip(str.toString(), stripChars));￼		<span class="keyword">return</span> result; </div><div class="line">	&#125;&#125;</div></pre></td></tr></table></figure>
+<p>UDF必须是org.apache.hadoop.hive.ql.exec.UDF的一个子类，并且必须至少实现一个evaluate函数</p>
+<p>使用udf需要两步：</p>
+<ol>
+<li>将udf达成一个jar包：<code>mvn package</code></li>
+<li>在hive中注册udf：</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> strip <span class="keyword">AS</span> <span class="string">'com.hadoopbook.hive.Strip'</span><span class="keyword">USING</span> JAR <span class="string">'/path/to/hive-examples.jar'</span>;</div></pre></td></tr></table></figure>
+<h2 id="给udf加注释"><a href="#给udf加注释" class="headerlink" title="给udf加注释"></a>给udf加注释</h2><blockquote>
+<p>First off, your UDF will need to inherit from the GenericUDF class. This class can be annotated with several annotations:</p>
+<p>@UDFType(deterministic = true/false) will state whether your UDF is deterministic or not. This is set to true by default. Deterministic functions are those that always return the same result whenever they are called with the same set of arguments. For example avg() is a deterministic function because the result will always be the same for the same input. However, unix_timestamp() (without any arguments) is not deterministic because it returns the current time as a unix timestamp using the default timezone. Consequently, the result depends on when this function is called.</p>
+<p>@Description(name=”my_udf”, value=”output of describe command”, extended=”output of describe extended command”). This annotation is used to set the name of the UDF and text to be displayed when a DESCRIBE FUNCTION my_udf or DESCRIBE FUNCTION EXTENDED my_udf are issued. These commands print out a description of the UDF.</p>
+</blockquote>
+<p>有了description以后，可以用<code>hive&gt; DESCRIBE FUNCTION length;</code>查看udf的说明</p>
+<h1 id="UDAF"><a href="#UDAF" class="headerlink" title="UDAF"></a>UDAF</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.hadoopbook.hive;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.hadoop.hive.ql.exec.UDAF;</div><div class="line"><span class="keyword">import</span> org.apache.hadoop.hive.ql.exec.UDAFEvaluator;</div><div class="line"><span class="keyword">import</span> org.apache.hadoop.hive.serde2.io.DoubleWritable;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Mean</span> <span class="keyword">extends</span> <span class="title">UDAF</span> </span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MeanDoubleUDAFEvaluator</span> <span class="keyword">implements</span> <span class="title">UDAFEvaluator</span> </span>&#123;</div><div class="line">        <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">PartialResult</span> </span>&#123;</div><div class="line">            <span class="keyword">double</span> sum;</div><div class="line">            <span class="keyword">long</span> count;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">private</span> PartialResult partial;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</div><div class="line">            partial = <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">iterate</span><span class="params">(DoubleWritable value)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (value == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span> (partial == <span class="keyword">null</span>) &#123;</div><div class="line">                partial = <span class="keyword">new</span> PartialResult();</div><div class="line">            &#125;</div><div class="line">            partial.sum += value.get();</div><div class="line">            partial.count++;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> PartialResult <span class="title">terminatePartial</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> partial;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">merge</span><span class="params">(PartialResult other)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (other == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span> (partial == <span class="keyword">null</span>) &#123;</div><div class="line">                partial = <span class="keyword">new</span> PartialResult();</div><div class="line">            &#125;</div><div class="line">            partial.sum += other.sum;</div><div class="line">            partial.count += other.count;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> DoubleWritable <span class="title">terminate</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (partial == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> DoubleWritable(partial.sum / partial.count);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>主要要继承udaf类，然后内部静态类类实现UDAFEvaluator接口。<br>内部类中实现五个函数，这5个函数的使用时机见图</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/151217udaf.png" alt="151217udaf.png"></p>
+<p>另一个教程见<a href="https://cwiki.apache.org/confluence/display/Hive/GenericUDAFCaseStudy" target="_blank" rel="external">https://cwiki.apache.org/confluence/display/Hive/GenericUDAFCaseStudy</a></p>
+<p>自己踩得第一个坑，在partialresult传递结果时，结构体中不能直接用数组，要用arraylist。<a href="&#x6d;&#97;&#x69;&#x6c;&#116;&#111;&#x3a;&#104;&#116;&#116;&#x70;&#x3a;&#47;&#x2f;&#109;&#97;&#105;&#108;&#45;&#x61;&#114;&#99;&#104;&#x69;&#x76;&#101;&#115;&#46;&#x61;&#x70;&#97;&#99;&#104;&#101;&#x2e;&#111;&#x72;&#x67;&#47;&#x6d;&#x6f;&#100;&#x5f;&#x6d;&#98;&#x6f;&#120;&#x2f;&#104;&#x69;&#x76;&#x65;&#x2d;&#117;&#115;&#101;&#x72;&#x2f;&#50;&#x30;&#x31;&#x33;&#x30;&#55;&#x2e;&#x6d;&#x62;&#111;&#120;&#x2f;&#37;&#51;&#67;&#x43;&#69;&#x31;&#x43;&#65;&#52;&#49;&#x43;&#46;&#49;&#49;&#x37;&#54;&#x45;&#x25;&#x32;&#53;&#114;&#x64;&#x6d;&#x40;&#x62;&#x61;&#x79;&#x6e;&#111;&#x74;&#x65;&#46;&#99;&#111;&#109;&#x25;&#51;&#69;">&#104;&#116;&#116;&#x70;&#x3a;&#47;&#x2f;&#109;&#97;&#105;&#108;&#45;&#x61;&#114;&#99;&#104;&#x69;&#x76;&#101;&#115;&#46;&#x61;&#x70;&#97;&#99;&#104;&#101;&#x2e;&#111;&#x72;&#x67;&#47;&#x6d;&#x6f;&#100;&#x5f;&#x6d;&#98;&#x6f;&#120;&#x2f;&#104;&#x69;&#x76;&#x65;&#x2d;&#117;&#115;&#101;&#x72;&#x2f;&#50;&#x30;&#x31;&#x33;&#x30;&#55;&#x2e;&#x6d;&#x62;&#111;&#120;&#x2f;&#37;&#51;&#67;&#x43;&#69;&#x31;&#x43;&#65;&#52;&#49;&#x43;&#46;&#49;&#49;&#x37;&#54;&#x45;&#x25;&#x32;&#53;&#114;&#x64;&#x6d;&#x40;&#x62;&#x61;&#x79;&#x6e;&#111;&#x74;&#x65;&#46;&#99;&#111;&#109;&#x25;&#51;&#69;</a>。而且感觉在构造函数中直接new出arraylist这种也不好，应该放在外面加。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2015/12/13/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-17-hive/">http://thousandhu.github.io/2015/12/13/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-17-hive/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/hive/" rel="tag"># hive</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/03/Hadoop-The-Definitive-Guide-4th读书笔记-chapter4-YARN/" rel="next" title="Hadoop: The Definitive Guide 4th读书笔记 chapter4: YARN">
+                <i class="fa fa-chevron-left"></i> Hadoop: The Definitive Guide 4th读书笔记 chapter4: YARN
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/12/18/hive-优化/" rel="prev" title="hive 优化">
+                hive 优化 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Running-Hive"><span class="nav-number">1.</span> <span class="nav-text">Running Hive</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#HiveQL"><span class="nav-number">1.1.</span> <span class="nav-text">HiveQL</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Tables"><span class="nav-number">2.</span> <span class="nav-text">Tables</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#managed-tables-and-external-tables"><span class="nav-number">2.1.</span> <span class="nav-text">managed tables and external tables</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Partitions-and-Buckets"><span class="nav-number">2.2.</span> <span class="nav-text">Partitions and Buckets</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Querying-Data"><span class="nav-number">3.</span> <span class="nav-text">Querying Data</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MapReduce-Scripts"><span class="nav-number">3.1.</span> <span class="nav-text">MapReduce Scripts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#view"><span class="nav-number">3.2.</span> <span class="nav-text">view</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#User-Defined-Functions"><span class="nav-number">4.</span> <span class="nav-text">User Defined Functions</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Write-a-UDF"><span class="nav-number">4.1.</span> <span class="nav-text">Write a UDF</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#给udf加注释"><span class="nav-number">4.2.</span> <span class="nav-text">给udf加注释</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#UDAF"><span class="nav-number">5.</span> <span class="nav-text">UDAF</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

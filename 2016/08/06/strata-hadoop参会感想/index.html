@@ -1,0 +1,1067 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,spark,sql-on-hadoop," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="写在前面的话：一直想搞一个公众号，但是总觉得自己学的还很浅，没什么可以分享的。今天参加了strata+hadoop的会议，做了一些笔记，决定将他作为第一篇文章。自己对于spark的知识了解有限，难免会有一些错误的地方，还请大家海涵。感谢百度孙垚光师兄和腾讯沈洪师兄对笔记中错误的订正和耐心的答疑。感谢宜人贷王婷师姐的赠票。顺便欢迎大家明天去听听王婷师姐明天13点50在报告厅的分享《金融反欺诈中，社交">
+<meta name="keywords" content="hadoop,spark,sql-on-hadoop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="strata+hadoop参会感想">
+<meta property="og:url" content="http://thousandhu.github.io/2016/08/06/strata-hadoop参会感想/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="写在前面的话：一直想搞一个公众号，但是总觉得自己学的还很浅，没什么可以分享的。今天参加了strata+hadoop的会议，做了一些笔记，决定将他作为第一篇文章。自己对于spark的知识了解有限，难免会有一些错误的地方，还请大家海涵。感谢百度孙垚光师兄和腾讯沈洪师兄对笔记中错误的订正和耐心的答疑。感谢宜人贷王婷师姐的赠票。顺便欢迎大家明天去听听王婷师姐明天13点50在报告厅的分享《金融反欺诈中，社交">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221234.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221245.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221258.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221312.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221817.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221851.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221908.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221926.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-222127.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-135506.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-135819.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-142037.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-142701.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160026.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160059.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160126.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160211.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-210959.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160238.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-212237.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-212310.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-213346.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-212405.png">
+<meta property="og:updated_time" content="2016-08-05T16:07:59.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="strata+hadoop参会感想">
+<meta name="twitter:description" content="写在前面的话：一直想搞一个公众号，但是总觉得自己学的还很浅，没什么可以分享的。今天参加了strata+hadoop的会议，做了一些笔记，决定将他作为第一篇文章。自己对于spark的知识了解有限，难免会有一些错误的地方，还请大家海涵。感谢百度孙垚光师兄和腾讯沈洪师兄对笔记中错误的订正和耐心的答疑。感谢宜人贷王婷师姐的赠票。顺便欢迎大家明天去听听王婷师姐明天13点50在报告厅的分享《金融反欺诈中，社交">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221234.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/08/06/strata-hadoop参会感想/"/>
+
+
+
+
+
+  <title>strata+hadoop参会感想 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/08/06/strata-hadoop参会感想/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">strata+hadoop参会感想</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-06T00:06:37+08:00">
+                2016-08-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>写在前面的话：一直想搞一个公众号，但是总觉得自己学的还很浅，没什么可以分享的。今天参加了strata+hadoop的会议，做了一些笔记，决定将他作为第一篇文章。自己对于spark的知识了解有限，难免会有一些错误的地方，还请大家海涵。感谢百度孙垚光师兄和腾讯沈洪师兄对笔记中错误的订正和耐心的答疑。感谢宜人贷王婷师姐的赠票。顺便欢迎大家明天去听听王婷师姐明天13点50在报告厅的分享《金融反欺诈中，社交网络算法有用吗？》。</p>
+<p>文中按顺序是这些talk的笔记：</p>
+<ul>
+<li>基于Spark平台的智能大数据网络反欺诈 Yinglian Xie (DataVisor)</li>
+<li>用人工智能驱动金融生活 Cheng Li (蚂蚁金服首席技术官 (Ant Financial Group))</li>
+<li>基于Apache Spark的金融欺诈检测 王奕恒 (Intel)</li>
+<li>基于Spark SQL构建即席查询平台 孙垚光 (百度)</li>
+<li>从TDW-Hive到TDW-Spark-SQL: 腾讯TDW数据引擎演进之路 Hong Shen (腾讯)</li>
+<li>Presto在优步：千万亿字节规模的交互式查询 罗震霄 (Uber)</li>
+</ul>
+<h1 id="基于Spark平台的智能大数据网络反欺诈-Yinglian-Xie-DataVisor"><a href="#基于Spark平台的智能大数据网络反欺诈-Yinglian-Xie-DataVisor" class="headerlink" title="基于Spark平台的智能大数据网络反欺诈 Yinglian Xie (DataVisor)"></a><a href="http://strata.oreilly.com.cn/hadoop-big-data-cn/public/schedule/detail/52831" target="_blank" rel="external">基于Spark平台的智能大数据网络反欺诈</a> Yinglian Xie (DataVisor)</h1><h2 id="互联网欺诈攻击的四大趋势"><a href="#互联网欺诈攻击的四大趋势" class="headerlink" title="互联网欺诈攻击的四大趋势"></a>互联网欺诈攻击的四大趋势</h2><ul>
+<li>多种欺诈行为</li>
+<li>复杂欺诈产业链：分工</li>
+<li>潜伏期长</li>
+<li>各种欺诈工具辅助</li>
+</ul>
+<p>群组欺诈：单个用户没有特征，但是多用户分析时群组内用户的行为一致</p>
+<ul>
+<li>第一笔正常交易</li>
+<li>第二笔一定时间间隔，大额欺诈交易</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221234.png" alt="2016-08-05-221234"></p>
+<p>促销欺诈群组</p>
+<ul>
+<li>分为测试期，大规模注册期，攻击期</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221245.png" alt="2016-08-05-221245"></p>
+<p>欺诈检测的发展</p>
+<ul>
+<li>黑名单，信用库，设备指纹</li>
+<li>规则系统</li>
+<li>有监督学习<ul>
+<li>局限性，面临不断变化的欺诈者，模型不容易检测将来的行为。当收集到大量数据时，意味着欺诈高峰已经过去</li>
+</ul>
+</li>
+<li>dataVisor<ul>
+<li>架构：date-》spark-》es+hbase-》实时性分析模块</li>
+<li>无监督群组检测<ul>
+<li>自动检测</li>
+<li>自动产生标签</li>
+<li>自动产生规则</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="用人工智能驱动金融生活-Cheng-Li-蚂蚁金服首席技术官-Ant-Financial-Group"><a href="#用人工智能驱动金融生活-Cheng-Li-蚂蚁金服首席技术官-Ant-Financial-Group" class="headerlink" title="用人工智能驱动金融生活 Cheng Li (蚂蚁金服首席技术官 (Ant Financial Group))"></a><a href="http://strata.oreilly.com.cn/hadoop-big-data-cn/public/schedule/detail/54108" target="_blank" rel="external">用人工智能驱动金融生活</a> Cheng Li (蚂蚁金服首席技术官 (Ant Financial Group))</h1><p>传统金融-&gt;创新链接-&gt;金融生活</p>
+<p>区块链/生物识别：去中心化的安全(区块链的去中心化是一个非常好的安全发展方向)</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221258.png" alt="2016-08-05-221258"></p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221312.png" alt="2016-08-05-221312"></p>
+<p>案例1： 蚂蚁智能客服：问题发现，问题理解（知识库收集），问题解决（知识库识别）。85%覆盖率70%解决</p>
+<p>案例2：蚂蚁安全大脑：通过理解用户行为来预警风险<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221817.png" alt="2016-08-05-221817"></p>
+<p>案例3：芝麻信用：</p>
+<ul>
+<li>与银行互补。7%的审核通过率，0.3%的逾期率控制。</li>
+<li>生活服务：租车，免押金酒店</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221851.png" alt="2016-08-05-221851"></p>
+<h1 id="基于Apache-Spark的金融欺诈检测-王奕恒-Intel"><a href="#基于Apache-Spark的金融欺诈检测-王奕恒-Intel" class="headerlink" title="基于Apache Spark的金融欺诈检测 王奕恒 (Intel)"></a><a href="http://strata.oreilly.com.cn/hadoop-big-data-cn/public/schedule/detail/51652" target="_blank" rel="external">基于Apache Spark的金融欺诈检测</a> 王奕恒 (Intel)</h1><p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221908.png" alt="2016-08-05-221908"></p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-221926.png" alt="2016-08-05-221926"></p>
+<p>特征提取</p>
+<ul>
+<li>类别特征-&gt;distinct，group by，etc</li>
+<li>数值特征</li>
+<li>特征分析</li>
+</ul>
+<p>特征生成：（异常金额，时间间隔等）</p>
+<p>流程：补全缺失数据-&gt;不平衡数据降采样-&gt;特征类型转换（woe）-&gt;归一化-&gt;整合</p>
+<p>算法：神经网络，GBDT</p>
+<p>做了bagging（soft voting）</p>
+<p>神经网络做了Grid search自动化训练流水，对于关键参数进行遍历（模型个数，隐藏层个数，训练参数）</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-222127.png" alt="2016-08-05-222127"></p>
+<p>经验总结</p>
+<ul>
+<li>自动化训练流程</li>
+<li>根据特征特点进行变换</li>
+<li>参数选择，利用iv值减少grid search的特征选择范围</li>
+<li>多个模型共同云测</li>
+</ul>
+<p>#<a href="http://strata.oreilly.com.cn/hadoop-big-data-cn/public/schedule/detail/51573" target="_blank" rel="external">基于Spark SQL构建即席查询平台</a> 孙垚光 (百度)</p>
+<h2 id="即席查询-ad-hoc"><a href="#即席查询-ad-hoc" class="headerlink" title="即席查询(ad-hoc)"></a>即席查询(ad-hoc)</h2><p>查询模式相对不固定，数据接近原始数据</p>
+<p>交互式，需要较高时效性(10s)</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-135506.png" alt="2016-08-05-135506"></p>
+<h3 id="基于spark做了什么"><a href="#基于spark做了什么" class="headerlink" title="基于spark做了什么"></a>基于spark做了什么</h3><p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-135819.png" alt="2016-08-05-135819"></p>
+<ul>
+<li>易用：<ul>
+<li>Paas:用户不需要关心部署升级等</li>
+<li>API</li>
+<li>概念抽象</li>
+<li>Query粒度的资源消耗统计</li>
+</ul>
+</li>
+<li>稳定<ul>
+<li>query持久化</li>
+<li>接入层无节点</li>
+<li>多维监控</li>
+<li>多租户 </li>
+</ul>
+</li>
+<li>安全/资源隔离<ul>
+<li>多租户</li>
+<li>基于JVM沙箱层</li>
+<li>计算/存储框架层的安全认证</li>
+</ul>
+</li>
+<li>性能提升<ul>
+<li>查询与储存结合，解决IO瓶颈<ul>
+<li>翻译优化<ul>
+<li>limit及时截断</li>
+<li>filter配合索引使用</li>
+<li>列裁剪：嵌套字段内只load需要的列</li>
+<li>隐含等值条件</li>
+</ul>
+</li>
+<li>规避慢节点（最重要，最优先考虑的问题）<ul>
+<li>更合理的预测执行</li>
+<li>分发写（同时写hdfs的三个块，对比pipeline写）</li>
+<li>读写慢节点的切换</li>
+<li>控制集群压力</li>
+</ul>
+</li>
+<li>增加索引（见图，索引作为文件单独存储）</li>
+<li>有选择的缓存数据</li>
+<li>shuffle（见图）<ul>
+<li>原生shuffle，基于磁盘的shuffle</li>
+<li>优化，基于内存的push</li>
+<li>对于即席查询，聚合效应明显，越往后数据量越少，更适合内存级的shuffle</li>
+<li>实现shufflerManager即可</li>
+<li>这个方案和不改变原生shuffle而将后面的存储映射为内存的优势在于：第一次持久化就可以持久化shuffle后的数据。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>减少框架开销<ul>
+<li>Map partition数目，reduce Partition数目预估</li>
+<li>根据query大小选择复用AppMaster或者重启AppMaster</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-142037.png" alt="2016-08-05-142037"></p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-142701.png" alt="2016-08-05-142701"></p>
+<h2 id="后续规划"><a href="#后续规划" class="headerlink" title="后续规划"></a>后续规划</h2><ul>
+<li>批量query，流式query，ETL结合的一站式服务</li>
+<li>流式append数据</li>
+</ul>
+<p>#<a href="http://strata.oreilly.com.cn/hadoop-big-data-cn/public/schedule/detail/51438" target="_blank" rel="external">从TDW-Hive到TDW-Spark-SQL: 腾讯TDW数据引擎演进之路</a> Hong Shen (腾讯)</p>
+<h2 id="Hive的瓶颈"><a href="#Hive的瓶颈" class="headerlink" title="Hive的瓶颈"></a>Hive的瓶颈</h2><p>缺乏对DAG（这里指的是hive on mr， hive on tez是选型的时候测试过，性能不如spark-sql）</p>
+<p>基于MR，不支持cache</p>
+<p>hive社区活跃度低</p>
+<h2 id="sparkSQL"><a href="#sparkSQL" class="headerlink" title="sparkSQL"></a>sparkSQL</h2><p>DAG</p>
+<p>基于RDD的内存计算</p>
+<p>DataFrame可以和spark ml/streaming结合</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160026.png" alt="2016-08-05-160026"></p>
+<h2 id="功能增强"><a href="#功能增强" class="headerlink" title="功能增强"></a>功能增强</h2><ul>
+<li>兼容Oracle语法，支持窗口函数</li>
+<li>支持python udaf，udtf</li>
+<li>其他（抱歉没记全）</li>
+</ul>
+<h2 id="python-udaf-udtf"><a href="#python-udaf-udtf" class="headerlink" title="python udaf/udtf"></a>python udaf/udtf</h2><p>通过编译成pyspark支持</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160059.png" alt="2016-08-05-160059"></p>
+<p>我不太懂pyspark，这里找到了个<a href="http://blog.csdn.net/pelick/article/details/38307631" target="_blank" rel="external">参考文献</a>，讲了一下pyspark的基本原理：</p>
+<blockquote>
+<p>在python driver端，SparkContext利用Py4J启动一个JVM并产生一个JavaSparkContext。Py4J只使用在driver端，用于本地python与java SparkContext objects的通信。大量数据的传输使用的是另一个机制。<br>RDD在python下的转换会被映射成java环境下PythonRDD。在远端worker机器上，PythonRDD对象启动一些子进程并通过pipes与这些子进程通信，以此send用户代码和数据。</p>
+</blockquote>
+<p>不过这里如果udf有外部依赖的包，是不是需要所有worker环境都预先装好这个包？</p>
+<h2 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h2><p>调度策略改进</p>
+<ul>
+<li>问题：大任务长时间占用资源池，使得小任务难以占用资源</li>
+<li>原因：以executor为调度单位，调用粒度粗，资源释放慢</li>
+<li>优化：修改资源释放策略，有任务等待并且没有资源时大任务释放资源<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160126.png" alt="2016-08-05-160126"></li>
+</ul>
+<p>shuffle分区自动设置</p>
+<ul>
+<li>追溯输入，自动计算stage并行度</li>
+<li>自动调整cube，distinct等数据膨胀操作的并行度调整</li>
+<li>合并小文件（监控输出文件大小，如果平均文件大小低于阈值或者符合其他config设置，则增加一个stage将小文件合并）</li>
+</ul>
+<p>sortMergeJoin优化</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160211.png" alt="2016-08-05-160211"></p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-210959.png" alt="2016-08-05-210959"></p>
+<ul>
+<li>fetch大文件时直接写磁盘，减少序列化</li>
+<li>增加fetch线程，增加网络带宽利用</li>
+<li>join sort排序移到map端</li>
+</ul>
+<p>##稳定性优化</p>
+<ul>
+<li>sparkDriver分散化</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-160238.png" alt="2016-08-05-160238"></p>
+<ul>
+<li>AM的OOM：减少AM的Accumulators，降低AM的内存</li>
+<li>推测执行的改进，推测成功后kill了正在运行的Task</li>
+<li>调度相关问题的bug（比如调度失败无限重试等）</li>
+</ul>
+<p>效果：大约一半能在50%以上，同时节约20%的资源消耗</p>
+<h2 id="未来计划："><a href="#未来计划：" class="headerlink" title="未来计划："></a>未来计划：</h2><ul>
+<li>多表join</li>
+<li>数据倾斜处理</li>
+<li>结合spark streaming提供流式服务</li>
+</ul>
+<h1 id="Presto在优步：千万亿字节规模的交互式查询-罗震霄-Uber"><a href="#Presto在优步：千万亿字节规模的交互式查询-罗震霄-Uber" class="headerlink" title="Presto在优步：千万亿字节规模的交互式查询 罗震霄 (Uber)"></a><a href="http://strata.oreilly.com.cn/hadoop-big-data-cn/public/schedule/detail/50868" target="_blank" rel="external">Presto在优步：千万亿字节规模的交互式查询</a> 罗震霄 (Uber)</h1><h2 id="为何要引入presto"><a href="#为何要引入presto" class="headerlink" title="为何要引入presto"></a>为何要引入presto</h2><p>2015年的老架构</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-212237.png" alt="2016-08-05-212237"></p>
+<p>现在的架构，小数据跑presto，大数据跑hive</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-212310.png" alt="2016-08-05-212310"></p>
+<p>问题：HIVE实在太慢了-&gt;尝试presto。选型考虑了下面几点</p>
+<ul>
+<li>presto比spark SQL快3到5倍（个人猜测可能和使用场景有关）。</li>
+<li>drill和impala稳定性不好。</li>
+<li>presto使用标准的sql</li>
+<li>开源</li>
+</ul>
+<h2 id="presto快的原因"><a href="#presto快的原因" class="headerlink" title="presto快的原因"></a>presto快的原因</h2><ul>
+<li>all in memory</li>
+<li>pipelining和streaming(几乎全程不写硬盘)</li>
+<li>列存储和执行模式（presto的执行模式是列模式，这是比tez等快的原因，这一条需要好好研究一下）</li>
+<li>bytecode generation<ul>
+<li>inline virtual function calls</li>
+<li>inline constants</li>
+<li>rewrite inner loops</li>
+<li>rewrite type specific branches（知道col的类型则省去代码中的switch判断）</li>
+</ul>
+</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-213346.png" alt="2016-08-05-213346"></p>
+<h2 id="资源管理"><a href="#资源管理" class="headerlink" title="资源管理"></a>资源管理</h2><ul>
+<li>cpu<ul>
+<li>priority queues</li>
+<li>short running querires higher priority</li>
+</ul>
+</li>
+<li>memory<ul>
+<li>query max memory pre node</li>
+<li>query fails on hitting memory limit, prosto process continue running</li>
+</ul>
+</li>
+<li>Concurrency Management<ul>
+<li>queue: pre user max concurrent running queries</li>
+</ul>
+</li>
+</ul>
+<h2 id="Limitations"><a href="#Limitations" class="headerlink" title="Limitations"></a>Limitations</h2><ul>
+<li>没有容错(针对秒级应用，任务失败重跑代价小，牺牲容错提高性能)</li>
+<li>join 超过内存时会提示并且不能跑。设计的时候就是大join去hive</li>
+<li>single coordinater（在uber场景中不影响）</li>
+</ul>
+<h2 id="uber的运行情况"><a href="#uber的运行情况" class="headerlink" title="uber的运行情况"></a>uber的运行情况</h2><ul>
+<li>200node</li>
+<li>4000query</li>
+<li>ad hoc sql query和real time application</li>
+</ul>
+<h2 id="选型"><a href="#选型" class="headerlink" title="选型"></a>选型</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>uber买的商业数据库</th>
+<th>presto</th>
+<th>sparkSQL</th>
+<th>Hive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>performance</td>
+<td>很快</td>
+<td>很快</td>
+<td>较快</td>
+<td>一般</td>
+</tr>
+<tr>
+<td>Warehouse size</td>
+<td>百TB级别</td>
+<td>PB</td>
+<td>PB</td>
+<td>PB</td>
+</tr>
+<tr>
+<td>SQL sport</td>
+<td>ANSI sql</td>
+<td>ANSI sql</td>
+<td>HiveQL</td>
+<td>HiveQL</td>
+</tr>
+<tr>
+<td>NestedSchema</td>
+<td>NO</td>
+<td>YES</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>UDF</td>
+<td>有自己的udf，支持地理相关的函数</td>
+<td>有自己的udf，支持地理相关的函数</td>
+<td>支持自定义函数，有第三方的地理相关函数</td>
+<td>支持自定义函数，有第三方的地理相关函数</td>
+</tr>
+<tr>
+<td>Memory limit</td>
+<td>超过内存限制则终止query</td>
+<td>不能操作过大的超过内存的join</td>
+<td>大的join spill到disk</td>
+<td>大的join spill到disk</td>
+</tr>
+</tbody>
+</table>
+<p>注：因为uber自身的特点，他们很关注地理相关的udf的支持</p>
+<h2 id="parquet"><a href="#parquet" class="headerlink" title="parquet"></a>parquet</h2><p>文件格式，简单的说先横着切(row group)，再竖着切（column rack）。parquet最低端有个footer，是各种schema。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-05-212405.png" alt="2016-08-05-212405"></p>
+<h2 id="parquet-improvement"><a href="#parquet-improvement" class="headerlink" title="parquet improvement"></a>parquet improvement</h2><p><code>select A,B from t where c=10;</code></p>
+<p>延迟加载。footer里面有一个column rack的值的范围和dictionary，可以提前判断每个column rack里面有没有c=10，如果没有就跳过这个row group</p>
+<p>columnar read： build  prestp  blcoks  for each column, not reading row by row</p>
+<h2 id="一些正在做的事"><a href="#一些正在做的事" class="headerlink" title="一些正在做的事"></a>一些正在做的事</h2><ul>
+<li>schema evolution:处理嵌套。</li>
+<li>地理相关的支持</li>
+<li>性能优化：<ul>
+<li>比如s.a这种嵌套结构优化为只读a不用读s整个</li>
+<li>preedicate pushdown &amp; dictionary pushdown</li>
+<li>Lazy Reads &amp; columnar Reads</li>
+</ul>
+</li>
+</ul>
+<p>另外我听speaker说：parquet默认的读取器居然是按行的，然后再拼成列交给parquet engine。但是这里我不是很确认我听得对不对，所以就大家需要自己验证</p>
+<h1 id="公开slides下载"><a href="#公开slides下载" class="headerlink" title="公开slides下载"></a><a href="http://strata.oreilly.com.cn/hadoop-big-data-cn/public/schedule/proceedings" target="_blank" rel="external">公开slides下载</a></h1><h1 id="写在后面的一些东西"><a href="#写在后面的一些东西" class="headerlink" title="写在后面的一些东西"></a>写在后面的一些东西</h1><p>今天主要是听了sql on hadoop的一些东西，有这么几个感受：</p>
+<ol>
+<li>spark sql他有一个巨大的优势就是因为基于spark，所以和spark streaming，spark mllib啊之类的都有很强的结合空间，至少是结合的想象空间。同时技术栈上的通用我感觉让学习成本和运维成本都降下来了。至少对于小公司，同时需要流式计算和sql on hadoop的话，感觉spark streaming+spark sql比storm+presto要容易一些。</li>
+<li>每个开源软件都有自己的特定使用场景。之前我们测试的时候，我们对于presto不能handle大的数据集上的query这个事觉得囧囧的（<a href="http://housong.github.io/2016/Sql-on-Hadoop-%E5%AF%B9%E6%AF%94/" target="_blank" rel="external">师兄的测试报告</a>）。但是今天uber的罗师兄表示presto就是要处理所有数据能放入内存的秒级别的query，为此甚至牺牲了容错，所以说选择开源软件一定要了解他产生时的特定场景和特定需求。</li>
+<li>要学的东西还有很多。。。。</li>
+</ol>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/08/06/strata-hadoop参会感想/">http://thousandhu.github.io/2016/08/06/strata-hadoop参会感想/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/spark/" rel="tag"># spark</a>
+          
+            <a href="/tags/sql-on-hadoop/" rel="tag"># sql-on-hadoop</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/30/深入解析yarn架构设计与技术实现-Resource-Manager剖析4/" rel="next" title="深入解析yarn架构设计与技术实现-Resource Manager剖析4">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-Resource Manager剖析4
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/08/spark-history-server/" rel="prev" title="spark history server">
+                spark history server <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基于Spark平台的智能大数据网络反欺诈-Yinglian-Xie-DataVisor"><span class="nav-number">1.</span> <span class="nav-text">基于Spark平台的智能大数据网络反欺诈 Yinglian Xie (DataVisor)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#互联网欺诈攻击的四大趋势"><span class="nav-number">1.1.</span> <span class="nav-text">互联网欺诈攻击的四大趋势</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用人工智能驱动金融生活-Cheng-Li-蚂蚁金服首席技术官-Ant-Financial-Group"><span class="nav-number">2.</span> <span class="nav-text">用人工智能驱动金融生活 Cheng Li (蚂蚁金服首席技术官 (Ant Financial Group))</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基于Apache-Spark的金融欺诈检测-王奕恒-Intel"><span class="nav-number">3.</span> <span class="nav-text">基于Apache Spark的金融欺诈检测 王奕恒 (Intel)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#即席查询-ad-hoc"><span class="nav-number">3.1.</span> <span class="nav-text">即席查询(ad-hoc)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于spark做了什么"><span class="nav-number">3.1.1.</span> <span class="nav-text">基于spark做了什么</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后续规划"><span class="nav-number">3.2.</span> <span class="nav-text">后续规划</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hive的瓶颈"><span class="nav-number">3.3.</span> <span class="nav-text">Hive的瓶颈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sparkSQL"><span class="nav-number">3.4.</span> <span class="nav-text">sparkSQL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#功能增强"><span class="nav-number">3.5.</span> <span class="nav-text">功能增强</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python-udaf-udtf"><span class="nav-number">3.6.</span> <span class="nav-text">python udaf/udtf</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#性能优化"><span class="nav-number">3.7.</span> <span class="nav-text">性能优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#未来计划："><span class="nav-number">3.8.</span> <span class="nav-text">未来计划：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Presto在优步：千万亿字节规模的交互式查询-罗震霄-Uber"><span class="nav-number">4.</span> <span class="nav-text">Presto在优步：千万亿字节规模的交互式查询 罗震霄 (Uber)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#为何要引入presto"><span class="nav-number">4.1.</span> <span class="nav-text">为何要引入presto</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#presto快的原因"><span class="nav-number">4.2.</span> <span class="nav-text">presto快的原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#资源管理"><span class="nav-number">4.3.</span> <span class="nav-text">资源管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Limitations"><span class="nav-number">4.4.</span> <span class="nav-text">Limitations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#uber的运行情况"><span class="nav-number">4.5.</span> <span class="nav-text">uber的运行情况</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选型"><span class="nav-number">4.6.</span> <span class="nav-text">选型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#parquet"><span class="nav-number">4.7.</span> <span class="nav-text">parquet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#parquet-improvement"><span class="nav-number">4.8.</span> <span class="nav-text">parquet improvement</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些正在做的事"><span class="nav-number">4.9.</span> <span class="nav-text">一些正在做的事</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#公开slides下载"><span class="nav-number">5.</span> <span class="nav-text">公开slides下载</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#写在后面的一些东西"><span class="nav-number">6.</span> <span class="nav-text">写在后面的一些东西</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

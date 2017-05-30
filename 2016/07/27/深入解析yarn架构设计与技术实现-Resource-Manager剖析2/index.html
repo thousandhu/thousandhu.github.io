@@ -1,0 +1,732 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Application管理在yarn中，application指的是应用程序，他可能由多个实例组成。他有权限管理、运行状态几部分组成。权限管理主要由ApplicationACLsManager负责，应用程序的启动和关闭由RMAppManager负责，而运行状态主要由状态机负责。权限那里就略掉不写了，主要说一下状态机。 状态机管理在ResourceManager内部主要有四类状态机：  RMApp:">
+<meta name="keywords" content="yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-Resource Manager剖析2">
+<meta property="og:url" content="http://thousandhu.github.io/2016/07/27/深入解析yarn架构设计与技术实现-Resource-Manager剖析2/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="Application管理在yarn中，application指的是应用程序，他可能由多个实例组成。他有权限管理、运行状态几部分组成。权限管理主要由ApplicationACLsManager负责，应用程序的启动和关闭由RMAppManager负责，而运行状态主要由状态机负责。权限那里就略掉不写了，主要说一下状态机。 状态机管理在ResourceManager内部主要有四类状态机：  RMApp:">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-07-25-213100.png">
+<meta property="og:updated_time" content="2016-07-27T09:34:53.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-Resource Manager剖析2">
+<meta name="twitter:description" content="Application管理在yarn中，application指的是应用程序，他可能由多个实例组成。他有权限管理、运行状态几部分组成。权限管理主要由ApplicationACLsManager负责，应用程序的启动和关闭由RMAppManager负责，而运行状态主要由状态机负责。权限那里就略掉不写了，主要说一下状态机。 状态机管理在ResourceManager内部主要有四类状态机：  RMApp:">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-07-25-213100.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/07/27/深入解析yarn架构设计与技术实现-Resource-Manager剖析2/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-Resource Manager剖析2 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/07/27/深入解析yarn架构设计与技术实现-Resource-Manager剖析2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-Resource Manager剖析2</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-27T17:34:26+08:00">
+                2016-07-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Application管理"><a href="#Application管理" class="headerlink" title="Application管理"></a>Application管理</h1><p>在yarn中，application指的是应用程序，他可能由多个实例组成。他有权限管理、运行状态几部分组成。权限管理主要由ApplicationACLsManager负责，应用程序的启动和关闭由RMAppManager负责，而运行状态主要由状态机负责。权限那里就略掉不写了，主要说一下状态机。</p>
+<h1 id="状态机管理"><a href="#状态机管理" class="headerlink" title="状态机管理"></a>状态机管理</h1><p>在ResourceManager内部主要有四类状态机：</p>
+<ul>
+<li>RMApp:和RMAppAttempt共同维护一个Application的生命周期。Application的声明周期由RMApp维护</li>
+<li>RMAppAttempt：一个Application可能尝试多次运行，每次尝试由RMAppAttempt维护。RMAppAttempt的生命周期与Application基本一致。因为如果一个ApplicationMaster失败了，yarn可能会另外启动一个ApplicationMaster，这就是这个Application的另一次尝试了</li>
+<li>RMContainer：ApplicationMaster启动后，会不断向RM申请Container来运行任务，Container的生命周期由RMContainer维护。</li>
+<li>RMNode：维护NodeManager的生命周期</li>
+</ul>
+<p>下图是四个状态机转化的图，可以点进去看<a href="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-07-25-213100.png" target="_blank" rel="external">大图</a>，应该清楚一些，我的版本是2.7.1。这里就不一一列举他们每个状态是怎么转化之类的，状态太多了，大家去看书吧。顺便提一句，yarn提供了生成这个图的方法。</p>
+<ol>
+<li><code>mvn compile -Pvisualize</code></li>
+<li><code>dot -Tpng ResourceManager.gv &gt; ResourceManager.png</code></li>
+</ol>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-07-25-213100.png" alt="2016-07-25-213100"></p>
+<p>我们来选一个状态机看看yarn的代码结构，比如RMApp。RmApp是一个接口，同时extends了<code>EventHandler&lt;RMAppEvent&gt;</code>。这意味着它一定会实现一个handle函数。至于RMapp的其他函数getUser啦反而不重要了。</p>
+<p>它的实现是在RMAppImpl里面，打开这个类，首先会看到structure里面有一排内部类，当时我就慌了。不过静下心看一下，每个内部类都是extends一个xxTransition并实现了transition函数。回想一下状态机库，状态机工厂就是通过对一个StateMachineFactory不断addTransition并且最后调用installTopology生成的，之后通过make构造出一个状态机。这里的成员变量statMachine正是这样构造的。而addTranstion函数的参数如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">addTransition(STATE preState, </div><div class="line">STATE postState,</div><div class="line">EVENTTYPE eventType,</div><div class="line">SingleArcTransition&lt;OPERAND, EVENT&gt; hook)</div></pre></td></tr></table></figure>
+<p>其中第四个参数传入的就是我们看到的内部类，也就是说这个状态机在从状态perState接收到eventType转换到postState时会调用一下内部类xxTransition里的transition。这样程序结构就清楚了，至于状态具体如何转换也是看书吧。</p>
+<p>最后再看看handle函数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handle</span><span class="params">(RMAppEvent event)</span> </span>&#123;</div><div class="line">    <span class="keyword">this</span>.writeLock.lock();</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">      ApplicationId appID = event.getApplicationId();</div><div class="line">      LOG.debug(<span class="string">"Processing event for "</span> + appID + <span class="string">" of type "</span></div><div class="line">          + event.getType());</div><div class="line">      <span class="keyword">final</span> RMAppState oldState = getState();</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">/* keep the master in sync with the state machine */</span></div><div class="line">        <span class="keyword">this</span>.stateMachine.doTransition(event.getType(), event);</div><div class="line">      &#125; <span class="keyword">catch</span> (InvalidStateTransitonException e) &#123;</div><div class="line">        LOG.error(<span class="string">"Can't handle this event at current state"</span>, e);</div><div class="line">        <span class="comment">/* TODO fail the application on the failed transition */</span></div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (oldState != getState()) &#123;</div><div class="line">        LOG.info(appID + <span class="string">" State change from "</span> + oldState + <span class="string">" to "</span></div><div class="line">            + getState());</div><div class="line">      &#125;</div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">      <span class="keyword">this</span>.writeLock.unlock();</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>主要就是第十行调用stateMachine.doTransition不断完成状态转移。所以状态机的整个流程就是先用内部类实现各种transition。然后用addTranstion，installTopology和make构造出一个stateMachine。之后handle不断调用statMachine.doTransition来进行状态转移。</p>
+<p>至于真正的状态变化，建议看一遍书，有个大概印象，之后遇到问题再回去查。因为太复杂了，真心记不住</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/07/27/深入解析yarn架构设计与技术实现-Resource-Manager剖析2/">http://thousandhu.github.io/2016/07/27/深入解析yarn架构设计与技术实现-Resource-Manager剖析2/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/24/深入解析yarn架构设计与技术实现-Resource-Manager剖析1/" rel="next" title="深入解析yarn架构设计与技术实现-Resource Manager剖析1">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-Resource Manager剖析1
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/28/spark-streaming-数据结构分析/" rel="prev" title="spark streaming 数据结构分析">
+                spark streaming 数据结构分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Application管理"><span class="nav-number">1.</span> <span class="nav-text">Application管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#状态机管理"><span class="nav-number">2.</span> <span class="nav-text">状态机管理</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

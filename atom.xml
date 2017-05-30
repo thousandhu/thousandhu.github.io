@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>ThousandHu`s blog</title>
+  <subtitle>千里之行 始于足下</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://thousandhu.github.io/"/>
+  <updated>2017-05-30T14:28:25.000Z</updated>
+  <id>http://thousandhu.github.io/</id>
+  
+  <author>
+    <name>ThousandHu</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>hello 2</title>
+    <link href="http://thousandhu.github.io/2017/05/30/hello-2/"/>
+    <id>http://thousandhu.github.io/2017/05/30/hello-2/</id>
+    <published>2017-05-30T14:21:42.000Z</published>
+    <updated>2017-05-30T14:28:25.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>test on new macbook.</p>
+<hr>
+<p>本文链接：<a href="http://yoursite.com/2017/05/30/hello-2/">http://yoursite.com/2017/05/30/hello-2/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;test on new macbook.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;本文链接：&lt;a href=&quot;http://yoursite.com/2017/05/30/hello-2/&quot;&gt;http://yoursite.com/2017/05/30/hello-2/&lt;/a&gt;&lt;/p&gt;
+
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>大型网站技术架构读书笔记</title>
+    <link href="http://thousandhu.github.io/2017/01/23/%E5%A4%A7%E5%9E%8B%E7%BD%91%E7%AB%99%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/"/>
+    <id>http://thousandhu.github.io/2017/01/23/大型网站技术架构读书笔记/</id>
+    <published>2017-01-23T09:18:12.000Z</published>
+    <updated>2017-01-23T09:19:28.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="第二章-大型网站架构模式"><a href="#第二章-大型网站架构模式" class="headerlink" title="第二章 大型网站架构模式"></a>第二章 大型网站架构模式</h2><p>模式的关键在于模式的可重复性，问题与场景的可重复性带来解决方案的可重复使用（类似于设计模式中的模式）。</p>
+<h3 id="2-1-网站架构模式"><a href="#2-1-网站架构模式" class="headerlink" title="2.1 网站架构模式"></a>2.1 网站架构模式</h3><h4 id="2-1-1-分层"><a href="#2-1-1-分层" class="headerlink" title="2.1.1 分层"></a>2.1.1 分层</h4><p>将系统在<strong>横向维度</strong>上切分成几个部分，每个部分负责一部分相对比较单一的职责，然后通过上层对下层的依赖和调用组成一个完整的系统。</p>
+<p>在大型网站架构中也采用分层结构，将网站软件系统分为应用层、服务层、数据层等。</p>
+<p>优势：便于分工合作开发和维护</p>
+<p>挑战：必须合理规划层次边界和接口，以及在开发过程中要严格遵循分层架构的约束，禁止跨层次的调用以及逆向调用。</p>
+<h4 id="2-1-2-分割"><a href="#2-1-2-分割" class="headerlink" title="2.1.2 分割"></a>2.1.2 分割</h4><p>在<strong>纵向</strong>方面对软件进行切分。分割形成高内聚低耦合的模块单元。</p>
+<h4 id="2-1-3-分布式"><a href="#2-1-3-分布式" class="headerlink" title="2.1.3 分布式"></a>2.1.3 分布式</h4><p>对于大型网站，分层和分割的一个主要目的就是为了切分后的模块便于分布式部署。</p>
+<p>分布式可能遇到的问题：</p>
+<p>\1. 网络延迟的影响</p>
+<p>\2. 服务器宕机</p>
+<p>\3. 数据一致性保证</p>
+<p>\4. 开发维护的问题</p>
+<p>在网站应用中，常见的分布式方案有以下几种：</p>
+<ul>
+<li>分布式应用和服务</li>
+<li>分布式静态资源</li>
+<li>分布式数据和存储（传统的关系数据库分布式部署 / NoSQL ）</li>
+<li>分布式计算（MapReduce）</li>
+</ul>
+<h4 id="2-1-4-集群"><a href="#2-1-4-集群" class="headerlink" title="2.1.4 集群"></a>2.1.4 集群</h4><p>将独立部署的服务器集群化，即多台服务器部署相同应用构成一个集群，通过负载均衡设备共同对外提供服务。</p>
+<h4 id="2-1-5-缓存"><a href="#2-1-5-缓存" class="headerlink" title="2.1.5 缓存"></a>2.1.5 缓存</h4><ul>
+<li>CDN</li>
+<li>反向代理</li>
+<li>本地缓存：在应用服务器本地缓存这热点数据</li>
+<li>分布式缓存：将数据缓存在一个专门的<strong>分布式缓存集群</strong>中</li>
+</ul>
+<h4 id="2-1-6-异步"><a href="#2-1-6-异步" class="headerlink" title="2.1.6 异步"></a>2.1.6 异步</h4><p>在分布式系统中，多个服务器集群通过分布式消息队列实现异步，分布式消息队列可以看作内存队列的分布式部署。</p>
+<ul>
+<li>网站扩展新功能非常便利</li>
+<li>提高系统可用性</li>
+<li>加快网站响应速度</li>
+<li>消除并发访问高峰：将突然增加的访问请求数据加入消息队列中，等待消费者服务器依次处理，就不会对整个网站负载造成太大压力</li>
+</ul>
+<h4 id="2-1-7-冗余"><a href="#2-1-7-冗余" class="headerlink" title="2.1.7 冗余"></a>2.1.7 冗余</h4><p>服务器冗余运行+数据冗余备份</p>
+<p>数据库——冷备份+热备份</p>
+<p>灾备数据中心</p>
+<h4 id="2-1-8-自动化"><a href="#2-1-8-自动化" class="headerlink" title="2.1.8 自动化"></a>2.1.8 自动化</h4><h4 id="2-1-9-安全"><a href="#2-1-9-安全" class="headerlink" title="2.1.9 安全"></a>2.1.9 安全</h4><h3 id="2-2-架构模式在新浪微博的应用"><a href="#2-2-架构模式在新浪微博的应用" class="headerlink" title="2.2 架构模式在新浪微博的应用"></a>2.2 架构模式在新浪微博的应用</h3><p><img src="http://img.blog.csdn.net/20151210222920321?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="img"></p>
+<h1 id="第三章-大型网站核心架构要素"><a href="#第三章-大型网站核心架构要素" class="headerlink" title="第三章 大型网站核心架构要素"></a>第三章 大型网站核心架构要素</h1><p>这一章主要是高屋建瓴，这个思维导图非常全面</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-22-123946.png" alt="2017-01-22-123946"></p>
+<h1 id="第四章"><a href="#第四章" class="headerlink" title="第四章"></a>第四章</h1><p>性能测试指标：</p>
+<ul>
+<li><p>响应时间</p>
+</li>
+<li><p>并发数</p>
+</li>
+<li><p>吞吐量：TPS（每秒事务数），HPS（每秒HTTP请求数）,QPS（每秒查询数）。吞吐量随着并发数的变化先是逐渐增加，达到一个集先后随着并发数下降，最后系统资源耗尽，打出gg。这个过程中响应时间显示小幅上升，达到吞吐量集先后快速上升，最后达到崩溃点</p>
+</li>
+<li><p>性能计数器：一些描述系统性能的指标，包括system Load等。system load是当前被执行cpu执行的和等待被执行的进程数的总和，理想情况下该值应该等于cpu的数量</p>
+</li>
+</ul>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-22-125324.png" alt="2017-01-22-125324"></p>
+<p>a-b，系统正常运行区间，c点是系统最大负载点，d是系统崩溃点</p>
+<h2 id="web端优化"><a href="#web端优化" class="headerlink" title="web端优化"></a>web端优化</h2><ul>
+<li>浏览器访问优化：<ul>
+<li>减少http请求：<strong>因为http是无状态的，每次请求的开销都比较昂贵</strong>（需要建立通信链路、进行数据传输，而服务器端对于每个http请求都需要启动独立的线程去处理）；减少http的主要手段是合并CSS、合并JS、合并图片（CSS精灵，利用偏移定位image）；</li>
+<li>使用浏览器缓存：设置http头中Cache-Control和Expires属性；</li>
+<li>启用压缩：可以对html、css、js文件启用Gzip压缩，可以达到较高的压缩效率，但是压缩会对服务器及浏览器产生一定的压力；</li>
+<li>CSS放页面最上面，JS放页面最下面：<strong>浏览器会在下载完全部CSS之后才开始对整个页面进行渲染</strong>，因此最好将CSS放在页面最上面；而<strong>浏览器在加载JS后会立即执行，有可能会阻塞整个页面，造成页面显示缓慢</strong>，因此最好将JS放在页面最下面；</li>
+<li>减少Cookie传输：一方面，太大的Cookie会严重影响数据传输；另一方面，对于某些静态资源的访问（如CSS、JS等）发送Cookie没有意义；</li>
+</ul>
+</li>
+<li>CDN加速：</li>
+<li>反向代理：</li>
+</ul>
+<h2 id="后端优化"><a href="#后端优化" class="headerlink" title="后端优化"></a>后端优化</h2><ul>
+<li>分布式缓存：memcached</li>
+<li>异步操作</li>
+<li>分布式</li>
+<li>代码优化<ul>
+<li>多线程</li>
+<li>资源复用（单例和对象吃）</li>
+<li>数据结构</li>
+<li>垃圾回收调优（java）</li>
+<li>存储优化</li>
+</ul>
+</li>
+</ul>
+<h1 id="第五章-网站的高可用架构"><a href="#第五章-网站的高可用架构" class="headerlink" title="第五章 网站的高可用架构"></a>第五章 网站的高可用架构</h1><p>考量方式：故障分=故障等级*故障权重</p>
+<p>网站升级时也会宕机，设计时也需要考虑这一点。</p>
+<p>典型架构：应用层，服务层，数据层</p>
+<h2 id="高可用的应用"><a href="#高可用的应用" class="headerlink" title="高可用的应用"></a>高可用的应用</h2><p>应用层的特点是无状态，多个服务实力完全对等。</p>
+<ul>
+<li>无状态服务：通过负载均衡进行无状态的失效转移</li>
+<li>有状态服务，通常通过session管理状态，常用以下四种方式管理session<ul>
+<li>session复制。在不同服务器间复制session，只适用于小项目</li>
+<li>session绑定：其实是用hash等思想将相同session发送大同一服务器，扩展性好，但是不支持高可用</li>
+<li>利用cookie记录session：受cookie大小限制；每次请求都需要传输cookie，影响性能。</li>
+<li>session服务器：session用分布式存储独立维护，应用服务器每次拿到请求去session服务器查找</li>
+</ul>
+</li>
+</ul>
+<h2 id="高可用的服务"><a href="#高可用的服务" class="headerlink" title="高可用的服务"></a>高可用的服务</h2><ul>
+<li>分级管理，不同服务隔离</li>
+<li>超时设置</li>
+<li>异步调用</li>
+<li>服务降级</li>
+<li>幂等性设计</li>
+</ul>
+<h2 id="高可用数据"><a href="#高可用数据" class="headerlink" title="高可用数据"></a>高可用数据</h2><p>数据备份，失效转移等。</p>
+<h2 id="高可用QA"><a href="#高可用QA" class="headerlink" title="高可用QA"></a>高可用QA</h2><ul>
+<li>网站发布：在柔性的发布过程中，每次关闭的服务都是集群中的一小部分，并在发布完成后立即可以访问；</li>
+<li>自动化测试：使用自动测试工具或脚本完成测试；</li>
+<li>预发布验证：引入预发布服务器，与正式服务器几乎一致，只是没有配置在负载均衡服务器上，外部用户无法访问；</li>
+<li>灰度发布：每次只发布一小部分</li>
+</ul>
+<h2 id="网站监控"><a href="#网站监控" class="headerlink" title="网站监控"></a>网站监控</h2><ul>
+<li>监控数据采集<ul>
+<li>用户行为日志收集：服务器端的日志收集和客户端的日志收集；目前许多网站逐步开发基于实时计算框架Storm的日志统计与分析工具；</li>
+<li>服务器性能监控：收集服务器性能指标，如系统Load、内存占用、磁盘IO等，及时判断，防患于未然</li>
+<li>运行数据报告：采集并报告，汇总后统一显示，应用程序需要在代码中处理运行数据采集的逻辑；</li>
+</ul>
+</li>
+<li>监控管理<ul>
+<li>系统报警：配置报警阀值和值守人员联系方式，系统发生报警时，即使工程师在千里之外，也可以被及时通知；</li>
+<li>失效转移：监控系统在发现故障时，主动通知应用进行失效转移；</li>
+<li>自动优雅降级：为了应付网站访问高峰，主动关闭部分功能，释放部分系统资源，保证核心应用服务的正常运行；—&gt;<strong>网站柔性架构的理想状态</strong></li>
+</ul>
+</li>
+</ul>
+<h1 id="第六章-网站的伸缩性架构"><a href="#第六章-网站的伸缩性架构" class="headerlink" title="第六章 网站的伸缩性架构"></a>第六章 网站的伸缩性架构</h1><p>负载均衡</p>
+<ul>
+<li>Http重定向</li>
+<li>DNS域名解析负载均衡</li>
+<li>反向代理负载均衡（反向的意思是代理的目标只有一个，客户有多个）</li>
+<li>ip负载均衡</li>
+<li>数据链路层负载均衡</li>
+</ul>
+<p>分布式缓存：一致性hash可以通过虚拟层来解决服务器负载不均衡的问题</p>
+<p>关系型数据库</p>
+<ul>
+<li>主从</li>
+<li>分片（amoeba，cobar）</li>
+</ul>
+<p>NoSQL</p>
+<h1 id="第七章-网站的可扩展架构"><a href="#第七章-网站的可扩展架构" class="headerlink" title="第七章 网站的可扩展架构"></a>第七章 网站的可扩展架构</h1><h2 id="分布式队列"><a href="#分布式队列" class="headerlink" title="分布式队列"></a>分布式队列</h2><p>利用分布式消息队列降低系统耦合性，采取事件驱动架构，在低耦合模块间传输事件消息完成模块间的合作并保持模块的松散。</p>
+<p><img src="http://images.cnitblog.com/i/381412/201407/231701152447973.jpg" alt=""></p>
+<h2 id="分布式服务"><a href="#分布式服务" class="headerlink" title="分布式服务"></a>分布式服务</h2><p>巨无霸应用带来的问题：</p>
+<ul>
+<li>编译，部署困难</li>
+<li>代码分支管理困难</li>
+<li>数据库连接耗尽</li>
+<li>新增业务困难</li>
+</ul>
+<p>分布式服务的框架需求</p>
+<ul>
+<li>负载均衡</li>
+<li>失效转移</li>
+<li>高效的远程通信</li>
+<li>证合一构系统</li>
+<li>对应用最少侵入：即支持服务在分布式和集中式之间调整</li>
+<li>版本管理</li>
+<li>实时监控</li>
+</ul>
+<p>典型框架 Dubbo</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-23-154802.png" alt="2017-01-23-154802"></p>
+<p>设计要点：</p>
+<ul>
+<li>服务消费者程序通过服务接口使用服务，而服务接口通过代理价再具体服务，具体服务可以使本地代码，也可以是远程服务，因此对应用侵入较少：应用只需要调用服务接口，服务框架更具配置自动调用本地或者远程实现</li>
+<li>服务框架客户端模块通过服务注册中心家在服务提供者列表，并根据负载均很策略选择将调用请求发送给某服务。服务调用失败客户端会自动选择另一台服务器重新请求服务，实现服务的自动失效转移，保证服务的高可用</li>
+<li>使用NIO通信框架，支持多种通信协议和数据序列化协议，具有较高的网络通信性能</li>
+</ul>
+<h2 id="可扩展的数据结构"><a href="#可扩展的数据结构" class="headerlink" title="可扩展的数据结构"></a>可扩展的数据结构</h2><p>类似hbase的源数据组织方式：，创建表的时候，<strong>只需要指定ColumnFamily的名字，无需指定字段（Column），可以在数据写入时再指定</strong>，通过这种方式，数据表可以包含数百万的字段，<strong>使应用程序的数据结构可以随意扩展</strong>。</p>
+<h2 id="利用开放平台建设网站生态圈"><a href="#利用开放平台建设网站生态圈" class="headerlink" title="利用开放平台建设网站生态圈"></a>利用开放平台建设网站生态圈</h2><p><img src="http://images.cnitblog.com/i/381412/201407/240022281976070.png" alt=""></p>
+<h1 id="第八章-网站的安全架构"><a href="#第八章-网站的安全架构" class="headerlink" title="第八章 网站的安全架构"></a>第八章 网站的安全架构</h1><p>常见攻击</p>
+<ul>
+<li>XSS</li>
+<li>注入攻击</li>
+<li>CSRF跨站点请求伪造</li>
+</ul>
+<p>加密技术</p>
+<ul>
+<li><p>单向散列加密：比如加盐MD5</p>
+</li>
+<li><p>对称加密：加解密用同一个密钥，常用语需要安全交换或者储存的场合，如cookie加密和通信加密等。常用DES，RC等</p>
+</li>
+<li><p>非对称加密：公钥开发，私钥只有所有者知道。常用在信息安全传输，数字签名等。如RSA等</p>
+</li>
+<li><p>密钥安全管理：把密钥和算法做成独立服务，或者吧密钥单独存储</p>
+<p>​</p>
+</li>
+</ul>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p><a href="http://www.cnblogs.com/edisonchou/p/3773828.html" target="_blank" rel="external">http://www.cnblogs.com/edisonchou/p/3773828.html</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io" target="_blank" rel="external">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://yoursite.com/2017/01/23/大型网站技术架构读书笔记/">http://yoursite.com/2017/01/23/大型网站技术架构读书笔记/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;第二章-大型网站架构模式&quot;&gt;&lt;a href=&quot;#第二章-大型网站架构模式&quot; class=&quot;headerlink&quot; title=&quot;第二章 大型网站架构模式&quot;&gt;&lt;/a&gt;第二章 大型网站架构模式&lt;/h2&gt;&lt;p&gt;模式的关键在于模式的可重复性，问题与场景的可重复性带来解决方
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>memory management in apache spark</title>
+    <link href="http://thousandhu.github.io/2017/01/17/memory-management-in-apache-spark/"/>
+    <id>http://thousandhu.github.io/2017/01/17/memory-management-in-apache-spark/</id>
+    <published>2017-01-17T12:53:06.000Z</published>
+    <updated>2017-01-17T12:54:04.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>这个talk依次从整个memory between execution and storage，memory across task的角度和memory across operators running within the same task的角度分析了spark如何使用内存。同时简单介绍了project  tungsten</p>
+<h1 id="how-to-arbitrate-memory-between-execution-and-storage"><a href="#how-to-arbitrate-memory-between-execution-and-storage" class="headerlink" title="how to arbitrate memory between execution and storage?"></a>how to arbitrate memory between execution and storage?</h1><p>首先普及一下基本概念。spark有两种memory</p>
+<ul>
+<li>Execution memory: used for shuffles joins sorts and aggregations(特点，生成周期短，如果你的数据计算完并且被消费后就可以释放)</li>
+<li>storage memory: used to cache data that will be reused later</li>
+</ul>
+<p>从spark 1.6开始使用unified memory management策略，execution和storage的区域并没有完全严格划分，这样可以更好的利用内存资源</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-17-182518.png" alt="2017-01-17-182518"></p>
+<p>当内存用满时，spark会将storage的旧数据写进磁盘：</p>
+<ul>
+<li>为什么存storage的数据而不是execution：因为execution的数据一定在后面会被使用，而cache的数据不一定</li>
+<li>如果有应用依赖cache怎么办，比如machine learning的应用：解决方法是可以指定一部分数据不被换出内存</li>
+</ul>
+<h1 id="how-to-arbitrate-memory-across-tasks-running-in-parallel"><a href="#how-to-arbitrate-memory-across-tasks-running-in-parallel" class="headerlink" title="how to arbitrate memory across tasks running in parallel"></a>how to arbitrate memory across tasks running in parallel</h1><p>按照任务数量动态的划分，比如有两个时就划分两个slot每个task一个，如果有新的任务提交，就再重新均分整个任务。如果有任务成为last one，他可以直接获得所有内存</p>
+<h1 id="how-to-arbitrate-memory-across-operators-running-within-the-same-task"><a href="#how-to-arbitrate-memory-across-operators-running-within-the-same-task" class="headerlink" title="how to arbitrate memory across operators running within the same task"></a>how to arbitrate memory across operators running within the same task</h1><p>这个问题结合一下例子来说明</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-17-204355.png" alt="2017-01-17-204355"></p>
+<ul>
+<li>解决方法1，对于内存敏感的operator每个都分配一小块内存（在例子中是一个page）。简单但是低效的方法</li>
+<li>解决方法2， cooperative spilling。动态的调整每个Operator的内存直到动态平衡，这个是1.6以后的实现方式</li>
+</ul>
+<h1 id="project-tungsten"><a href="#project-tungsten" class="headerlink" title="project tungsten"></a>project tungsten</h1><h2 id="binary-in-memory-data-representation"><a href="#binary-in-memory-data-representation" class="headerlink" title="binary in-memory data representation"></a>binary in-memory data representation</h2><p>长度不变的类型数据直接放入bitmap，variable data先写offset 然后写实际的数据</p>
+<ul>
+<li>相比object可以节省内存</li>
+<li>可以避免序列化和反序列化</li>
+</ul>
+<h2 id="cache-aware-computation"><a href="#cache-aware-computation" class="headerlink" title="cache-aware computation"></a>cache-aware computation</h2><p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-17-200122.png" alt="2017-01-17-200122"></p>
+<p>比如这个例子，对于前者每次compare都需要通过指针去随机的访问key，而后面这个key和指针很近，一定程度上可以避免随机访问，更有利于数据缓存在内存中</p>
+<h2 id="code-generation"><a href="#code-generation" class="headerlink" title="code generation"></a>code generation</h2><p>这个是talk里面没讲的，我查了一些资料。code generation主要想法是通过在运行期间优化那些拖慢整个查询的代码到一个单独的函数中，消除虚拟函数的调用以及利用CPU寄存器来存放那些中间数据。(whole-stage code generation)。另外可以通过一些向量化的方式来提高效率。具体可以见SPARK-12795（whole-stage code generation）和SPARK-12992（vectorization）。</p>
+<h1 id="off-heap-memory"><a href="#off-heap-memory" class="headerlink" title="off-heap memory"></a>off-heap memory</h1><ul>
+<li>1.6开始execution可以使用off-heap memory</li>
+<li>2.0开始storage可以使用off-heap memory</li>
+</ul>
+<p>off-heap memory最大的好处是避免gc，其他一些好处是memory sharing， zero copy I/O，dynamic allocation</p>
+<p>ppt请见：<a href="http://www.slideshare.net/databricks/memory-management-in-apache-spark" target="_blank" rel="external">http://www.slideshare.net/databricks/memory-management-in-apache-spark</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io" target="_blank" rel="external">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://yoursite.com/2017/01/17/memory-management-in-apache-spark/">http://yoursite.com/2017/01/17/memory-management-in-apache-spark/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;这个talk依次从整个memory between execution and storage，memory across task的角度和memory across operators running within the same task的角度分析了spark如何使用
+    
+    </summary>
+    
+    
+      <category term="spark" scheme="http://thousandhu.github.io/tags/spark/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>structuring apache spark 2.0</title>
+    <link href="http://thousandhu.github.io/2017/01/17/structuring-apache-spark-2-0/"/>
+    <id>http://thousandhu.github.io/2017/01/17/structuring-apache-spark-2-0/</id>
+    <published>2017-01-17T12:29:14.000Z</published>
+    <updated>2017-01-17T12:46:58.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>spark2.0有一个很重要的趋势，就是推动大家使用structure的api，比如dataframe/dataset，以及新推出的structure streaming。spark submit 2016上有两talk介绍了spark2.0在structure方向的一些进展。</p>
+<h1 id="Structuring-Apache-Spark-2-0-SQL-DataFrames-Datasets-And-Streaming-by-Michael-Armbrust"><a href="#Structuring-Apache-Spark-2-0-SQL-DataFrames-Datasets-And-Streaming-by-Michael-Armbrust" class="headerlink" title="Structuring Apache Spark 2.0: SQL, DataFrames, Datasets And Streaming - by Michael Armbrust"></a>Structuring Apache Spark 2.0: SQL, DataFrames, Datasets And Streaming - by Michael Armbrust</h1><p>相比于直接使用rdd，structure rdd的表现能力是不如rdd灵活的，但是易用性比rdd强。同时structure使得系统更容易对用户的程序进行优化优化。这些优势具体体现在一下几方面。</p>
+<h2 id="语法解析"><a href="#语法解析" class="headerlink" title="语法解析"></a>语法解析</h2><p>使用Structured API的优势是可以在compile time发现语法错误（函数不存在），或者analysis error(列不存在，Datasets)</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-16-140537.png" alt="2017-01-16-140537"></p>
+<h2 id="structure-with-computation"><a href="#structure-with-computation" class="headerlink" title="structure with computation"></a>structure with computation</h2><p>使用dataframe的function可以让spark更好的理解你的操作，从而做出相应的优化。而如果用lambda func，spark只知道需要调用一个func，并无法做出相应的优化，比如下图所示：</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-16-141916.png" alt="2017-01-16-141916"></p>
+<p>两个具体的优化例子</p>
+<p>谓词下推：直接从数据库读取filter后的数据，相比spark先load全部数据再从内存filter，效率要高</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-16-142001.png" alt="2017-01-16-142001"></p>
+<p>join。通过对需要join的列排序做merge，将复杂度降低到nlogn</p>
+<h2 id="structured-data"><a href="#structured-data" class="headerlink" title="structured data"></a>structured data</h2><p>Tngsten‘s Compact encoding:对于数据，可以直接将jvm object在runtime翻译成二进制编码。从而节约内存，并提高序列化效率。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-16-142855.png" alt="2017-01-16-142855"></p>
+<p>更为可怕的在于，dataframe可以直接对serialized data进行操作，不需要序列化。据说这种情况下执行效率只比c++慢10%-15%，几乎是native code的速度。</p>
+<h1 id="Apache-Spark-2-0-A-Deep-Dive-Into-Structured-Streaming-by-Tathagata-Das"><a href="#Apache-Spark-2-0-A-Deep-Dive-Into-Structured-Streaming-by-Tathagata-Das" class="headerlink" title="Apache Spark 2.0: A Deep Dive Into Structured Streaming- by Tathagata Das"></a>Apache Spark 2.0: A Deep Dive Into Structured Streaming- by Tathagata Das</h1><h2 id="DStream的痛点"><a href="#DStream的痛点" class="headerlink" title="DStream的痛点"></a>DStream的痛点</h2><ol>
+<li>DStream使用的是数据进入batch的时间，而不是数据自己的event-time</li>
+<li>DStream和RDD之间还是需要转换，这就有额外开发代价</li>
+<li>end-to-end guarantees </li>
+</ol>
+<h2 id="Structure-streaming"><a href="#Structure-streaming" class="headerlink" title="Structure streaming"></a>Structure streaming</h2><p>structure streaming的终极目标是处理所有流相关的问题，用户几乎不用感知流。</p>
+<p>API: Dateframes or dataset。</p>
+<p>内部model：input-&gt;result（需要处理的输入部分）-&gt;output</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-13-140959.png" alt="2017-01-13-140959"></p>
+<p>对比一下spark sql和structure streaming的执行步骤的区别</p>
+<p>首先是batch execution on spark sql：</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-16-150048.png" alt="2017-01-16-150048"></p>
+<p>其中planner做了这样几件事</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-16-150105.png" alt="2017-01-16-150105"></p>
+<p>而对于structure streaming，planner知道如何将其翻译成incremental execution plan。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-16-150627.png" alt="2017-01-16-150627"></p>
+<h2 id="容错："><a href="#容错：" class="headerlink" title="容错："></a>容错：</h2><p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2017-01-13-141406.png" alt="2017-01-13-141406"></p>
+<p>plan： WAL in hdfs。失败后通过log回复</p>
+<p>source： kafka用offset，设计是就保证source是可被plan恢复的</p>
+<p>state：plan会维护state的version</p>
+<p>sink:通过设计成可以感知输出的版本的形式来避免重新执行时的重复写入</p>
+<p>通过这几个容错，structure streaming可以实现end-to-end的exactly-once保证。</p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p>下面两个网址可以看这两个talk的ppt和video，貌似需要翻墙</p>
+<ul>
+<li><a href="http://www.slideshare.net/databricks/structuring-spark-dataframes-datasets-and-streaming-62871797" target="_blank" rel="external">http://www.slideshare.net/databricks/structuring-spark-dataframes-datasets-and-streaming-62871797</a></li>
+<li><a href="http://www.slideshare.net/databricks/a-deep-dive-into-structured-streaming" target="_blank" rel="external">http://www.slideshare.net/databricks/a-deep-dive-into-structured-streaming</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io" target="_blank" rel="external">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://yoursite.com/2017/01/17/structuring-apache-spark-2-0/">http://yoursite.com/2017/01/17/structuring-apache-spark-2-0/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;spark2.0有一个很重要的趋势，就是推动大家使用structure的api，比如dataframe/dataset，以及新推出的structure streaming。spark submit 2016上有两talk介绍了spark2.0在structure方向的一些进
+    
+    </summary>
+    
+    
+      <category term="spark" scheme="http://thousandhu.github.io/tags/spark/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>GFS</title>
+    <link href="http://thousandhu.github.io/2016/12/07/GFS/"/>
+    <id>http://thousandhu.github.io/2016/12/07/GFS/</id>
+    <published>2016-12-07T08:42:43.000Z</published>
+    <updated>2016-12-07T08:42:56.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>GFS 阅读笔记</p>
+<h2 id="设计预期"><a href="#设计预期" class="headerlink" title="设计预期"></a>设计预期</h2><p>设计预期往往针对系统的应用场景，是系统在不同选择间做balance的重要依据，对于理解GFS在系统设计时为何做出现有的决策至关重要。所以我们应重点关注：</p>
+<ul>
+<li>失效是常态</li>
+<li>主要针对大文件</li>
+<li>读操作：大规模流式读取、小规模随机读取</li>
+<li>写操作：大规模顺序追加写，写入后很少修改</li>
+<li>高效明确定义的并行追加写</li>
+<li>稳定高效地网络带宽</li>
+</ul>
+<h2 id="整体设计"><a href="#整体设计" class="headerlink" title="整体设计"></a>整体设计</h2><h3 id="1、系统架构"><a href="#1、系统架构" class="headerlink" title="1、系统架构"></a>1、系统架构</h3><p>GFS主要由以下三个系统模块组成：</p>
+<ul>
+<li>Master：管理元数据、整体协调系统活动</li>
+<li>ChunkServer：存储维护数据块（Chunk），读写文件数据</li>
+<li>Client：向Master请求元数据，并根据元数据访问对应ChunkServer的Chunk</li>
+</ul>
+<p><img src="http://img.blog.csdn.net/20140114135050781?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt=""></p>
+<h3 id="2、设计要点"><a href="#2、设计要点" class="headerlink" title="2、设计要点"></a>2、设计要点</h3><h4 id="1）Chunk尺寸"><a href="#1）Chunk尺寸" class="headerlink" title="1）Chunk尺寸"></a>1）Chunk尺寸</h4><p>由于GFS主要面向大文件存储和大规模读写操作，所以其选择了远大于一般文件系统的64MB的Chunk尺寸。</p>
+<p>好处：</p>
+<ul>
+<li>减少元数据量，便于客户端预读缓存，减少客户端访问Master的次数，减小Master负载；</li>
+<li>减少元数据量，Master可以将元数据放在内存中；</li>
+<li>客户端短时间内工作集落在同一Chunk上的概率更高，减少客户端访问不同ChunkServer建立TCP连接的次数，从而减少网络负载。</li>
+</ul>
+<p>坏处：</p>
+<ul>
+<li>易产生数据碎片；</li>
+<li>小文件占用Chunk少，对小文件的频繁访问会集中在少数ChunkServer上，从而产生小文件访问热点。</li>
+</ul>
+<p>可能的解决方案：</p>
+<ul>
+<li>增大小文件复制参数；</li>
+<li>客户端间互传数据。</li>
+</ul>
+<h4 id="2）元数据存储方式"><a href="#2）元数据存储方式" class="headerlink" title="2）元数据存储方式"></a>2）元数据存储方式</h4><p>Master存储的元数据包括：命名空间、文件和Chunk的对应关系、Chunk位置信息。</p>
+<p>命名空间、文件和Chunk的对应关系的存储方式：</p>
+<ul>
+<li>内存：真实数据；</li>
+<li>磁盘：定期Checkpoint（压缩B树）和上次CheckPoint后的操作日志；</li>
+<li>多机备份：Checkpoint文件和操作日志。</li>
+</ul>
+<p>Chunk位置信息的存储方式：</p>
+<ul>
+<li>内存：真实数据</li>
+<li>磁盘：不持久存储</li>
+</ul>
+<p>系统启动和新Chunk服务器加入时从Chunk服务器获取。避免了Master与ChunkServer之间的数据同步，只有Chunk服务器才能最终确定Chunk是否在它的硬盘上。</p>
+<h4 id="3）Log"><a href="#3）Log" class="headerlink" title="3）Log"></a>3）Log</h4><p>log是非常关键的数据，log会存在多个不同的主机上，并且只有当刷新了这个相关的操作记录到本地和远程磁盘后，才会给客户端操作应答。Master的日志在超过某一大小后，执行checkpoint操作，卸载自己的状态。</p>
+<h4 id="4）一致性模型"><a href="#4）一致性模型" class="headerlink" title="4）一致性模型"></a>4）一致性模型</h4><p>命名空间修改：原子性和正确性</p>
+<p>文件数据修改（之后详细解释）：</p>
+<p><img src="http://img.blog.csdn.net/20140114135105406?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"></p>
+<ul>
+<li>修改失败：不一致</li>
+<li>串行随机写：一致且已定义</li>
+<li>并行随机写：非原子写，一致但未定义</li>
+<li>串行/并行追加写（推荐）：少量不一致，保证已定义</li>
+</ul>
+<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><h3 id="1、系统交互设计"><a href="#1、系统交互设计" class="headerlink" title="1、系统交互设计"></a>1、系统交互设计</h3><h4 id="1）重要原则"><a href="#1）重要原则" class="headerlink" title="1）重要原则"></a>1）重要原则</h4><p>最小化所有操作与Master的交互。</p>
+<h4 id="2）缓存机制"><a href="#2）缓存机制" class="headerlink" title="2）缓存机制"></a>2）缓存机制</h4><p>最小化读取操作与Master的交互：</p>
+<p>客户端访问Chunk前从Master获取元数据的过程中，会预取和缓存部分Chunk的元数据，从而减少与Master的交互。</p>
+<h4 id="2）租约机制"><a href="#2）租约机制" class="headerlink" title="2）租约机制"></a>2）租约机制</h4><p>最小化变更操作与Master的交互：</p>
+<p>Master收到变更操作请求后</p>
+<ul>
+<li>选择一个Chunk副本发放定时租约作为主Chunk并返回给客户端；</li>
+<li>客户端与主Chunk进行通信进行变更操作；</li>
+<li>租约超时前，对该Chunk的变更操作都由主Chunk进行序列化控制。</li>
+</ul>
+<h4 id="3）数据流与控制流分离"><a href="#3）数据流与控制流分离" class="headerlink" title="3）数据流与控制流分离"></a>3）数据流与控制流分离</h4><p><img src="http://img.blog.csdn.net/20140114135126062?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"></p>
+<p>数据推送与控制操作同时进行。</p>
+<p>数据流：管道方式按最优化的Chunk服务器链推送，以最大化带宽，最小化延时（全双工交换网络，每台机器进出带宽最大化）；数据会被缓存在chunk的cache中直到使用或者过期。</p>
+<p>控制流：</p>
+<ul>
+<li>master选择出primary chunk （1-4）</li>
+<li>主ChunkServer确定所有副chunk接收完毕后，对所有变更操作分配连续序列号（序号确定操作顺序）；</li>
+<li>按序修改本地数据；</li>
+<li>请求二级副本按序修改；</li>
+<li>所有副本修改完成成功，否则失败重做。</li>
+</ul>
+<h4 id="4）原子记录追加"><a href="#4）原子记录追加" class="headerlink" title="4）原子记录追加"></a>4）原子记录追加</h4><p>追加写时GFS推荐的写入方式，应重点研究。</p>
+<p>a. 原子记录追加：客户端指定写入数据，GFS返回真实写入偏移量。</p>
+<p>b. 追加写的过程：</p>
+<ul>
+<li>追加操作会使Chunk超过尺寸填充当前Chunk；通知二级副本做同样操作；通知客户机向新Chunk追加；</li>
+<li>追加操作不会使Chunk超过尺寸主Chunk追加数据；通知二级副本写在相同位置上；成功 - 返回偏移； 失败 - 再次操作。</li>
+</ul>
+<p>c. 追加结果：失败的追加操作可能导致Chunk间字节级别不一致，但当最终追加成功后，所有副本在返回的偏移位置一致已定义，之后的追加操作不受影响。如下图所示：</p>
+<p><img src="http://img.blog.csdn.net/20140114135137109?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"></p>
+<p>d. 冗余数据处理：对于追加写产生的冗余数据</p>
+<ul>
+<li>Chunk尺寸不足时的填充数据</li>
+<li>追加失败时产生的重复内容</li>
+</ul>
+<p>可在插入数据时附带记录级别的Checksum或唯一标识符，在客户端读取数据时进行校验过滤。</p>
+<h4 id="6）快照"><a href="#6）快照" class="headerlink" title="6）快照"></a>6）快照</h4><p>使用COW技术，瞬间完成。快照实现的过程：</p>
+<ul>
+<li>收回文件所有Chunk的租约；</li>
+<li>操作元数据完成元数据拷贝；</li>
+<li>客户端要写入该文件的Chunk时，Master通知该Chunk所在ChunkServer进行本地拷贝；</li>
+<li>发放租约给拷贝Chunk；</li>
+<li>返回拷贝Chunk的位置信息。</li>
+</ul>
+<h3 id="2、Master节点设计"><a href="#2、Master节点设计" class="headerlink" title="2、Master节点设计"></a>2、Master节点设计</h3><p>这里没有讲如何防止出现两个master，这应该是后面课程会单独讲的。</p>
+<h4 id="1）名称空间管理"><a href="#1）名称空间管理" class="headerlink" title="1）名称空间管理"></a>1）名称空间管理</h4><p>多操作并行，名称空间锁保证执行顺序，文件操作需获得父目录读锁和目标文件/目录写锁。（在名字上的读锁保证父目录不被删除）</p>
+<h4 id="2）副本位置"><a href="#2）副本位置" class="headerlink" title="2）副本位置"></a>2）副本位置</h4><p>Chunk跨机架分布：</p>
+<p>好处 -</p>
+<ul>
+<li>防止整个机架破坏造成数据失效</li>
+<li>综合利用多机架整合带宽（机架出入带宽可能小于机架上机器的总带宽，所以应最大化每台机架的带宽利用率）；</li>
+</ul>
+<p>坏处 - 写操作需跨机架通信。</p>
+<h4 id="3）Chunk管理"><a href="#3）Chunk管理" class="headerlink" title="3）Chunk管理"></a>3）Chunk管理</h4><p>a. 创建操作，主要考虑：</p>
+<ul>
+<li>平衡硬盘使用率；</li>
+<li>限制单ChunkServer短期创建次数（创建开销虽小，但每次创建往往意味着大量的后续写入）；</li>
+<li>跨机架分布。</li>
+</ul>
+<p>b. 重复制，即有效副本不足时，通过复制增加副本数。优先考虑：</p>
+<ul>
+<li>副本数量和复制因数相差多的；</li>
+<li>live（未被删除）文件的；</li>
+<li>阻塞客户机处理的</li>
+</ul>
+<p>Chunk进行重复制。策略与创建类似。</p>
+<p>c. 重负载均衡，通过调整副本位置，平衡格机负载。策略与创建类似。新ChunkServer将被逐渐填满。</p>
+<h4 id="4）垃圾回收"><a href="#4）垃圾回收" class="headerlink" title="4）垃圾回收"></a>4）垃圾回收</h4><p>惰性回收空间：删除操作仅在文件名后添加隐藏标记，Master在常规扫描中删除超时隐藏文件的元数据，并通知对应ChunkServer删除Chunk。</p>
+<p>好处 -</p>
+<ul>
+<li>与创建失败的无效Chunk一致的处理方式；</li>
+<li>批量执行开销分散，Master相对空闲时进行；</li>
+<li>删除操作一定时间内可逆转。</li>
+</ul>
+<p>坏处 - 不便于用户进行存储空间调优。</p>
+<p>解决方案 - 再次删除加速回收，不同命名空间不同复制回收策略。</p>
+<h4 id="5）过期失效副本检测"><a href="#5）过期失效副本检测" class="headerlink" title="5）过期失效副本检测"></a>5）过期失效副本检测</h4><p>过期检测：Master维护Chunk级别版本号（在master为chunk发放一个令牌是，会增加chunk的版本号并通知最新的副本），新租约增加Chunk版本号，并通知所有副本更新版本号，过期Chunk会因版本号过旧被检测。</p>
+<h3 id="3、容错机制设计"><a href="#3、容错机制设计" class="headerlink" title="3、容错机制设计"></a>3、容错机制设计</h3><h4 id="1）高可用性"><a href="#1）高可用性" class="headerlink" title="1）高可用性"></a>1）高可用性</h4><p>主要的提高可用性的机制：</p>
+<ul>
+<li>组件快速恢复</li>
+<li>Chunk复制</li>
+<li>Master服务器复制Checkpoint和操作日志多机备份；Master进程失效重启，硬件失效则新机器重启Master进程；“影子”Master，通过操作日志“模仿”主Master操作，元数据版本稍慢。作用 - 增强对于不是很活跃修改的文件的读取能力，提高了对于读取脏数据也ok的应用的读取性能。</li>
+</ul>
+<h4 id="2）数据完整性"><a href="#2）数据完整性" class="headerlink" title="2）数据完整性"></a>2）数据完整性</h4><p>ChunkServer独立维护CheckSum检验副本完整性。原因：</p>
+<ul>
+<li>跨Chunk服务器比较副本开销大；</li>
+<li>追加操作造成的的byte级别不一致，导致无法通过比较副本判断完整性。</li>
+</ul>
+<p>Chunk<strong>读取</strong>和Chunk服务器<strong>空闲</strong>时，进行CheckSum校验，发现损坏Chunk上报Master，进行重复制。</p>
+<p>Checksum校验的开销：</p>
+<ul>
+<li>Checksum读取开销；</li>
+<li>Checksum校验计算开销。</li>
+</ul>
+<p>但整体开销可以接受，特别是对追加写操作。</p>
+<p>覆盖写与追加写的Checksum计算开销比较。两者的关键区别在于不完整块的CheckSum计算：</p>
+<ul>
+<li>追加写 - 对最后一个不完整块，在写入后进行增量的CheckSum计算。New CheckSum由Old CheckSum和新数据算出，未对原有数据重新计算，原有数据损坏，依然可以在后续读取时发现；</li>
+<li>覆盖写 - 对第一个和最后一个不完整块，在写之前进行CheckSum校验。否则，覆盖写只能重新对整块计算CheckSum，若写操作未覆盖部分存在损坏数据，新CheckSum将从包含损坏数据的Chunk算出，之后再也无法校验出该损坏数据。</li>
+</ul>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p>基于这篇<a href="http://blog.csdn.net/taotaotheripper/article/details/18261395笔记进行了修改，原笔记写的不错。" target="_blank" rel="external">http://blog.csdn.net/taotaotheripper/article/details/18261395笔记进行了修改，原笔记写的不错。</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io" target="_blank" rel="external">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://yoursite.com/2016/12/07/GFS/">http://yoursite.com/2016/12/07/GFS/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;GFS 阅读笔记&lt;/p&gt;
+&lt;h2 id=&quot;设计预期&quot;&gt;&lt;a href=&quot;#设计预期&quot; class=&quot;headerlink&quot; title=&quot;设计预期&quot;&gt;&lt;/a&gt;设计预期&lt;/h2&gt;&lt;p&gt;设计预期往往针对系统的应用场景，是系统在不同选择间做balance的重要依据，对于理解GFS
+    
+    </summary>
+    
+    
+      <category term="GFS" scheme="http://thousandhu.github.io/tags/GFS/"/>
+    
+      <category term="6.824" scheme="http://thousandhu.github.io/tags/6-824/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>MIT 6.824 lab1</title>
+    <link href="http://thousandhu.github.io/2016/11/22/MIT-6-824-lab1/"/>
+    <id>http://thousandhu.github.io/2016/11/22/MIT-6-824-lab1/</id>
+    <published>2016-11-22T08:28:26.000Z</published>
+    <updated>2016-12-07T08:43:20.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>lab 1主要实现一个简单的mapReduce，它主要有四个部分</p>
+<h3 id="Part-I-Map-Reduce-input-and-output"><a href="#Part-I-Map-Reduce-input-and-output" class="headerlink" title="Part I: Map/Reduce input and output"></a>Part I: Map/Reduce input and output</h3><p>第一部分主要是实现doMap和doReduce两个部分。对于每一次调用，map端做这么几件事情：</p>
+<ol>
+<li>读取内容</li>
+<li>生成map result的临时文件</li>
+<li>将不同的key的结果存入不同的文件，存入哪里由<code>key%ihash</code>决定</li>
+</ol>
+<p>doReduc做这样几件事情：</p>
+<ol>
+<li>读取map的结果</li>
+<li>对于key进行排序。（这里简单粗暴的做了内存排序，没往磁盘split）</li>
+<li>调用reduce并且将结果存入文件</li>
+</ol>
+<h3 id="Part-II-Single-worker-word-count"><a href="#Part-II-Single-worker-word-count" class="headerlink" title="Part II: Single-worker word count"></a>Part II: Single-worker word count</h3><p>实现workcount的map和reduce函数。很简单</p>
+<h3 id="Part-III-Distributing-MapReduce-tasks"><a href="#Part-III-Distributing-MapReduce-tasks" class="headerlink" title="Part III: Distributing MapReduce tasks"></a>Part III: Distributing MapReduce tasks</h3><p>之前都是调用串行模式，这个part调用并行模式，所以要实现scheduler。框架提供的是用socket实现的rpc，是在本地模拟多线程。实现时通过channel组成一个空闲worker队列，每次用go并行的给worker分配任务。同时scheduler要加锁直到所有worker都执行完才推出。</p>
+<h3 id="Part-IV-Handling-worker-failures"><a href="#Part-IV-Handling-worker-failures" class="headerlink" title="Part IV: Handling worker failures"></a>Part IV: Handling worker failures</h3><p>这一部分只要part 3写对就没什么问题，就是在一个worker出错时重新分配这个任务到其他worker去就好。</p>
+<p>lab1主要时间还是花在熟悉go语言上了，不过这东西写并行真是快。go和channel真好用。</p>
+<p>lab主页<a href="http://nil.csail.mit.edu/6.824/2016/labs/lab-1.html" target="_blank" rel="external">http://nil.csail.mit.edu/6.824/2016/labs/lab-1.html</a></p>
+<p>github代码<a href="https://github.com/thousandhu/MIT6_824" target="_blank" rel="external">https://github.com/thousandhu/MIT6_824</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io" target="_blank" rel="external">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://yoursite.com/2016/11/22/MIT-6-824-lab1/">http://yoursite.com/2016/11/22/MIT-6-824-lab1/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;lab 1主要实现一个简单的mapReduce，它主要有四个部分&lt;/p&gt;
+&lt;h3 id=&quot;Part-I-Map-Reduce-input-and-output&quot;&gt;&lt;a href=&quot;#Part-I-Map-Reduce-input-and-output&quot; class=&quot;hea
+    
+    </summary>
+    
+    
+      <category term="6.824" scheme="http://thousandhu.github.io/tags/6-824/"/>
+    
+      <category term="MIT" scheme="http://thousandhu.github.io/tags/MIT/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>知识图谱在姨搜的实现</title>
+    <link href="http://thousandhu.github.io/2016/11/20/%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E5%9C%A8%E5%A7%A8%E6%90%9C%E7%9A%84%E5%AE%9E%E7%8E%B0/"/>
+    <id>http://thousandhu.github.io/2016/11/20/知识图谱在姨搜的实现/</id>
+    <published>2016-11-20T09:41:40.000Z</published>
+    <updated>2016-11-20T09:41:49.000Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="知识图谱在姨搜的实践"><a href="#知识图谱在姨搜的实践" class="headerlink" title="知识图谱在姨搜的实践"></a>知识图谱在姨搜的实践</h1><p>知识图谱这个概念最早由Google于2012年提出，主要是通过从语义层面理解用户的意图，从而改进搜索质量。比如在Google的搜索框里输入creditease（宜信）的时候，搜索结果页面的右侧还会出现creditease相关的信息，比如公司地址等。这些关于宜信的信息，就是通过知识图谱提供的对于查询的理解能力和对查询的实体的知识展示的。在金融相关领域，利用知识图谱，我们可以很方便的分析实体以及实体之间的关系，从而提供强大的风控能力和客户管理能力。本文将从为什么需要知识图谱、知识图谱的表示、知识图谱的应用以及知识图谱在姨搜的实现四个方面来谈谈知识图谱在姨搜的实践。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-173923.png" alt="2016-11-20-173923"></p>
+<h2 id="为什么需要知识图谱"><a href="#为什么需要知识图谱" class="headerlink" title="为什么需要知识图谱"></a>为什么需要知识图谱</h2><p>在金融领域，风险控制是最为核心的部分。我们认为风控的一个核心能力，就是它能从纷繁复杂的各种数据中，找出和这个人或者公司相关的信息，找到信息之后能够对信息进行交叉验证，还能用验证后的信息进行风险程度评估。这里很大的一个挑战就数据种类的多样性。在各种数据，不管是政府的数据或者是公司数据，中间的差别非常大，甚至在一个公司内部，不同产品不同部门的数据也是由差异的。</p>
+<p>面对这样的数据，获取数据本身就是一个难题，而得到的数据如何进行整合，也是很有挑战性的事情。比如有的数据源是一个关于黑名单的数据库，有的可能就给你一个excel或者txt文件，如何将他与原始数据进行融合，并充分发挥所有数据的特点是很难的一件事情。在数据融合后，如何利用这些数据，尤其是数据间的关系也是一个很有挑战性的问题。知识图谱是解决这个问题的强有力的工具。我们的知识图谱设计时参考了传统语义网的一些特性，它在以下三个方面有着出色的特性来，可以帮助我们解决数据整合和使用中遇到的问题问题。</p>
+<p>第一个方面是数据的表现能力，尤其是对实体间关系的扩展能力强可以帮助我们有效的处理数据以及数据间的关系。我们的数据采用了语义网络中最常见的ubject-predicate-object三元组的表现形式。这样的三元组的形式，使得知识图谱具有非常强大的表现能力和扩展能力，以及一些 knowledge-based reasoning的能力。在风控领域，实体间的关系包含非常多的信息，而这种三元组可以很容易的表达这种关系，并且可以基于一个节点很方便的扩展其二度甚至多度关系。</p>
+<p>第二个方面是提供可控的数据管理能力，帮助我们规范不同数据源并统一数据使用流程。三元组的表示形式非常灵活，但是如果不加以约束就会导致数据格式的失控，增加数据理解的难度。知识图谱支持自定义元数据，并依据元数据组织管理数据，并且业界已经有了一些标准格式，比如RDF。只要控制好元数据并严格依照数据标准管理数据，就可以有效的组织和使用数据。我们的知识图谱有一套自定义的schema，对于不同格式、不同来源、不同内容的数据，在接入我们的知识图谱时都会按照我们的schema对数据进行转换和清晰。这样对于任何数据，进入知识图谱后后续流程都是相同的，使得在不需要经过任何修改的情况下，后续的服务就可以直接使用这部分数据，在没有任何额外代价的情况下就可以享受这部分数据带来的价值。</p>
+<p>第三方面是扩展性强，可以很容易的接入新的数据源。正如前面讲的，我们面临的数据是多种多样的，随时都有可能接入新的数据。在遵循我们数据schema标准的前提下，对于新类型的数据，我们可以很方便的添加新的schema。举个例子，如果说之前没有做过房 贷，这个时候要把房贷的信息加进来，房贷肯定是一种贷款，它又包含了 房子。我们可以直接重用之前关于通用贷款的所有工具和模型，然后添加进这 个房屋本身的信息，就形成了房贷自己的数据格式。这样可以无缝使用已有元数据和资源。</p>
+<p>正是因为知识图谱自身的特性能够解决我们在数据管理和使用中的痛点，我们采用知识图谱作为我们风控体系最底层的数据存储系统。</p>
+<h2 id="知识图谱的表示"><a href="#知识图谱的表示" class="headerlink" title="知识图谱的表示"></a>知识图谱的表示</h2><p>刚才谈了一下利用知识图谱管理和使用数据的好处，下面我用一个例子来讲一下知识图谱在姨搜的表示方法。我们使用RDF存储格式来存储知识图谱。RDF是一种通用的资源描述框架，Freebase与DBpedia都采用该格式储存信息。在RDF格式下，一个资源描述是由多个语句构成，一个语句是由资源、属性类型、属性值构成的三元体，表示资源具有的一个属性。比如下面的例子中，张三就职于xx有限公司。在知识图谱中张三和xx有限公司分别会表示为实体A和实体B，每个实体有描述它属性的一些属性值，比如实体A的类型，姓名等。同时实体A和实体B还会有一个关系表示A就职于B。</p>
+<p> <img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-173936.png" alt="2016-11-20-173936"></p>
+<p>对于不同类型的实体，我们都有shema表示他们应该具有的属性类型。比如借款人有姓名，就职信息等属性，公司有公司电话、公司名称、公司地址等属性。这些源数据都是提前定义好的，每个实体的数据都要符合对于该实体schema的规范。这样我们就可以避免对于公司地址这个属性不同数据有不同名称（比如有的叫公司地址，有的叫地址，有的叫公司所在地这种情况）。基于schema的规范，我们会将实体的所有数据以三元组的形式储存起来。比如对于实体A，会储存以下三条数据：</p>
+<ul>
+<li>实体A   实体类型    借款人    </li>
+<li>实体A   姓名            张三</li>
+<li>实体A   就职于        实体B</li>
+</ul>
+<p>这里的三条数据只是一个示范，在真实存储中我们会对属性进行严格的定义，数据也会进行压缩，这里就不在展开了。</p>
+<h2 id="知识图谱的应用"><a href="#知识图谱的应用" class="headerlink" title="知识图谱的应用"></a>知识图谱的应用</h2><p>通过上面的例子，我们了解了姨搜如何在知识图谱中储存数据，这一节我们通过几个方面来看看知识图谱在金融领域的应用。</p>
+<h3 id="反欺诈"><a href="#反欺诈" class="headerlink" title="反欺诈"></a>反欺诈</h3><p>反欺诈是风控中非常重要的一个环节。基于大数据的反欺诈的难点在于如何将不同来源的数据整合在一起，高效的分析实体间的关系，找到实体关系间的矛盾点，从而有效的识别出欺诈案件（比如信息造假、组团欺诈、代办包装等）。在分析实体间关系时，常常会面临复杂网络的处理，而知识图谱作为关系的直接表示方式，能够很好地解决这一问题。首先，知识图谱能够方便的融合不同的数据源；其次，知识图谱本身作为一个图数据的组织形式，能够很好的处理实体间的关系，找到各种矛盾。</p>
+<p>首先我们来看一个身份造假的例子，借款人张三和借款人李四都提供了自己的配偶信息，而他们的配偶指向了同一个人小芳（假设我们通过张三和李四的提供的信息可以唯一的确认配偶对应的实体），这时就会探测到一个矛盾，这种矛盾是需要审核人员着重审查的。</p>
+<p> <img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174006.png" alt="2016-11-20-174006"></p>
+<p>另一个典型的场景是代办包装，这是一个比身份造假更难识别的例子。比如有一些中介公司，专门负责给用户办理假材料，帮助用户获得超过其还款能力的贷款，甚至帮助他们骗贷。这种组织常常隐藏在复杂的网络关系背后，很难被发现。只有我们将隐含的网络关系梳理清楚，才可能发现这些隐藏的中介组织以及相关的借款人。比如下面这个例子，张三、李四、王五、赵六四个人背景各不相同，但是他们都有相同的一批联系人，这就是一个可疑的地方，这些共同的联系人可能就是一个中介团伙。而如果其中张三和李四的历史还款表现不好，那么王五和赵六进件时就需要我们着重审查。 <img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174020.png" width="358"></p>
+<h3 id="失联客户管理"><a href="#失联客户管理" class="headerlink" title="失联客户管理"></a>失联客户管理</h3><p>刚才的两个例子都是贷前借款审核环节的风控，这里再举一个贷后相关的例子。比如贷后常常会面临客户失联问题，即客户在借款成功后不仅不还款，还无法联系到本人以及之前提供的联系人。这种情况使得催收人员无法有效的进行催收。这时我们可以通过知识图谱挖掘和借款人有关的新的联系人和联系方式，从而从新的渠道和借款人取得联系，提高催收成功的几率。</p>
+<p> <img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174031.png" width="358"></p>
+<h3 id="可视化"><a href="#可视化" class="headerlink" title="可视化"></a>可视化</h3><p>基于知识图谱，我们可以提供智能的可视化服务。这里我们来看一个我们真实的线上产品——图谱搜索。 下图是图谱搜索的一个结果，通过搜索一个借款人，展示出与借款人相关的两度内实体的状态。其中方块表示实体，圆圈表示各种属性。这里不同的边表示实体和属性之间的联系，每个实体或者属性本身的颜色以及边的颜色都是有特定含义的（具体的细节不方便公开），同时每个节点都可以点击来获得该信息的一系列统计结果。通过图谱搜索这个工具，信审人员可以一目了然的得知用户的各种信息，尤其是一般情况下很难处理的一度、二度关系的信息，极大地增加了信审的效率和准确率。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174045.png" alt="2016-11-20-174045"></p>
+<h2 id="知识图谱在姨搜的实现"><a href="#知识图谱在姨搜的实现" class="headerlink" title="知识图谱在姨搜的实现"></a>知识图谱在姨搜的实现</h2><p>通过前面的章节，大家了解到了知识图谱如何为宜信提供强大的风控能力，接下来的这个章节，我们主要讲一讲知识图谱在姨搜的具体实现。知识图谱在姨搜的整体架构如下图所示 。整个知识图谱分为数据采集，数据处理，数据存储，数据应用四个模块。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-20-174055.png" alt="2016-11-20-174055"></p>
+<p>知识图谱对接了四个种类的数据源，除了公司内部的实时数据和历史数据，我们还会对接一些外部门的三方服务。同时对于客户进件提供的信息，我们会主动去公网爬取重要信息，并且通过NLP的方式对信息进行处理。</p>
+<p>对于不同的数据源，我们会采用不同的方式进行处理。对于三方数据和爬虫数据，我们通过Flume将数据接入存储模块。对于实时数据，比如用户进件时在网站或者在门店提供的相关信息，我们基于Spark Streaming开发了数据导入工具。利用该工具，对于不同业务不同格式的数据，只需要编写简单的config文件就可以对其进行数据清洗、格式转换、自然语言处理等相关操作。利用Spark Streaming这种流式计算引擎本身低延迟的特点，对于一个新进件，整个系统可以在秒级的延迟内将数据导入系统，也就是说用户进件后信审人员几乎马上得到该进件人的信息以及该进件人在知识图谱中的相关信息并开始审核。这些相关信息中很大一部分是进件人并未提供但是通过知识图谱的信息处理能力提取出来的，对于信审人员的决策有重要的作用。而对于一些历史数据以及相应的统计任务，我们会使用Spark和MapReduce进行处理。值得一提的是，我们的任务都是包装了统一接口，利用配置文件进行配置的，对于同样逻辑的任务，Spark Streaming、Mapreduce、Spark三者的配置文件是通用的，配置文件会根据后端的计算引擎的不同被翻译成不同的执行逻辑被执行。</p>
+<p>数据储存模块主要有两部分。一部分是由Elasticsearch和Hbase组成的Knowledge Graph模块，该模块是储存RDF格式数据的核心模块。另一部分是Mysql数据库，主要储存一些统计数据和分析结果。</p>
+<p>对于知识图谱存储的数据，系统提供两个方式进行获取。我们提供一套RESTful API，为用户提供数据查询服务。比如上文提到的可视化工具图谱搜索的例子，就是通过这些API获取借款人的信息并展示的。其他下游业务比如规则引擎等，也是通过RESTful API访问知识图谱。另一种方式是通过Hive进行访问。对于研究团队来说，他们常常需要让一个模型或者一个策略在一段时间内的所有进件进行决策，从而评估和改进模型和策略。RESTful服务更适合于查询任务，对于分析任务，我们将数据导入Hive，这样研究团队就可以很容易的筛选和批量处理数据。Hive同时承担着分析平台数据源的任务，使用我们自研的分析平台，研究团队可以很容易的对规则和模型进行评估。由于篇幅的限制，这里对分析平台的实现不再展开，只是有一点需要强调，就是我们分析平台对接Hive得到的数据和规则引擎对接RESTful得到的数据完全一致，规则的格式和执行方式也完全一致。这样，研究团队在分析平台上的建模成果和抽象出的规则，可以不经过任何修改无缝接入规则引擎，直接对线上进件进行决策。</p>
+<p>最后，对于整个系统，从数据接入过程到最终提供数据应用的服务，我们提供进行全流程的工作流调度系统和监控系统。工作流调度系统使用Linkedin开源的Azkaban系统，并且对其进行了源码级的定制化。监控工作由Azkaban和Kibana共同执行，Azkaban主要对工作流进行监控预警，而Kibana主要负责监控数据接入部分和数据应用部分的响应情况。</p>
+<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>知识图谱在学术界和工业界有着越来越多的应用，本文主要介绍了一下在金融场景下知识图谱在风控领域的应用以及知识图谱在姨搜的实现。知识图谱作为一个比较新的工具，还面临着一些问题。比如数据归一化的问题、非结构化数据（音频，图片）数据的使用、知识推理能力的提升，都是很具有挑战性的工作，这些问题有一些我们已经有了初步的成果，有一些正在研究当中。我们希望利用知识图谱，以及姨搜的其他服务（分析平台、规则引擎、可视化工具）能够提供全流程、智能、高效的风控服务，进而更好的为普惠金融的目标贡献自己的一份力量。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io" target="_blank" rel="external">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://yoursite.com/2016/11/20/知识图谱在姨搜的实现/">http://yoursite.com/2016/11/20/知识图谱在姨搜的实现/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;知识图谱在姨搜的实践&quot;&gt;&lt;a href=&quot;#知识图谱在姨搜的实践&quot; class=&quot;headerlink&quot; title=&quot;知识图谱在姨搜的实践&quot;&gt;&lt;/a&gt;知识图谱在姨搜的实践&lt;/h1&gt;&lt;p&gt;知识图谱这个概念最早由Google于2012年提出，主要是通过从语义层面理解
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>spark on yarn</title>
+    <link href="http://thousandhu.github.io/2016/11/15/spark-on-yarn/"/>
+    <id>http://thousandhu.github.io/2016/11/15/spark-on-yarn/</id>
+    <published>2016-11-15T07:34:31.000Z</published>
+    <updated>2016-11-15T07:36:30.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>spark on yarn有两种模式。在cluster模式下，driver是运行在ApplicationMaster上的，而client模式下则是运行在用户提交spark任务的那台机器上。</p>
+<p><img src="https://www.iteblog.com/pic/spark-yarn-f31.png" alt=""></p>
+<p><img src="https://www.iteblog.com/pic/spark-yarn-f22.png" alt=""></p>
+<p>Yarn和standalone的架构其实是对应的，下表给出了两者的对应关系</p>
+<table>
+<thead>
+<tr>
+<th>Standalone</th>
+<th>YARN</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Client</td>
+<td>Client</td>
+</tr>
+<tr>
+<td>Master</td>
+<td>ApplicationMaster</td>
+</tr>
+<tr>
+<td>Worker</td>
+<td>ExecutorRunnable</td>
+</tr>
+<tr>
+<td>Scheduler</td>
+<td>YarnClusterScheduler/YarnScheduler</td>
+</tr>
+<tr>
+<td>SchedulerBackend</td>
+<td>YarnClusterSchedulerBackend/YarnClientScheduleBackend</td>
+</tr>
+</tbody>
+</table>
+<p>这一篇讲的了流程<a href="http://blog.itpub.net/29754888/viewspace-1815323/" target="_blank" rel="external">http://blog.itpub.net/29754888/viewspace-1815323/</a></p>
+<p>先讲一下cluster模式</p>
+<p>spark提交的入口在<code>org.apache.spark.deploy.SparkSubmit</code>。prepareSubmitEnvironment来根据提交方式初始化，比如设定taskScheduler的类型是YarnClusterScheduler，schedulerBackend的类型是YarnClusterSchedulerBackend。之后如果是cluster模式，会通过反射最终回来到<code>org.apache.spark.deploy.yarn.Client</code>，最终调用client.run函数向yarn提交一个application。提交的application时设置了AM类型是<code>org.apache.spark.deploy.yarn.ApplicationMaster</code>。这个am启动时会调用main函数然后调用到run函数。进行相关设置后cluster模式下run函数会调用rundriver，rundriver代码如下</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">runDriver</span></span>(securityMgr: <span class="type">SecurityManager</span>): <span class="type">Unit</span> = &#123;</div><div class="line">    addAmIpFilter()</div><div class="line">    userClassThread = startUserApplication()</div><div class="line"></div><div class="line">    <span class="comment">// This a bit hacky, but we need to wait until the spark.driver.port property has</span></div><div class="line">    <span class="comment">// been set by the Thread executing the user class.</span></div><div class="line">    <span class="keyword">val</span> sc = waitForSparkContextInitialized()</div><div class="line"></div><div class="line">    <span class="comment">// If there is no SparkContext at this point, just fail the app.</span></div><div class="line">    <span class="keyword">if</span> (sc == <span class="literal">null</span>) &#123;</div><div class="line">      finish(<span class="type">FinalApplicationStatus</span>.<span class="type">FAILED</span>,</div><div class="line">        <span class="type">ApplicationMaster</span>.<span class="type">EXIT_SC_NOT_INITED</span>,</div><div class="line">        <span class="string">"Timed out waiting for SparkContext."</span>)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      rpcEnv = sc.env.rpcEnv</div><div class="line">      <span class="keyword">val</span> driverRef = runAMEndpoint(</div><div class="line">        sc.getConf.get(<span class="string">"spark.driver.host"</span>),</div><div class="line">        sc.getConf.get(<span class="string">"spark.driver.port"</span>),</div><div class="line">        isClusterMode = <span class="literal">true</span>)</div><div class="line">      registerAM(rpcEnv, driverRef, sc.ui.map(_.appUIAddress).getOrElse(<span class="string">""</span>), securityMgr)</div><div class="line">      userClassThread.join()</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>首先ApplicationMaster初始化时会接受一个YarnRMClient的参数，这个类主要负责注册application相关，是对AMRMClient的wrapper。</li>
+<li>userClassTread是一个新线程，他里面启动Spark driver，rundriver最后会等待这个线程完成，完成后即表示着注册之后就会等待userClassThread完成。</li>
+<li>waitForSparkContextInitialized是一个很hacky的函数，它主要是获取SparkContext，这里的sc我理解是userClassThread创建的。</li>
+<li>runAMEndpoint函数主要启动了一个AMEndpoint，这个endpoint负责处理，RequestExecutors，KillExecutors，GetExecutorLossReason几个消息。</li>
+<li>registerAM函数会创建allocator这个成员变量。allocator负责和resourceManager交互获取资源。在rundriver中会先调用一次<code>allocator.allocateResources()</code>，如果第一次rm给的资源没有满足，reporterThread会继续重试请求资源。下面这张图很好的说明了applicationMaster如何一步步构造出allocator并与rm通信的。</li>
+<li><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-13-153412.png" alt="2016-11-13-153412"></li>
+</ul>
+<p>这里稍微展开一下allocator，看看他如何启动executor。在allocateResources中，他会向rm请求资源。当收到资源后，他会调用handleAllocatedContainers函数，该函数会按照host，rack，其他的空间亲和顺序依次匹配资源并在上面启动指定数量的container。首先allocator会调用matchContainerToRequest来更新containersToUse，remaining还有amClient中下次需要申请的资源的队列（amClient.removeContainerRequest(containerRequest)），也就是调用matchContainerToRequest来更新资源需求的记录。之后对于所有在containersToUse中的资源，调用runAllocatedContainers()，对于每个资源启动一个ExecutorRunnable，目前executorRunnable对应一个<code>org.apache.spark.executor.CoarseGrainedExecutorBackend</code>。</p>
+<p>这里有一张图展示了ApplicationMaster中各个组件的关系：</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-11-15-153053.png" alt="2016-11-15-153053"></p>
+<p>最后附一张cluster模式下整体的图：</p>
+<p><img src="http://images.cnblogs.com/cnblogs_com/BYRans/761498/o_yarnClusterSparkProcess.png" alt=""></p>
+<p>再看一下yarn client模式</p>
+<p>下图是一个spark在yarn上以client模式运行程序的流程。<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-25-203453.png" alt="2016-10-25-203453"></p>
+<p>client模式主要是讲driver运行在client端，他和cluster模式有一下几个不同：</p>
+<ul>
+<li>client的taskscheduler和backend分别是yarnScheduler和yarnClientSchedulerBackend。</li>
+<li>YarnClientSchedulerBackend里面会启动一个client，它里面会启动一个yarnClient。通过这个yarnClient，我们可以给resourceManager提交ApplicationMaster。</li>
+<li>client的ApplicationMaster调用的是runExecutorLauncher。同时，注意到因为在AM上其实是通过jps查看类名来分辨AM的类型的，所以在ApplicationMaster中既有<code>object ApplicationMaster</code>又有<code>object ExecutorLauncher</code>。</li>
+</ul>
+<p>参考文献</p>
+<ul>
+<li><a href="http://blog.itpub.net/29754888/viewspace-1815323/" target="_blank" rel="external">Spark on Yarn 任务提交流程源码分析</a></li>
+<li><a href="http://www.cnblogs.com/BYRans/p/5889374.html" target="_blank" rel="external">Spark基本工作流程及YARN cluster模式原理</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io" target="_blank" rel="external">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://yoursite.com/2016/11/15/spark-on-yarn/">http://yoursite.com/2016/11/15/spark-on-yarn/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;spark on yarn有两种模式。在cluster模式下，driver是运行在ApplicationMaster上的，而client模式下则是运行在用户提交spark任务的那台机器上。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://www.iteblog.com/p
+    
+    </summary>
+    
+    
+      <category term="yarn" scheme="http://thousandhu.github.io/tags/yarn/"/>
+    
+      <category term="spark" scheme="http://thousandhu.github.io/tags/spark/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>spark读取hbase遇到的问题</title>
+    <link href="http://thousandhu.github.io/2016/11/03/spark%E8%AF%BB%E5%8F%96hbase%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/"/>
+    <id>http://thousandhu.github.io/2016/11/03/spark读取hbase遇到的问题/</id>
+    <published>2016-11-03T09:04:23.000Z</published>
+    <updated>2016-11-03T09:04:38.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>我们的程序会从Table1中取出数据，对每一行将其中的几列（这里用A和B）算出一个新的rowkey，并对整个数据做一些转换，之后以rowkey为key插入Table2中去。如果Table1中一行的数据不同时包含A和B，我们会丢弃这条数据。经过一段时间的运行，我们发现程序会出现丢数据的情况，大概30000万行会丢失1万行左右。并且该情况可以复现。</p>
+<p>开始时我们怀疑是程序转换过程中出的问题，但是经过排查，发现在数据从hbase中load出来时一行数据就已经可能缺失。我在load时判断几个关键的列A,B,C,D是否存在，不存在时就将该列补充为“empty”，然后不作处理直接将load的数据写入hbase的新表，发现新表中的确有empty值出现。于是怀疑是不是spark读取hbase的接口有问题，我们使用的是<code>newAPIHadoopRDD</code>这个接口。可是作为一个很基础的接口，不应该出现类似的问题。</p>
+<p>为了验证这个接口是不是有问题，我们做了这样一个实验，将一个表的数据读出，对于每一条数据，不做转换，以它本身的rowkey作为rowkey直接写入新表，发现没有问题。于是怀疑还是我们使用方式的问题。这个实验和上一个实验不同的地方就是一个是我们自己算rowkey，一个是数据本身的rowkey。难道是因为一条数据被分开读了导致我们自己算rowkey出现了问题丢了数据。</p>
+<p>带着这个问题，我们进一步追踪了load的过程，对于有错的一行数据row X，system.out了所有load时key为row X的情况，果然这一行数据被分成两次读取，并且两次数据合并的结果是该行的最终结果。这导致如果恰好A，B两列被分开读取，这个数据就被我们丢弃了，其余分开读取的情况也会丢一部分数据。</p>
+<p>针对这个问题，我们首先做了紧急修复，在load之后使用reduceByKey对数据进行merge，这样虽然可以修复问题，但是无疑会增加一次shuffle，拖慢程序的效率。我们猜想应该是由于hbase读取时设置不当导致数据被分开读取。</p>
+<p>我们的代码中是这样读取hbase的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">conf.set(TableInputFormat.INPUT_TABLE, tableName);</div><div class="line">conf.setLong(TableInputFormat.SCAN_BATCHSIZE, <span class="number">500</span>);</div><div class="line">conf.setLong(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, <span class="number">300000</span>);</div><div class="line">JavaPairRDD&lt;ImmutableBytesWritable, Result&gt; raw = jsc.newAPIHadoopRDD(conf, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);</div></pre></td></tr></table></figure>
+<p>这里设置了hbase SCAN_BATCHSIZE这个值，会设置scan的batchsize。这个设置的文档是这样说的：</p>
+<blockquote>
+<p>Set the maximum number of values to return for each call to next()</p>
+</blockquote>
+<p>之前一直以为这里是设置一次读取多少行，但是经过询问得知这里的values貌似是读取多少列，并且开启了这个值会导致hbase scan时返回一行的部分结果。于是我们写了demo，将这个值设为1，查看每个key在spark出现的次数，果然他们被读出了和自身column数量一样次。</p>
+<p>于是将这个设置注释掉，程序即可正常运行。</p>
+<p>进一步的，我们从hbase端代码看看这个设置。hbase的scan会两个成员变量：</p>
+<ul>
+<li><code>private boolean allowPartialResults = false;</code></li>
+<li><code>private int batch = -1;</code></li>
+</ul>
+<p>allowPartialResult这个很明显就是会返回部分结果的设置，那么这个batch呢？setBatch()时并不会设置allowPartialResult。但是在Scan的getResultsToAddToCache()函数中，如果batch值大于0，会设置isBatch=true。之后会有这段代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// If the caller has indicated in their scan that they are okay with seeing partial results,</span></div><div class="line"><span class="comment">// then simply add all results to the list. Note that since scan batching also returns results</span></div><div class="line"><span class="comment">// for a row in pieces we treat batch being set as equivalent to allowing partials. The</span></div><div class="line"><span class="comment">// implication of treating batching as equivalent to partial results is that it is possible</span></div><div class="line"><span class="comment">// the caller will receive a result back where the number of cells in the result is less than</span></div><div class="line"><span class="comment">// the batch size even though it may not be the last group of cells for that row.</span></div><div class="line">    <span class="keyword">if</span> (allowPartials || isBatchSet) &#123;</div><div class="line">      addResultsToList(resultsToAddToCache, resultsFromServer, <span class="number">0</span>,</div><div class="line">          (<span class="keyword">null</span> == resultsFromServer ? <span class="number">0</span> : resultsFromServer.length));</div><div class="line">      <span class="keyword">return</span> resultsToAddToCache;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里就得出了结论，设置batchSize会导致结果返回时出现一次只返回一行的部分值，一行数据分成多条被返回的情况。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io" target="_blank" rel="external">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://yoursite.com/2016/11/03/spark读取hbase遇到的问题/">http://yoursite.com/2016/11/03/spark读取hbase遇到的问题/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;我们的程序会从Table1中取出数据，对每一行将其中的几列（这里用A和B）算出一个新的rowkey，并对整个数据做一些转换，之后以rowkey为key插入Table2中去。如果Table1中一行的数据不同时包含A和B，我们会丢弃这条数据。经过一段时间的运行，我们发现程序会出
+    
+    </summary>
+    
+    
+      <category term="hbase" scheme="http://thousandhu.github.io/tags/hbase/"/>
+    
+      <category term="spark" scheme="http://thousandhu.github.io/tags/spark/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>spark2.0源码阅读-standalong模式部署</title>
+    <link href="http://thousandhu.github.io/2016/10/25/spark2-0-standalong%E6%A8%A1%E5%BC%8F%E9%83%A8%E7%BD%B2/"/>
+    <id>http://thousandhu.github.io/2016/10/25/spark2-0-standalong模式部署/</id>
+    <published>2016-10-25T09:20:31.000Z</published>
+    <updated>2016-10-25T12:30:23.000Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="standalong模式"><a href="#standalong模式" class="headerlink" title="standalong模式"></a>standalong模式</h1><p>stangalone模式是spark自己部署自己在集群上的一个模式。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-24-184923.png" alt="2016-10-24-184923"></p>
+<p>其中client模式下driver运行在提交任务的机器，cluster模式下运行在cluster内部的某个worker上，只能独自运行。executor不是在worker启动时启动的，而是一个新的application来时才启动的(master调用<code>startExecutorsOnWorkers()</code>)。</p>
+<h2 id="集群启动流程"><a href="#集群启动流程" class="headerlink" title="集群启动流程"></a>集群启动流程</h2><p>集群启动主要是启动master和worker</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">./sbin/start-master.sh</div><div class="line">./sbin/start-slave.sh [masterURL]</div></pre></td></tr></table></figure>
+<p>启动<a href="https://jaceklaskowski.gitbooks.io/mastering-apache-spark/content/spark-standalone-worker-scripts.html" target="_blank" rel="external">master</a>和<a href="https://jaceklaskowski.gitbooks.io/mastering-apache-spark/content/spark-standalone-worker-scripts.html" target="_blank" rel="external">worker</a>的命令可以参考相关链接。</p>
+<p>启动过程中，worker需要向master注册自己，并且定时发动心跳，具体实现在<code>org.apache.spark.deploy.master</code>和<code>org.apache.spark.deploy.worker</code>两个类里。启动时worker会调用<code>registerWithMaster()</code>向master注册，并且通过heartbeat定期与master通信。</p>
+<h2 id="任务提交"><a href="#任务提交" class="headerlink" title="任务提交"></a>任务提交</h2><p>driver是一个hosts SparkContext的进程，是整个程序的入口，下面上一张driver的架构图</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-10-25-202903.png" alt="2016-10-25-202903"></p>
+<p>启动一个任务的具体流程是这样的：</p>
+<ol>
+<li>driver创建一个SparkContext，进而启动一个scheduler（一般是TaskSchedulerImpl）和一个backend（一般是StandaloneSchedulerBackend）。StandaloneSchedulerBackend的StandaloneAppClient向master发起请求注册一个application（registerWithMaster函数）。该函数会向Master发送一个RegisterApplication的rpc请求</li>
+<li><p>Master收到请求生成一个Application，同时做了以下两件事情</p>
+<ol>
+<li>向Driver发送一个RegisteredApplication消息。Driver收到这个消息以后会开始监听这个app</li>
+<li>调用scheduler函数给application分配资源：<ol>
+<li>如果是cluster模式，则通过<code>launchDriver(worker: WorkerInfo, driver: DriverInfo)</code>函数将worker和driver联系起来，发送<code>LaunchDriver(driver.id, driver.desc)</code>消息给worker。worker收到LaunchDriver生成一个DriverRunner对象并启动。如果是client模式，schedule对于的waitingDrivers中的driver为空，不会调用launchDriver在worker上生成driver。</li>
+<li>调用<code>startExecutorsOnWorkers()</code>进而调用<code>launchExecutor()</code>发送LaunchExecutor给工作节点。默认情况下使用spread out模式，将executor尽量分配到多个worker上</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>worker收到launchExecutor消息启动Executor。Worker创建一个ExecutorRunner线程，ExecutorRunner线程会调用fetchAndRunExecutor函数给Executor创建新的进程。</li>
+<li>Executor（CoarseGrainedExecutorBackend.run()）启动后会根据driverUrl向Driver注册自己。</li>
+<li>Driver的DAGScheduler解析作业并生成相应的Stage，每个Stage包含的Task通过TaskScheduler分配给Executor执行。 所有stage都完成后作业结束。</li>
+</ol>
+<p><img src="http://images2015.cnblogs.com/blog/677972/201604/677972-20160410195126078-1159983641.jpg" alt="">\</p>
+<p> 任务提交这里参考了</p>
+<ul>
+<li><a href="http://www.voidcn.com/blog/sbq63683210/article/p-6066793.html" target="_blank" rel="external">Spark源码学习（2）——Spark Submit(cluster)</a></li>
+<li><a href="http://www.cnblogs.com/jianyuan/p/Spark%e7%b3%bb%e5%88%97%e4%b9%8bWorker%e5%b7%a5%e4%bd%9c%e5%8e%9f%e7%90%86.html" target="_blank" rel="external">Spark系列(八)Worker工作原理</a></li>
+<li><a href="http://alexlei.com/2016/04/25/Submit-application-1/" target="_blank" rel="external">client模式参考文献</a></li>
+<li><a href="http://www.cnblogs.com/jianyuan/p/Spark%e6%95%b4%e4%bd%93%e6%9e%b6%e6%9e%84%e5%88%86%e6%9e%90.html" target="_blank" rel="external">Spark系列(四)整体架构分析</a></li>
+<li><a href="http://alexlei.com/2016/04/25/application-execution/" target="_blank" rel="external">应用执行过程分析</a> 启动过程讲的最清楚的一篇</li>
+</ul>
+<h2 id="容错"><a href="#容错" class="headerlink" title="容错"></a>容错</h2><h4 id="worker退出"><a href="#worker退出" class="headerlink" title="worker退出"></a>worker退出</h4><p>worker意外挂掉或者退出以后，worker上的所有Executor都会被kill或者丢失。此时worker与master间的heartbeat也不存在了，master会觉察到这一异常，从而会将这些executor失败的事情告诉driver</p>
+<h4 id="Executor退出"><a href="#Executor退出" class="headerlink" title="Executor退出"></a>Executor退出</h4><ul>
+<li>ExecutorRunner会注意到异常，通过ExecutorStateChanged汇报给master</li>
+<li>Master要求worker重启Executor</li>
+<li>worker收到指令重启Executor</li>
+</ul>
+<h4 id="Master退出"><a href="#Master退出" class="headerlink" title="Master退出"></a>Master退出</h4><p>在设置了Zookeeper和standby master的前提下，集群也可以恢复master失败。利用ZooKeeper可以提供leader的选举以及一些状态的存储，在集群中可以启动多个Masters来连接到相同的ZooKeeper实例。其中一个会被选举成“leader”，其他的仍旧处于standby模式。如果当前的leader死掉了，另一个Master会被选举出来，恢复之前的那个Master的状态，然后恢复调度。整个恢复过程需要花费1到2分钟时间。注意，这个延迟只会影响到新的应用程序–<strong>在故障转移期间，已经运行的应用程序不会受到影响</strong>。</p>
+<h4 id="supervise参数"><a href="#supervise参数" class="headerlink" title="supervise参数"></a>supervise参数</h4><p>standalone集群模式支持自动重启你的应用程序，如果它以非0的退出代码退出。要使用该功能，当启动你的应用程序时，你可能需要在spark-submit中传入 <code>--supervise</code>。然后，如果你想要杀死一个重复失败的应用程序，也许可以这样做：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-class org.apache.spark.deploy.Client kill &lt;master url&gt; &lt;driver ID&gt;</div></pre></td></tr></table></figure>
+<h4 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h4><ul>
+<li><a href="http://blog.csdn.net/u014729236/article/details/46341687" target="_blank" rel="external">Spark Standalone Mode 翻译和实验</a></li>
+<li><a href="http://blog.csdn.net/anzhsoft/article/details/33740737" target="_blank" rel="external">Spark技术内幕：Master基于ZooKeeper的High Availability（HA）源码实现</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io" target="_blank" rel="external">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://yoursite.com/2016/10/25/spark2-0-standalong模式部署/">http://yoursite.com/2016/10/25/spark2-0-standalong模式部署/</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;standalong模式&quot;&gt;&lt;a href=&quot;#standalong模式&quot; class=&quot;headerlink&quot; title=&quot;standalong模式&quot;&gt;&lt;/a&gt;standalong模式&lt;/h1&gt;&lt;p&gt;stangalone模式是spark自己部署自己在集群上的一
+    
+    </summary>
+    
+    
+      <category term="spark" scheme="http://thousandhu.github.io/tags/spark/"/>
+    
+  </entry>
+  
+</feed>

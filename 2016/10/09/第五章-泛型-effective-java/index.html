@@ -1,0 +1,738 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="java,effective java," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Java泛型（generics）是JDK 5中引入的一个新特性，允许在定义类和接口的时候使用类型参数（type parameter）。之前set都是没有&amp;lt;&amp;gt;，可以接受任何类型的参数，而错误插入可以通过编译和运行，直到取出结果时才会报错。Java深度历险（五）——Java泛型 泛型与类型擦除有关，下面一段简单讲了下原理和特性  正确理解泛型概念的首要前提是理解类型擦除（type eras">
+<meta name="keywords" content="java,effective java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第五章_泛型_effective_java">
+<meta property="og:url" content="http://thousandhu.github.io/2016/10/09/第五章-泛型-effective-java/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="Java泛型（generics）是JDK 5中引入的一个新特性，允许在定义类和接口的时候使用类型参数（type parameter）。之前set都是没有&amp;lt;&amp;gt;，可以接受任何类型的参数，而错误插入可以通过编译和运行，直到取出结果时才会报错。Java深度历险（五）——Java泛型 泛型与类型擦除有关，下面一段简单讲了下原理和特性  正确理解泛型概念的首要前提是理解类型擦除（type eras">
+<meta property="og:updated_time" content="2016-10-09T15:03:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="第五章_泛型_effective_java">
+<meta name="twitter:description" content="Java泛型（generics）是JDK 5中引入的一个新特性，允许在定义类和接口的时候使用类型参数（type parameter）。之前set都是没有&amp;lt;&amp;gt;，可以接受任何类型的参数，而错误插入可以通过编译和运行，直到取出结果时才会报错。Java深度历险（五）——Java泛型 泛型与类型擦除有关，下面一段简单讲了下原理和特性  正确理解泛型概念的首要前提是理解类型擦除（type eras">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/10/09/第五章-泛型-effective-java/"/>
+
+
+
+
+
+  <title>第五章_泛型_effective_java | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/10/09/第五章-泛型-effective-java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">第五章_泛型_effective_java</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-09T22:38:11+08:00">
+                2016-10-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Java泛型（generics）是JDK 5中引入的一个新特性，允许在定义类和接口的时候使用类型参数（type parameter）。之前set都是没有&lt;&gt;，可以接受任何类型的参数，而错误插入可以通过编译和运行，直到取出结果时才会报错。<a href="http://www.infoq.com/cn/articles/cf-java-generics" target="_blank" rel="external">Java深度历险（五）——Java泛型</a></p>
+<p>泛型与类型擦除有关，下面一段简单讲了下原理和特性</p>
+<blockquote>
+<p>正确理解泛型概念的首要前提是理解类型擦除（type erasure）。Java中的泛型基本上都是在编译器这个层次来实现的。在生成的Java字节代码中是不包含泛型中的类型信息的。使用泛型的时候加上的类型参数，会被编译器在编译的时候去掉。这个过程就称为类型擦除。如在代码中定义的<code>List&lt;Object&gt;</code>和<code>List&lt;String&gt;</code>等类型，在编译之后都会变成List。JVM看到的只是List，而由泛型附加的类型信息对JVM来说是不可见的。Java编译器会在编译时尽可能的发现可能出错的地方，但是仍然无法避免在运行时刻出现类型转换异常的情况。类型擦除也是Java的泛型实现方式与<a href="http://www.cplusplus.com/doc/tutorial/templates/" target="_blank" rel="external">C++模板机制</a>实现方式之间的重要区别。<br>很多泛型的奇怪特性都与这个类型擦除的存在有关，包括：</p>
+<ul>
+<li>泛型类并没有自己独有的Class类对象。比如并不存在<code>List&lt;String&gt;.class</code>或是<code>List&lt;Integer&gt;.class</code>，而只有<code>List.class</code>。</li>
+<li>静态变量是被泛型类的所有实例所共享的。对于声明为<code>MyClass&lt;T&gt;</code>的类，访问其中的静态变量的方法仍然是 <code>MyClass.myStaticVar</code>。不管是通过<code>new MyClass&lt;String&gt;</code>还是<code>new MyClass&lt;Integer&gt;</code>创建的对象，都是共享一个静态变量。</li>
+<li>泛型的类型参数不能用在Java异常处理的catch语句中。因为异常处理是由JVM在运行时刻来进行的。由于类型信息被擦除，JVM是无法区分两个异常类型<code>MyException&lt;String&gt;</code>和<code>MyException&lt;Integer&gt;</code>的。对于JVM来说，它们都是 <code>MyException</code>类型的。也就无法执行与异常对应的catch语句。</li>
+</ul>
+</blockquote>
+<h1 id="第二十三条：请不要再新代码中使用原生态类型"><a href="#第二十三条：请不要再新代码中使用原生态类型" class="headerlink" title="第二十三条：请不要再新代码中使用原生态类型"></a>第二十三条：请不要再新代码中使用原生态类型</h1><p>因为泛型可以将错误提前在编译时发现，所有建议尽量使用泛型而不是原生态类型（即<code>Set&lt;Object&gt;</code> 而不是<code>Set</code>）。其中<code>Set&lt;Object&gt;</code>是参数化类型，表示可以包含任何对象类型的一个集合；<code>Set&lt;?&gt;</code>是一个通配符，表示只能包含某种位置对象类型的一个集合；Set是原生态类型。前两种是安全的，最后一种是不安全的</p>
+<h1 id="第二十四条：消除非受检警告"><a href="#第二十四条：消除非受检警告" class="headerlink" title="第二十四条：消除非受检警告"></a>第二十四条：消除非受检警告</h1><p>尽可能消除每一个非受检警告。如果确定警告本身没问题，可以用注解<code>@SuppressWarnings(&quot;unchecked&quot;)</code>.</p>
+<h1 id="第二十五条：列表优先于数组"><a href="#第二十五条：列表优先于数组" class="headerlink" title="第二十五条：列表优先于数组"></a>第二十五条：列表优先于数组</h1><p>数组和泛型的不同有两点：</p>
+<ul>
+<li>数组是协变的，如果sub是super的子类，那么sub[]就是super[]的子类。但是对于不同类型T1和T2，<code>List&lt;T1&gt;</code>既不是<code>List&lt;T2&gt;</code>的超类，也不是子类。</li>
+<li>数组是具体化的，在运行时才检查元素类型约束；泛型是通过擦除来实现，编译时会强化类型信息。</li>
+</ul>
+<p>不能创建泛型数组，因为泛型数组会带来语法问题。当得到泛型数组创建错误时(通常是混合使用泛型和数组)，最好的办法是有限使用集合类型<code>List&lt;E&gt;</code>.</p>
+<p>在基于性能的考虑下，也可优先用数组 - -</p>
+<h1 id="第二十六条：优先考虑泛型-amp-amp-第二十七条：优先考虑泛型方法"><a href="#第二十六条：优先考虑泛型-amp-amp-第二十七条：优先考虑泛型方法" class="headerlink" title="第二十六条：优先考虑泛型 &amp;&amp; 第二十七条：优先考虑泛型方法"></a>第二十六条：优先考虑泛型 &amp;&amp; 第二十七条：优先考虑泛型方法</h1><p>主要讲了泛型类和泛型方法的使用。其中重要的就在于你何时进行类型转换，转换时要保证安全性。同时注意<code>&lt;T extends T&gt;</code>的运用</p>
+<h1 id="第二十七条：利用有限制通配符来提升API灵活性"><a href="#第二十七条：利用有限制通配符来提升API灵活性" class="headerlink" title="第二十七条：利用有限制通配符来提升API灵活性"></a>第二十七条：利用有限制通配符来提升API灵活性</h1><p>因为<code>List&lt;A&gt;</code>和<code>List&lt;B&gt;</code>互不为子类，所以会出现以下情况：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Generic stack with bulk methods using wildcard types - </span></div><div class="line"><span class="keyword">package</span> org.effectivejava.examples.chapter05.item28;</div><div class="line"></div><div class="line"><span class="keyword">import</span> java.util.ArrayList;</div><div class="line"><span class="keyword">import</span> java.util.Arrays;</div><div class="line"><span class="keyword">import</span> java.util.Collection;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Stack</span>&lt;<span class="title">E</span>&gt; </span>&#123;</div><div class="line">	<span class="keyword">private</span> E[] elements;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">int</span> size = <span class="number">0</span>;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DEFAULT_INITIAL_CAPACITY = <span class="number">16</span>;</div><div class="line">	<span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Stack</span><span class="params">()</span> </span>&#123;</div><div class="line">		elements = (E[]) <span class="keyword">new</span> Object[DEFAULT_INITIAL_CAPACITY];</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">push</span><span class="params">(E e)</span> </span>&#123;</div><div class="line">		ensureCapacity();</div><div class="line">		elements[size++] = e;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> E <span class="title">pop</span><span class="params">()</span> </span>&#123;</div><div class="line">		<span class="keyword">if</span> (size == <span class="number">0</span>)</div><div class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> EmptyStackException();</div><div class="line">		E result = elements[--size];</div><div class="line">		elements[size] = <span class="keyword">null</span>; <span class="comment">// Eliminate obsolete reference</span></div><div class="line">		<span class="keyword">return</span> result;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">// pushAll method without wildcard type - deficient!</span></div><div class="line">	<span class="comment">// public void pushAll(Iterable&lt;E&gt; src) &#123;</span></div><div class="line">	<span class="comment">// for (E e : src)</span></div><div class="line">	<span class="comment">// push(e);</span></div><div class="line">	<span class="comment">// &#125;</span></div><div class="line"></div><div class="line">	<span class="comment">// Wildcard type for parameter that serves as an E producer</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pushAll</span><span class="params">(Iterable&lt;? extends E&gt; src)</span> </span>&#123;</div><div class="line">		<span class="keyword">for</span> (E e : src)</div><div class="line">			push(e);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">// popAll method without wildcard type - deficient!</span></div><div class="line">	<span class="comment">// public void popAll(Collection&lt;E&gt; dst) &#123;</span></div><div class="line">	<span class="comment">// while (!isEmpty())</span></div><div class="line">	<span class="comment">// dst.add(pop());</span></div><div class="line">	<span class="comment">// &#125;</span></div><div class="line"></div><div class="line">	<span class="comment">// Wildcard type for parameter that serves as an E consumer</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">popAll</span><span class="params">(Collection&lt;? <span class="keyword">super</span> E&gt; dst)</span> </span>&#123;</div><div class="line">		<span class="keyword">while</span> (!isEmpty())</div><div class="line">			dst.add(pop());</div><div class="line">	&#125;</div><div class="line">  </div><div class="line"> 	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">		Stack&lt;Number&gt; numberStack = <span class="keyword">new</span> Stack&lt;Number&gt;();</div><div class="line">		Iterable&lt;Integer&gt; integers = Arrays.asList(<span class="number">3</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">1</span>, <span class="number">5</span>, <span class="number">9</span>);</div><div class="line">		numberStack.pushAll(integers);</div><div class="line"></div><div class="line">		Collection&lt;Object&gt; objects = <span class="keyword">new</span> ArrayList&lt;Object&gt;();</div><div class="line">		numberStack.popAll(objects);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果使用注释里的push和pop，会因为<code>Error:(31, 37) java: 不兼容的类型: java.lang.Iterable&lt;java.lang.Integer&gt;无法转换为java.lang.Iterable&lt;java.lang.Number&gt;</code>这类不兼容问题而无法通过编译。因为虽然Integer是Number的子类，但是Iterable用了泛型，所以<code>Iterable&lt;Integer&gt;</code> 不是<code>Iterable&lt;Number&gt;</code>的子类，无法转换。处理这种问题就需要利用有限通配符。</p>
+<p>有限通配符分为<code>&lt;? extends T&gt;</code>(表示T的某个子类)和 <code>&lt;? super T&gt;</code>（表示T的某个父类）两种。一般再用通配符时遵守PECS原则：producer-extends，consumer-super。比如pushAll的参数src产生E的实例供stack使用，则用extends；popAll消费了Stack的E实例，则用super。同时，所有的comparablehe comparator都是消费者。</p>
+<h1 id="第二十九条：类型安全的异构容器"><a href="#第二十九条：类型安全的异构容器" class="headerlink" title="第二十九条：类型安全的异构容器"></a>第二十九条：类型安全的异构容器</h1><p>类型安全的异构容器主要是将<code>Class&lt;?&gt;</code>作为key，Object作为value。在插入的时候保证type!=null，取出的时候通过type.cast进行类型转换，从而实现类型检查。比如下面的favorite（重点关注12行）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Favorites</span> </span>&#123;</div><div class="line">	<span class="comment">// Typesafe heterogeneous container pattern - implementation</span></div><div class="line">	<span class="keyword">private</span> Map&lt;Class&lt;?&gt;, Object&gt; favorites = <span class="keyword">new</span> HashMap&lt;Class&lt;?&gt;, Object&gt;();</div><div class="line"></div><div class="line">	<span class="keyword">public</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">putFavorite</span><span class="params">(Class&lt;T&gt; type, T instance)</span> </span>&#123;</div><div class="line">		<span class="keyword">if</span> (type == <span class="keyword">null</span>)</div><div class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">"Type is null"</span>);</div><div class="line">		favorites.put(type, instance);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">getFavorite</span><span class="params">(Class&lt;T&gt; type)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> type.cast(favorites.get(type));</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>但是这里每个类都只能有一个value，感觉不是很实用，难道要value再是一个map？或者主要是这种<code>Class&lt;?&gt;</code>背后的类型令牌的思想吧。验证一个类的类型除了用instanceof还可以用c1.asSubclass(c)函数判断c1是不是c的子类，如果是的话该函数返回c1。具体可以看这篇<a href="http://jasonhan-sh-hotmail-com.iteye.com/blog/1838413" target="_blank" rel="external">文章</a>.</p>
+<p>另外他讲了下Collections的<code>checkedList&lt;E&gt;</code>等包装类，他就是对普通<code>List&lt;E&gt;</code>做了包装，操作时进行typeCheck保证插入的对象严格是E类。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/10/09/第五章-泛型-effective-java/">http://thousandhu.github.io/2016/10/09/第五章-泛型-effective-java/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/effective-java/" rel="tag"># effective java</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/08/第四章-类和接口-effective-java/" rel="next" title="第四章_类和接口_effective_java">
+                <i class="fa fa-chevron-left"></i> 第四章_类和接口_effective_java
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/13/概念-Nosql精粹/" rel="prev" title="概念_Nosql精粹">
+                概念_Nosql精粹 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第二十三条：请不要再新代码中使用原生态类型"><span class="nav-number">1.</span> <span class="nav-text">第二十三条：请不要再新代码中使用原生态类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二十四条：消除非受检警告"><span class="nav-number">2.</span> <span class="nav-text">第二十四条：消除非受检警告</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二十五条：列表优先于数组"><span class="nav-number">3.</span> <span class="nav-text">第二十五条：列表优先于数组</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二十六条：优先考虑泛型-amp-amp-第二十七条：优先考虑泛型方法"><span class="nav-number">4.</span> <span class="nav-text">第二十六条：优先考虑泛型 && 第二十七条：优先考虑泛型方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二十七条：利用有限制通配符来提升API灵活性"><span class="nav-number">5.</span> <span class="nav-text">第二十七条：利用有限制通配符来提升API灵活性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二十九条：类型安全的异构容器"><span class="nav-number">6.</span> <span class="nav-text">第二十九条：类型安全的异构容器</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

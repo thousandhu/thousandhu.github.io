@@ -1,0 +1,873 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="GFS,6.824," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="GFS 阅读笔记 设计预期设计预期往往针对系统的应用场景，是系统在不同选择间做balance的重要依据，对于理解GFS在系统设计时为何做出现有的决策至关重要。所以我们应重点关注：  失效是常态 主要针对大文件 读操作：大规模流式读取、小规模随机读取 写操作：大规模顺序追加写，写入后很少修改 高效明确定义的并行追加写 稳定高效地网络带宽  整体设计1、系统架构GFS主要由以下三个系统模块组成：  M">
+<meta name="keywords" content="GFS,6.824">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GFS">
+<meta property="og:url" content="http://thousandhu.github.io/2016/12/07/GFS/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="GFS 阅读笔记 设计预期设计预期往往针对系统的应用场景，是系统在不同选择间做balance的重要依据，对于理解GFS在系统设计时为何做出现有的决策至关重要。所以我们应重点关注：  失效是常态 主要针对大文件 读操作：大规模流式读取、小规模随机读取 写操作：大规模顺序追加写，写入后很少修改 高效明确定义的并行追加写 稳定高效地网络带宽  整体设计1、系统架构GFS主要由以下三个系统模块组成：  M">
+<meta property="og:image" content="http://img.blog.csdn.net/20140114135050781?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="http://img.blog.csdn.net/20140114135105406?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="http://img.blog.csdn.net/20140114135126062?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="http://img.blog.csdn.net/20140114135137109?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:updated_time" content="2016-12-07T08:42:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GFS">
+<meta name="twitter:description" content="GFS 阅读笔记 设计预期设计预期往往针对系统的应用场景，是系统在不同选择间做balance的重要依据，对于理解GFS在系统设计时为何做出现有的决策至关重要。所以我们应重点关注：  失效是常态 主要针对大文件 读操作：大规模流式读取、小规模随机读取 写操作：大规模顺序追加写，写入后很少修改 高效明确定义的并行追加写 稳定高效地网络带宽  整体设计1、系统架构GFS主要由以下三个系统模块组成：  M">
+<meta name="twitter:image" content="http://img.blog.csdn.net/20140114135050781?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/12/07/GFS/"/>
+
+
+
+
+
+  <title>GFS | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/12/07/GFS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">GFS</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-12-07T16:42:43+08:00">
+                2016-12-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>GFS 阅读笔记</p>
+<h2 id="设计预期"><a href="#设计预期" class="headerlink" title="设计预期"></a>设计预期</h2><p>设计预期往往针对系统的应用场景，是系统在不同选择间做balance的重要依据，对于理解GFS在系统设计时为何做出现有的决策至关重要。所以我们应重点关注：</p>
+<ul>
+<li>失效是常态</li>
+<li>主要针对大文件</li>
+<li>读操作：大规模流式读取、小规模随机读取</li>
+<li>写操作：大规模顺序追加写，写入后很少修改</li>
+<li>高效明确定义的并行追加写</li>
+<li>稳定高效地网络带宽</li>
+</ul>
+<h2 id="整体设计"><a href="#整体设计" class="headerlink" title="整体设计"></a>整体设计</h2><h3 id="1、系统架构"><a href="#1、系统架构" class="headerlink" title="1、系统架构"></a>1、系统架构</h3><p>GFS主要由以下三个系统模块组成：</p>
+<ul>
+<li>Master：管理元数据、整体协调系统活动</li>
+<li>ChunkServer：存储维护数据块（Chunk），读写文件数据</li>
+<li>Client：向Master请求元数据，并根据元数据访问对应ChunkServer的Chunk</li>
+</ul>
+<p><img src="http://img.blog.csdn.net/20140114135050781?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt=""></p>
+<h3 id="2、设计要点"><a href="#2、设计要点" class="headerlink" title="2、设计要点"></a>2、设计要点</h3><h4 id="1）Chunk尺寸"><a href="#1）Chunk尺寸" class="headerlink" title="1）Chunk尺寸"></a>1）Chunk尺寸</h4><p>由于GFS主要面向大文件存储和大规模读写操作，所以其选择了远大于一般文件系统的64MB的Chunk尺寸。</p>
+<p>好处：</p>
+<ul>
+<li>减少元数据量，便于客户端预读缓存，减少客户端访问Master的次数，减小Master负载；</li>
+<li>减少元数据量，Master可以将元数据放在内存中；</li>
+<li>客户端短时间内工作集落在同一Chunk上的概率更高，减少客户端访问不同ChunkServer建立TCP连接的次数，从而减少网络负载。</li>
+</ul>
+<p>坏处：</p>
+<ul>
+<li>易产生数据碎片；</li>
+<li>小文件占用Chunk少，对小文件的频繁访问会集中在少数ChunkServer上，从而产生小文件访问热点。</li>
+</ul>
+<p>可能的解决方案：</p>
+<ul>
+<li>增大小文件复制参数；</li>
+<li>客户端间互传数据。</li>
+</ul>
+<h4 id="2）元数据存储方式"><a href="#2）元数据存储方式" class="headerlink" title="2）元数据存储方式"></a>2）元数据存储方式</h4><p>Master存储的元数据包括：命名空间、文件和Chunk的对应关系、Chunk位置信息。</p>
+<p>命名空间、文件和Chunk的对应关系的存储方式：</p>
+<ul>
+<li>内存：真实数据；</li>
+<li>磁盘：定期Checkpoint（压缩B树）和上次CheckPoint后的操作日志；</li>
+<li>多机备份：Checkpoint文件和操作日志。</li>
+</ul>
+<p>Chunk位置信息的存储方式：</p>
+<ul>
+<li>内存：真实数据</li>
+<li>磁盘：不持久存储</li>
+</ul>
+<p>系统启动和新Chunk服务器加入时从Chunk服务器获取。避免了Master与ChunkServer之间的数据同步，只有Chunk服务器才能最终确定Chunk是否在它的硬盘上。</p>
+<h4 id="3）Log"><a href="#3）Log" class="headerlink" title="3）Log"></a>3）Log</h4><p>log是非常关键的数据，log会存在多个不同的主机上，并且只有当刷新了这个相关的操作记录到本地和远程磁盘后，才会给客户端操作应答。Master的日志在超过某一大小后，执行checkpoint操作，卸载自己的状态。</p>
+<h4 id="4）一致性模型"><a href="#4）一致性模型" class="headerlink" title="4）一致性模型"></a>4）一致性模型</h4><p>命名空间修改：原子性和正确性</p>
+<p>文件数据修改（之后详细解释）：</p>
+<p><img src="http://img.blog.csdn.net/20140114135105406?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"></p>
+<ul>
+<li>修改失败：不一致</li>
+<li>串行随机写：一致且已定义</li>
+<li>并行随机写：非原子写，一致但未定义</li>
+<li>串行/并行追加写（推荐）：少量不一致，保证已定义</li>
+</ul>
+<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><h3 id="1、系统交互设计"><a href="#1、系统交互设计" class="headerlink" title="1、系统交互设计"></a>1、系统交互设计</h3><h4 id="1）重要原则"><a href="#1）重要原则" class="headerlink" title="1）重要原则"></a>1）重要原则</h4><p>最小化所有操作与Master的交互。</p>
+<h4 id="2）缓存机制"><a href="#2）缓存机制" class="headerlink" title="2）缓存机制"></a>2）缓存机制</h4><p>最小化读取操作与Master的交互：</p>
+<p>客户端访问Chunk前从Master获取元数据的过程中，会预取和缓存部分Chunk的元数据，从而减少与Master的交互。</p>
+<h4 id="2）租约机制"><a href="#2）租约机制" class="headerlink" title="2）租约机制"></a>2）租约机制</h4><p>最小化变更操作与Master的交互：</p>
+<p>Master收到变更操作请求后</p>
+<ul>
+<li>选择一个Chunk副本发放定时租约作为主Chunk并返回给客户端；</li>
+<li>客户端与主Chunk进行通信进行变更操作；</li>
+<li>租约超时前，对该Chunk的变更操作都由主Chunk进行序列化控制。</li>
+</ul>
+<h4 id="3）数据流与控制流分离"><a href="#3）数据流与控制流分离" class="headerlink" title="3）数据流与控制流分离"></a>3）数据流与控制流分离</h4><p><img src="http://img.blog.csdn.net/20140114135126062?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"></p>
+<p>数据推送与控制操作同时进行。</p>
+<p>数据流：管道方式按最优化的Chunk服务器链推送，以最大化带宽，最小化延时（全双工交换网络，每台机器进出带宽最大化）；数据会被缓存在chunk的cache中直到使用或者过期。</p>
+<p>控制流：</p>
+<ul>
+<li>master选择出primary chunk （1-4）</li>
+<li>主ChunkServer确定所有副chunk接收完毕后，对所有变更操作分配连续序列号（序号确定操作顺序）；</li>
+<li>按序修改本地数据；</li>
+<li>请求二级副本按序修改；</li>
+<li>所有副本修改完成成功，否则失败重做。</li>
+</ul>
+<h4 id="4）原子记录追加"><a href="#4）原子记录追加" class="headerlink" title="4）原子记录追加"></a>4）原子记录追加</h4><p>追加写时GFS推荐的写入方式，应重点研究。</p>
+<p>a. 原子记录追加：客户端指定写入数据，GFS返回真实写入偏移量。</p>
+<p>b. 追加写的过程：</p>
+<ul>
+<li>追加操作会使Chunk超过尺寸填充当前Chunk；通知二级副本做同样操作；通知客户机向新Chunk追加；</li>
+<li>追加操作不会使Chunk超过尺寸主Chunk追加数据；通知二级副本写在相同位置上；成功 - 返回偏移； 失败 - 再次操作。</li>
+</ul>
+<p>c. 追加结果：失败的追加操作可能导致Chunk间字节级别不一致，但当最终追加成功后，所有副本在返回的偏移位置一致已定义，之后的追加操作不受影响。如下图所示：</p>
+<p><img src="http://img.blog.csdn.net/20140114135137109?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGFvdGFvdGhlcmlwcGVy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"></p>
+<p>d. 冗余数据处理：对于追加写产生的冗余数据</p>
+<ul>
+<li>Chunk尺寸不足时的填充数据</li>
+<li>追加失败时产生的重复内容</li>
+</ul>
+<p>可在插入数据时附带记录级别的Checksum或唯一标识符，在客户端读取数据时进行校验过滤。</p>
+<h4 id="6）快照"><a href="#6）快照" class="headerlink" title="6）快照"></a>6）快照</h4><p>使用COW技术，瞬间完成。快照实现的过程：</p>
+<ul>
+<li>收回文件所有Chunk的租约；</li>
+<li>操作元数据完成元数据拷贝；</li>
+<li>客户端要写入该文件的Chunk时，Master通知该Chunk所在ChunkServer进行本地拷贝；</li>
+<li>发放租约给拷贝Chunk；</li>
+<li>返回拷贝Chunk的位置信息。</li>
+</ul>
+<h3 id="2、Master节点设计"><a href="#2、Master节点设计" class="headerlink" title="2、Master节点设计"></a>2、Master节点设计</h3><p>这里没有讲如何防止出现两个master，这应该是后面课程会单独讲的。</p>
+<h4 id="1）名称空间管理"><a href="#1）名称空间管理" class="headerlink" title="1）名称空间管理"></a>1）名称空间管理</h4><p>多操作并行，名称空间锁保证执行顺序，文件操作需获得父目录读锁和目标文件/目录写锁。（在名字上的读锁保证父目录不被删除）</p>
+<h4 id="2）副本位置"><a href="#2）副本位置" class="headerlink" title="2）副本位置"></a>2）副本位置</h4><p>Chunk跨机架分布：</p>
+<p>好处 -</p>
+<ul>
+<li>防止整个机架破坏造成数据失效</li>
+<li>综合利用多机架整合带宽（机架出入带宽可能小于机架上机器的总带宽，所以应最大化每台机架的带宽利用率）；</li>
+</ul>
+<p>坏处 - 写操作需跨机架通信。</p>
+<h4 id="3）Chunk管理"><a href="#3）Chunk管理" class="headerlink" title="3）Chunk管理"></a>3）Chunk管理</h4><p>a. 创建操作，主要考虑：</p>
+<ul>
+<li>平衡硬盘使用率；</li>
+<li>限制单ChunkServer短期创建次数（创建开销虽小，但每次创建往往意味着大量的后续写入）；</li>
+<li>跨机架分布。</li>
+</ul>
+<p>b. 重复制，即有效副本不足时，通过复制增加副本数。优先考虑：</p>
+<ul>
+<li>副本数量和复制因数相差多的；</li>
+<li>live（未被删除）文件的；</li>
+<li>阻塞客户机处理的</li>
+</ul>
+<p>Chunk进行重复制。策略与创建类似。</p>
+<p>c. 重负载均衡，通过调整副本位置，平衡格机负载。策略与创建类似。新ChunkServer将被逐渐填满。</p>
+<h4 id="4）垃圾回收"><a href="#4）垃圾回收" class="headerlink" title="4）垃圾回收"></a>4）垃圾回收</h4><p>惰性回收空间：删除操作仅在文件名后添加隐藏标记，Master在常规扫描中删除超时隐藏文件的元数据，并通知对应ChunkServer删除Chunk。</p>
+<p>好处 -</p>
+<ul>
+<li>与创建失败的无效Chunk一致的处理方式；</li>
+<li>批量执行开销分散，Master相对空闲时进行；</li>
+<li>删除操作一定时间内可逆转。</li>
+</ul>
+<p>坏处 - 不便于用户进行存储空间调优。</p>
+<p>解决方案 - 再次删除加速回收，不同命名空间不同复制回收策略。</p>
+<h4 id="5）过期失效副本检测"><a href="#5）过期失效副本检测" class="headerlink" title="5）过期失效副本检测"></a>5）过期失效副本检测</h4><p>过期检测：Master维护Chunk级别版本号（在master为chunk发放一个令牌是，会增加chunk的版本号并通知最新的副本），新租约增加Chunk版本号，并通知所有副本更新版本号，过期Chunk会因版本号过旧被检测。</p>
+<h3 id="3、容错机制设计"><a href="#3、容错机制设计" class="headerlink" title="3、容错机制设计"></a>3、容错机制设计</h3><h4 id="1）高可用性"><a href="#1）高可用性" class="headerlink" title="1）高可用性"></a>1）高可用性</h4><p>主要的提高可用性的机制：</p>
+<ul>
+<li>组件快速恢复</li>
+<li>Chunk复制</li>
+<li>Master服务器复制Checkpoint和操作日志多机备份；Master进程失效重启，硬件失效则新机器重启Master进程；“影子”Master，通过操作日志“模仿”主Master操作，元数据版本稍慢。作用 - 增强对于不是很活跃修改的文件的读取能力，提高了对于读取脏数据也ok的应用的读取性能。</li>
+</ul>
+<h4 id="2）数据完整性"><a href="#2）数据完整性" class="headerlink" title="2）数据完整性"></a>2）数据完整性</h4><p>ChunkServer独立维护CheckSum检验副本完整性。原因：</p>
+<ul>
+<li>跨Chunk服务器比较副本开销大；</li>
+<li>追加操作造成的的byte级别不一致，导致无法通过比较副本判断完整性。</li>
+</ul>
+<p>Chunk<strong>读取</strong>和Chunk服务器<strong>空闲</strong>时，进行CheckSum校验，发现损坏Chunk上报Master，进行重复制。</p>
+<p>Checksum校验的开销：</p>
+<ul>
+<li>Checksum读取开销；</li>
+<li>Checksum校验计算开销。</li>
+</ul>
+<p>但整体开销可以接受，特别是对追加写操作。</p>
+<p>覆盖写与追加写的Checksum计算开销比较。两者的关键区别在于不完整块的CheckSum计算：</p>
+<ul>
+<li>追加写 - 对最后一个不完整块，在写入后进行增量的CheckSum计算。New CheckSum由Old CheckSum和新数据算出，未对原有数据重新计算，原有数据损坏，依然可以在后续读取时发现；</li>
+<li>覆盖写 - 对第一个和最后一个不完整块，在写之前进行CheckSum校验。否则，覆盖写只能重新对整块计算CheckSum，若写操作未覆盖部分存在损坏数据，新CheckSum将从包含损坏数据的Chunk算出，之后再也无法校验出该损坏数据。</li>
+</ul>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p>基于这篇<a href="http://blog.csdn.net/taotaotheripper/article/details/18261395笔记进行了修改，原笔记写的不错。" target="_blank" rel="external">http://blog.csdn.net/taotaotheripper/article/details/18261395笔记进行了修改，原笔记写的不错。</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/12/07/GFS/">http://thousandhu.github.io/2016/12/07/GFS/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/GFS/" rel="tag"># GFS</a>
+          
+            <a href="/tags/6-824/" rel="tag"># 6.824</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/22/MIT-6-824-lab1/" rel="next" title="MIT 6.824 lab1">
+                <i class="fa fa-chevron-left"></i> MIT 6.824 lab1
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/01/17/structuring-apache-spark-2-0/" rel="prev" title="structuring apache spark 2.0">
+                structuring apache spark 2.0 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#设计预期"><span class="nav-number">1.</span> <span class="nav-text">设计预期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#整体设计"><span class="nav-number">2.</span> <span class="nav-text">整体设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1、系统架构"><span class="nav-number">2.1.</span> <span class="nav-text">1、系统架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2、设计要点"><span class="nav-number">2.2.</span> <span class="nav-text">2、设计要点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1）Chunk尺寸"><span class="nav-number">2.2.1.</span> <span class="nav-text">1）Chunk尺寸</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2）元数据存储方式"><span class="nav-number">2.2.2.</span> <span class="nav-text">2）元数据存储方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3）Log"><span class="nav-number">2.2.3.</span> <span class="nav-text">3）Log</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4）一致性模型"><span class="nav-number">2.2.4.</span> <span class="nav-text">4）一致性模型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#详细设计"><span class="nav-number">3.</span> <span class="nav-text">详细设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1、系统交互设计"><span class="nav-number">3.1.</span> <span class="nav-text">1、系统交互设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1）重要原则"><span class="nav-number">3.1.1.</span> <span class="nav-text">1）重要原则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2）缓存机制"><span class="nav-number">3.1.2.</span> <span class="nav-text">2）缓存机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2）租约机制"><span class="nav-number">3.1.3.</span> <span class="nav-text">2）租约机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3）数据流与控制流分离"><span class="nav-number">3.1.4.</span> <span class="nav-text">3）数据流与控制流分离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4）原子记录追加"><span class="nav-number">3.1.5.</span> <span class="nav-text">4）原子记录追加</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6）快照"><span class="nav-number">3.1.6.</span> <span class="nav-text">6）快照</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2、Master节点设计"><span class="nav-number">3.2.</span> <span class="nav-text">2、Master节点设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1）名称空间管理"><span class="nav-number">3.2.1.</span> <span class="nav-text">1）名称空间管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2）副本位置"><span class="nav-number">3.2.2.</span> <span class="nav-text">2）副本位置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3）Chunk管理"><span class="nav-number">3.2.3.</span> <span class="nav-text">3）Chunk管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4）垃圾回收"><span class="nav-number">3.2.4.</span> <span class="nav-text">4）垃圾回收</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5）过期失效副本检测"><span class="nav-number">3.2.5.</span> <span class="nav-text">5）过期失效副本检测</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3、容错机制设计"><span class="nav-number">3.3.</span> <span class="nav-text">3、容错机制设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1）高可用性"><span class="nav-number">3.3.1.</span> <span class="nav-text">1）高可用性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2）数据完整性"><span class="nav-number">3.3.2.</span> <span class="nav-text">2）数据完整性</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number"></span> <span class="nav-text">参考文献</span></a></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

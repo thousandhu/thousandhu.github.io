@@ -1,0 +1,8 @@
+# hexo robots.txt
+User-agent: *
+Allow: /
+Allow: /archives/
+
+Sitemap: http://thousandhu.github.io/sitemap.xml
+Sitemap: http://thousandhu.github.io/baidusitemap.xml
+

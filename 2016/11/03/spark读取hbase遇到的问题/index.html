@@ -1,0 +1,706 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hbase,spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="我们的程序会从Table1中取出数据，对每一行将其中的几列（这里用A和B）算出一个新的rowkey，并对整个数据做一些转换，之后以rowkey为key插入Table2中去。如果Table1中一行的数据不同时包含A和B，我们会丢弃这条数据。经过一段时间的运行，我们发现程序会出现丢数据的情况，大概30000万行会丢失1万行左右。并且该情况可以复现。 开始时我们怀疑是程序转换过程中出的问题，但是经过排查">
+<meta name="keywords" content="hbase,spark">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark读取hbase遇到的问题">
+<meta property="og:url" content="http://thousandhu.github.io/2016/11/03/spark读取hbase遇到的问题/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="我们的程序会从Table1中取出数据，对每一行将其中的几列（这里用A和B）算出一个新的rowkey，并对整个数据做一些转换，之后以rowkey为key插入Table2中去。如果Table1中一行的数据不同时包含A和B，我们会丢弃这条数据。经过一段时间的运行，我们发现程序会出现丢数据的情况，大概30000万行会丢失1万行左右。并且该情况可以复现。 开始时我们怀疑是程序转换过程中出的问题，但是经过排查">
+<meta property="og:updated_time" content="2016-11-03T09:04:38.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark读取hbase遇到的问题">
+<meta name="twitter:description" content="我们的程序会从Table1中取出数据，对每一行将其中的几列（这里用A和B）算出一个新的rowkey，并对整个数据做一些转换，之后以rowkey为key插入Table2中去。如果Table1中一行的数据不同时包含A和B，我们会丢弃这条数据。经过一段时间的运行，我们发现程序会出现丢数据的情况，大概30000万行会丢失1万行左右。并且该情况可以复现。 开始时我们怀疑是程序转换过程中出的问题，但是经过排查">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/11/03/spark读取hbase遇到的问题/"/>
+
+
+
+
+
+  <title>spark读取hbase遇到的问题 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/11/03/spark读取hbase遇到的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">spark读取hbase遇到的问题</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-03T17:04:23+08:00">
+                2016-11-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>我们的程序会从Table1中取出数据，对每一行将其中的几列（这里用A和B）算出一个新的rowkey，并对整个数据做一些转换，之后以rowkey为key插入Table2中去。如果Table1中一行的数据不同时包含A和B，我们会丢弃这条数据。经过一段时间的运行，我们发现程序会出现丢数据的情况，大概30000万行会丢失1万行左右。并且该情况可以复现。</p>
+<p>开始时我们怀疑是程序转换过程中出的问题，但是经过排查，发现在数据从hbase中load出来时一行数据就已经可能缺失。我在load时判断几个关键的列A,B,C,D是否存在，不存在时就将该列补充为“empty”，然后不作处理直接将load的数据写入hbase的新表，发现新表中的确有empty值出现。于是怀疑是不是spark读取hbase的接口有问题，我们使用的是<code>newAPIHadoopRDD</code>这个接口。可是作为一个很基础的接口，不应该出现类似的问题。</p>
+<p>为了验证这个接口是不是有问题，我们做了这样一个实验，将一个表的数据读出，对于每一条数据，不做转换，以它本身的rowkey作为rowkey直接写入新表，发现没有问题。于是怀疑还是我们使用方式的问题。这个实验和上一个实验不同的地方就是一个是我们自己算rowkey，一个是数据本身的rowkey。难道是因为一条数据被分开读了导致我们自己算rowkey出现了问题丢了数据。</p>
+<p>带着这个问题，我们进一步追踪了load的过程，对于有错的一行数据row X，system.out了所有load时key为row X的情况，果然这一行数据被分成两次读取，并且两次数据合并的结果是该行的最终结果。这导致如果恰好A，B两列被分开读取，这个数据就被我们丢弃了，其余分开读取的情况也会丢一部分数据。</p>
+<p>针对这个问题，我们首先做了紧急修复，在load之后使用reduceByKey对数据进行merge，这样虽然可以修复问题，但是无疑会增加一次shuffle，拖慢程序的效率。我们猜想应该是由于hbase读取时设置不当导致数据被分开读取。</p>
+<p>我们的代码中是这样读取hbase的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">conf.set(TableInputFormat.INPUT_TABLE, tableName);</div><div class="line">conf.setLong(TableInputFormat.SCAN_BATCHSIZE, <span class="number">500</span>);</div><div class="line">conf.setLong(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, <span class="number">300000</span>);</div><div class="line">JavaPairRDD&lt;ImmutableBytesWritable, Result&gt; raw = jsc.newAPIHadoopRDD(conf, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);</div></pre></td></tr></table></figure>
+<p>这里设置了hbase SCAN_BATCHSIZE这个值，会设置scan的batchsize。这个设置的文档是这样说的：</p>
+<blockquote>
+<p>Set the maximum number of values to return for each call to next()</p>
+</blockquote>
+<p>之前一直以为这里是设置一次读取多少行，但是经过询问得知这里的values貌似是读取多少列，并且开启了这个值会导致hbase scan时返回一行的部分结果。于是我们写了demo，将这个值设为1，查看每个key在spark出现的次数，果然他们被读出了和自身column数量一样次。</p>
+<p>于是将这个设置注释掉，程序即可正常运行。</p>
+<p>进一步的，我们从hbase端代码看看这个设置。hbase的scan会两个成员变量：</p>
+<ul>
+<li><code>private boolean allowPartialResults = false;</code></li>
+<li><code>private int batch = -1;</code></li>
+</ul>
+<p>allowPartialResult这个很明显就是会返回部分结果的设置，那么这个batch呢？setBatch()时并不会设置allowPartialResult。但是在Scan的getResultsToAddToCache()函数中，如果batch值大于0，会设置isBatch=true。之后会有这段代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// If the caller has indicated in their scan that they are okay with seeing partial results,</span></div><div class="line"><span class="comment">// then simply add all results to the list. Note that since scan batching also returns results</span></div><div class="line"><span class="comment">// for a row in pieces we treat batch being set as equivalent to allowing partials. The</span></div><div class="line"><span class="comment">// implication of treating batching as equivalent to partial results is that it is possible</span></div><div class="line"><span class="comment">// the caller will receive a result back where the number of cells in the result is less than</span></div><div class="line"><span class="comment">// the batch size even though it may not be the last group of cells for that row.</span></div><div class="line">    <span class="keyword">if</span> (allowPartials || isBatchSet) &#123;</div><div class="line">      addResultsToList(resultsToAddToCache, resultsFromServer, <span class="number">0</span>,</div><div class="line">          (<span class="keyword">null</span> == resultsFromServer ? <span class="number">0</span> : resultsFromServer.length));</div><div class="line">      <span class="keyword">return</span> resultsToAddToCache;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里就得出了结论，设置batchSize会导致结果返回时出现一次只返回一行的部分值，一行数据分成多条被返回的情况。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/11/03/spark读取hbase遇到的问题/">http://thousandhu.github.io/2016/11/03/spark读取hbase遇到的问题/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hbase/" rel="tag"># hbase</a>
+          
+            <a href="/tags/spark/" rel="tag"># spark</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/25/spark2-0-standalong模式部署/" rel="next" title="spark2.0源码阅读-standalong模式部署">
+                <i class="fa fa-chevron-left"></i> spark2.0源码阅读-standalong模式部署
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/11/15/spark-on-yarn/" rel="prev" title="spark on yarn">
+                spark on yarn <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

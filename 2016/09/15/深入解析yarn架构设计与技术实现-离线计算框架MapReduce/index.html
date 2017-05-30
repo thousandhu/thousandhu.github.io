@@ -1,0 +1,767 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="深入解析yarn架构设计与技术实现-MR MR客户端mr的客户端主要是通过ApplicationClientProtocol和MRClientProtocol两个rpc通信协议和ResourceManager以及ApplicationMaster通信。 具体来讲，在yarn上，client会创建一个YarnRunner作为真正的client。该client首先会调用ApplicationClien">
+<meta name="keywords" content="yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-离线计算框架MapReduce">
+<meta property="og:url" content="http://thousandhu.github.io/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="深入解析yarn架构设计与技术实现-MR MR客户端mr的客户端主要是通过ApplicationClientProtocol和MRClientProtocol两个rpc通信协议和ResourceManager以及ApplicationMaster通信。 具体来讲，在yarn上，client会创建一个YarnRunner作为真正的client。该client首先会调用ApplicationClien">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-09-12-002746.png">
+<meta property="og:updated_time" content="2016-09-15T15:02:09.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-离线计算框架MapReduce">
+<meta name="twitter:description" content="深入解析yarn架构设计与技术实现-MR MR客户端mr的客户端主要是通过ApplicationClientProtocol和MRClientProtocol两个rpc通信协议和ResourceManager以及ApplicationMaster通信。 具体来讲，在yarn上，client会创建一个YarnRunner作为真正的client。该client首先会调用ApplicationClien">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-09-12-002746.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-离线计算框架MapReduce | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-离线计算框架MapReduce</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-15T23:00:05+08:00">
+                2016-09-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>深入解析yarn架构设计与技术实现-MR</p>
+<h1 id="MR客户端"><a href="#MR客户端" class="headerlink" title="MR客户端"></a>MR客户端</h1><p>mr的客户端主要是通过ApplicationClientProtocol和MRClientProtocol两个rpc通信协议和ResourceManager以及ApplicationMaster通信。</p>
+<p>具体来讲，在yarn上，client会创建一个YarnRunner作为真正的client。该client首先会调用ApplicationClientProtocol提交application，当application成功提交后会通过ClientCache得到clientServiceDelegate与ApplicationMaster直接交互来获取任务的执行信息以及控制任务。</p>
+<h1 id="MRAppmaster工作流程"><a href="#MRAppmaster工作流程" class="headerlink" title="MRAppmaster工作流程"></a>MRAppmaster工作流程</h1><p>yarn上的mr除了本地模式还有uber模式和no-uber模式</p>
+<h2 id="uber模式"><a href="#uber模式" class="headerlink" title="uber模式"></a>uber模式</h2><p>uber模式是yarn针对小任务进行的优化的模式。对于小任务MRAppmaster让其重用一个container，按照先map后reduce的模式串行执行。如果一个任务满足下列条件，则被认为是小作业，会在uber模式执行。</p>
+<ul>
+<li>map task不超过mapreduce.job.ubertask.maxmaps（默认9）</li>
+<li>reduce Task数目不超过mapreduce.job.ubertask.maxreduces（默认是1)</li>
+<li>输入文件大小不超过mapreduce.job.ubertask.maxbytes（一个block大小）</li>
+</ul>
+<p>链式作业不允许执行在uber模式下。</p>
+<h2 id="Non-Uber模式"><a href="#Non-Uber模式" class="headerlink" title="Non-Uber模式"></a>Non-Uber模式</h2><p>Non-Uber模式下Map task和reduce task分为四个状态：</p>
+<ul>
+<li>pending：刚启动，没有向resource发送资源请求</li>
+<li>scheduled：已经向resource申请资源但没有分配到资源</li>
+<li>assigned：已经分配到资源并且正在运行</li>
+<li>completed：任务完成</li>
+</ul>
+<p>Map task的生命周期为 scheduled-&gt;assigned-&gt;completed</p>
+<p>Reduce task的生命周期为pending-&gt; scheduled-&gt;assigned-&gt;completed</p>
+<p>yanr上运行mr主要有两个关键问题，如何确定reduce的启动时间以及如何shuffle</p>
+<p>为了防止reduce任务过早启动占用资源，需要在满足一下策略时才启动reduce task：</p>
+<ol>
+<li>mapreduce.job.reduce.slowstart.completedmaps:当map task完成比例达到该值时才启动reduce task。默认为0.05</li>
+<li>yarn.app.mapreduce.am.job.reduce.rampup.limit:在map task完成之前，最多启动reduce task的比例，默认为0.5</li>
+<li>yarn.app.mapreduce.am.job.reduce.preemption.limit：当map  task需要资源但是暂时无法满足时，为了保证至少一个map task可以得到资源，最多可以抢占的reduce task的比例，默认为0.5</li>
+</ol>
+<p>shuffle被yarn包装成一个shufle http server服务，在任务启动时让NM启动它。</p>
+<h1 id="MR作业的生命周期"><a href="#MR作业的生命周期" class="headerlink" title="MR作业的生命周期"></a>MR作业的生命周期</h1><p>mrAppMaster根据inputFormat首先将作业分解为若干mapTask和reduceTask，每个mapTask处理一个inputSplit数据分片。对于一个task由运行实例TaskAttemp完成。每个task可能会一个个顺序启动taskAttempt直到task执行成功，也可能同时启动多个运行实例，让他们竞争执行一个任务。</p>
+<p>下图是一个不包含失败情况的job运行流程</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-09-12-002746.png" alt="2016-09-12-002746"></p>
+<h1 id="资源申请"><a href="#资源申请" class="headerlink" title="资源申请"></a>资源申请</h1><p>mr中map task和reduce task的资源申请和分配统一由containerallocator负责。如果是uber模式，则具体由LocalContainerAllocator进行资源分配，反之则由RMContainerAllocator实现。这里我们主要看RMContainerAllocator。</p>
+<p>RMContainerAllocator的第一个核心函数是heartbeat()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">heartbeat</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">   scheduleStats.updateAndLogIfChanged(<span class="string">"Before Scheduling: "</span>);</div><div class="line">   List&lt;Container&gt; allocatedContainers = getResources();</div><div class="line">   <span class="keyword">if</span> (allocatedContainers != <span class="keyword">null</span> &amp;&amp; allocatedContainers.size() &gt; <span class="number">0</span>) &#123;</div><div class="line">     scheduledRequests.assign(allocatedContainers);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>他最基本的动作是和RM维持心跳，告诉RM自己还活着。其次，他会调用getResources()函数请求资源。mr具体需要的资源信息是由ScheduledRequests 的一个对象维护的。该对象中有</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> LinkedList&lt;TaskAttemptId&gt; earlierFailedMaps</div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, LinkedList&lt;TaskAttemptId&gt;&gt; mapsHostMapping</div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, LinkedList&lt;TaskAttemptId&gt;&gt; mapsRackMapping </div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> Map&lt;TaskAttemptId, ContainerRequest&gt; maps</div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> LinkedHashMap&lt;TaskAttemptId, ContainerRequest&gt; reduces</div></pre></td></tr></table></figure>
+<p>这样几个成员变量，其中maps和reduces就是maptask和reducetask的任务。containerRequest是一个描述资源需求的类，有</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">final</span> TaskAttemptId attemptID;</div><div class="line"><span class="keyword">final</span> Resource capability;</div><div class="line"><span class="keyword">final</span> String[] hosts;</div><div class="line"><span class="keyword">final</span> String[] racks;</div><div class="line"><span class="comment">//final boolean earlierAttemptFailed;</span></div><div class="line"><span class="keyword">final</span> Priority priority;</div></pre></td></tr></table></figure>
+<p>分别描述资源量，node地址，刀架地址，优先级。earlierAttemptFailed不知道为啥注释掉了。因为一个文件在hdfs上会有3份，所以会申请node本地*3，同刀架*3还有any一共7份资源，任意一份申请成功则其他6个取消申请。</p>
+<p>当RMContainerAllocator收到新的container资源后，会进一步对这些资源进行分配，这个在assign()函数中实现，其过程如下</p>
+<ol>
+<li>判断收到的container包含的资源是否满足要求，如果不满足，则通过下次心跳通知resourceManager释放该container。</li>
+<li>判断收到的container是否在黑名单中，如果是则寻找一个与该container匹配的任务并重新为该任务申请资源，同时通过下次心跳同时resourcemanager释放该container。</li>
+<li>根据container的优先级分配资源。如果优先级为PRIORITY_FAST_FAIL_MAP，则分配给失败的map task；如果优先级为PRIORITY_REDUCE，则分配给reduce，否则分配给正常的map task。分配给正常的map task时会考虑locality。</li>
+<li>RMContainerAllocator发送事件给containerLauncherImpl，containerLauncherImpl异步的启动container</li>
+</ol>
+<p>#推测执行</p>
+<p>核心思想：某一时刻，判断一个任务是否拖后腿或者是否值得围棋启动备份任务时，采取的方法是：先假设为其启动了一个备份任务，估算期备份任务的完成时见estimatedendTime2；同样如果按照刺客该任务的计算速度，可以估算该任务最有可能的完成时间estimatedEndTime1，这样如果1与2的之差越大，则表示该任务备份执行的价值越大。默认情况下，DefaultSpeculator会启动一个线程，每隔一段时间扫描所有任务，预测其需不需要启动备份执行。</p>
+<h1 id="作业恢复"><a href="#作业恢复" class="headerlink" title="作业恢复"></a>作业恢复</h1><p>yarn的作业恢复是是任务级别的，采用基于日志的redo方式。在作业的运行过程中，记录作业或者任务的运行日志。当MRAppMaster重启恢复作业时，让作业沿着之前的断点继续开始执行。</p>
+<p>当一个作业失败，MRAppMaster从第二次运行开始，将尝试读取前一次记录的日志，通过日志放回的方式回复作业运行前端状态，整个过程如下：</p>
+<ol>
+<li>MRAppMaster初始化时，解析前一次记录的事件日志，冰枪已经运行完成的任务存在completedTasksFromPreviousRun中</li>
+<li>MRAppMaster构造一个新的JobImpl对象，并将completedTasksPreviousRun传递给该对象的构造函数</li>
+<li>JobImpl经过初始化后，开始内部调度的TaskImpl，如果任务处于completedTasksFromPreviousRun中，则向TaslImpl发送一个T_RECOVER事件，以恢复该任务之前的运行状态；否则按照正常启动，向TaskImpl发送一个T_SCHEDULE时间</li>
+<li>TaskImpl收到T_RECOVER事件后，通过上次运行的信息恢复状态，即直接根据日志恢复为FAILED，KILLED或者SUCCEED状态。</li>
+</ol>
+<p>这样，当MRAppMaster重启时，之前运行成功的任务就可以被恢复，但是之前正在运行的任务会在上次退出后被resourceManager回收container，所以只能重新运行。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/">http://thousandhu.github.io/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/08/28/深入解析yarn架构设计与技术实现-NodeManager2/" rel="next" title="深入解析yarn架构设计与技术实现-NodeManager2">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-NodeManager2
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/01/第二章-创建和销毁对象-effective-java/" rel="prev" title="第二章_创建和销毁对象_effective java">
+                第二章_创建和销毁对象_effective java <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MR客户端"><span class="nav-number">1.</span> <span class="nav-text">MR客户端</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MRAppmaster工作流程"><span class="nav-number">2.</span> <span class="nav-text">MRAppmaster工作流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#uber模式"><span class="nav-number">2.1.</span> <span class="nav-text">uber模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Non-Uber模式"><span class="nav-number">2.2.</span> <span class="nav-text">Non-Uber模式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MR作业的生命周期"><span class="nav-number">3.</span> <span class="nav-text">MR作业的生命周期</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#资源申请"><span class="nav-number">4.</span> <span class="nav-text">资源申请</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#作业恢复"><span class="nav-number">5.</span> <span class="nav-text">作业恢复</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

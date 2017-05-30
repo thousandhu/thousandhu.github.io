@@ -1,0 +1,737 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,hbase," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="conceptshbase的数据结构是每行一条数据，列是以column family和column的形式组织的。行数据有一个row key，row key是以byte 数组形式存储的，理论上可以是任何可序列化的数据。数据存储也是按照row key排序的（新加入数据的rowkey可以指定自增也可以自己指定）。column首先被group成column family。在同一个family中的colum">
+<meta name="keywords" content="hadoop,hbase">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop-The-Definitive-Guide-4th读书笔记-chapter-20-hbase.md">
+<meta property="og:url" content="http://thousandhu.github.io/2016/02/04/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-20-hbase-md/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="conceptshbase的数据结构是每行一条数据，列是以column family和column的形式组织的。行数据有一个row key，row key是以byte 数组形式存储的，理论上可以是任何可序列化的数据。数据存储也是按照row key排序的（新加入数据的rowkey可以指定自增也可以自己指定）。column首先被group成column family。在同一个family中的colum">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/20160126hbase-data-format.png">
+<meta property="og:image" content="http://www.searchtb.com/wp-content/uploads/2011/01/image0050.jpg">
+<meta property="og:updated_time" content="2016-02-04T12:30:28.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hadoop-The-Definitive-Guide-4th读书笔记-chapter-20-hbase.md">
+<meta name="twitter:description" content="conceptshbase的数据结构是每行一条数据，列是以column family和column的形式组织的。行数据有一个row key，row key是以byte 数组形式存储的，理论上可以是任何可序列化的数据。数据存储也是按照row key排序的（新加入数据的rowkey可以指定自增也可以自己指定）。column首先被group成column family。在同一个family中的colum">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/20160126hbase-data-format.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/02/04/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-20-hbase-md/"/>
+
+
+
+
+
+  <title>Hadoop-The-Definitive-Guide-4th读书笔记-chapter-20-hbase.md | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/02/04/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-20-hbase-md/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Hadoop-The-Definitive-Guide-4th读书笔记-chapter-20-hbase.md</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-02-04T20:29:55+08:00">
+                2016-02-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="concepts"><a href="#concepts" class="headerlink" title="concepts"></a>concepts</h1><p>hbase的数据结构是每行一条数据，列是以column family和column的形式组织的。行数据有一个row key，row key是以byte 数组形式存储的，理论上可以是任何可序列化的数据。数据存储也是按照row key排序的（新加入数据的rowkey可以指定自增也可以自己指定）。<br>column首先被group成column family。在同一个family中的column有相同的prefix。column family prefix必须是printable character组成的。column后缀可以是任何bytes，column family和后缀之间用”:”链接<br>。column family必须被添加到schema中，但是column可以被动态创建。在储存上，一个column的member会被储存到一起，tuning和storage specification也是在column family这个level。（建议同一个cf里面的元素有相同的数据大小特征和访问模式特征，这样可以充分利用相同特征对cf优化）。<br>对于一行的一列，一般称之为cell，他会储存多个版本的信息，这是和一般数据库最不同的地方。<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/20160126hbase-data-format.png" alt=""><br>自己的理解：column family是和传统数据库的column对应，column family里的内容可以理解成一个字典表。</p>
+<h2 id="regions"><a href="#regions" class="headerlink" title="regions"></a>regions</h2><p>table会按行分割为多个regions。每个region包含table中的一部分行。hbase的并行化就是通过对table分成region实现的</p>
+<h1 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h1><p>hbase 也是由client，worker，coordination master组成。</p>
+<ul>
+<li>hbase master主要管理region到registered regionservers的分配，并且管理regionserver的失败。</li>
+<li>regionserver管理0到多个region的读写请求，并且管理region的split。split后会和master通信并由master分配新的server和region的对应</li>
+</ul>
+<p>HBase中有两张特殊的Table，-ROOT-和.META.</p>
+<ul>
+<li>.META.：记录了用户表的Region信息，.META.可以有多个regoin</li>
+<li>-ROOT-：记录了.META.表的Region信息，-ROOT-只有一个region</li>
+<li>Zookeeper中记录了-ROOT-表的location</li>
+</ul>
+<p>同时HRegionServer也会把自己以Ephemeral方式注册到Zookeeper中，使得HMaster可以随时感知到各个HRegionServer的健康状态。此外，Zookeeper也避免了HMaster的单点问题</p>
+<p>hbase是先把数据写到memstore里（缓存），满了以后在flush进去，同时他也会写一个hlog，作为错误恢复用。<br><img src="http://www.searchtb.com/wp-content/uploads/2011/01/image0050.jpg" alt=""></p>
+<h1 id="MR-utils"><a href="#MR-utils" class="headerlink" title="MR utils"></a>MR utils</h1><p>hbase提供的api在<code>org.apache.hadoop.hbase.mapreduce package</code>里，通过在run函数里用scan来读取内容。map的输入数据key为immutableByteWritable， vale为Result类。<br>scan有filter功能，可以filter只读哪些行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//只拿family是d,column是s:1E的值为filterStr的行</span></div><div class="line">	SingleColumnValueFilter filter1 = <span class="keyword">new</span> SingleColumnValueFilter(</div><div class="line">          Bytes.toBytes(<span class="string">"d"</span>),</div><div class="line">          Bytes.toBytes(<span class="string">"s:1E"</span>),</div><div class="line">          CompareFilter.CompareOp.EQUAL,</div><div class="line">          Bytes.toBytes(<span class="string">"filterStr"</span>));</div><div class="line">   filterList.addFilter(filter1);</div><div class="line">   scan.setFilter(filterList);</div><div class="line">   </div><div class="line">   <span class="comment">//只取某些列</span></div><div class="line">	<span class="keyword">byte</span>[] rawData = Bytes.toBytes(kgSchema.longNameToShort(<span class="string">"m:common.topic.raw_data"</span>));</div><div class="line">   scan.addColumn(D_BYTES, rawData);</div><div class="line">   scan.addColumn(D_BYTES, Bytes.toBytes(<span class="string">"s:1E"</span>));</div><div class="line">   </div><div class="line">   TableMapReduceUtil.initTableMapperJob(tableName,</div><div class="line">                scan,</div><div class="line">                MapTask.class,</div><div class="line">                LongWritable.class,</div><div class="line">                BytesRefArrayWritable.class,</div><div class="line">                job);</div></pre></td></tr></table></figure>
+<p>创建一个hbase table<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">                表名                 cf名</div><div class="line">hbase 》create &apos;stations&apos;, &#123;NAME =&gt; &apos;info&apos;&#125;</div></pre></td></tr></table></figure></p>
+<p>向hbase table导入数据</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HBaseTemperatureImporter</span> <span class="keyword">extends</span> <span class="title">Configured</span> <span class="keyword">implements</span> <span class="title">Tool</span> </span>&#123;</div><div class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">HBaseTemperatureMapper</span>&lt;<span class="title">K</span>&gt; <span class="keyword">extends</span> <span class="title">Mapper</span>&lt;<span class="title">LongWritable</span>, <span class="title">Text</span>, <span class="title">K</span>, <span class="title">Put</span>&gt; </span>&#123;</div><div class="line">        <span class="keyword">private</span> NcdcRecordParser parser = <span class="keyword">new</span> NcdcRecordParser();</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">map</span><span class="params">(LongWritable key, Text value, Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</div><div class="line">            parser.parse(value.toString());</div><div class="line">            <span class="keyword">if</span> (parser.isValidTemperature()) &#123;</div><div class="line">                <span class="keyword">byte</span>[] rowKey = RowKeyConverter.makeObservationRowKey(parser.getStationId(), <span class="number">4</span>.See Daniel J.Abadi, “Column - Stores</div><div class="line">                <span class="keyword">for</span> Wide and Sparse Data,”January <span class="number">2007</span>.</div><div class="line">                ￼Building an Online Query Application | <span class="number">591</span></div><div class="line">                parser.getObservationDate().getTime());</div><div class="line">                <span class="comment">//重点就是这句 put和add</span></div><div class="line">                Put p = <span class="keyword">new</span> Put(rowKey);</div><div class="line">                p.add(HBaseTemperatureQuery.DATA_COLUMNFAMILY,</div><div class="line">                        HBaseTemperatureQuery.AIRTEMP_QUALIFIER,</div><div class="line">                        Bytes.toBytes(parser.getAirTemperature()));</div><div class="line">                context.write(<span class="keyword">null</span>, p);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">run</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="keyword">if</span> (args.length != <span class="number">1</span>) &#123;</div><div class="line">            System.err.println(<span class="string">"Usage: HBaseTemperatureImporter &lt;input&gt;"</span>);</div><div class="line">            <span class="keyword">return</span> -<span class="number">1</span>;</div><div class="line">        &#125;</div><div class="line">        Job job = <span class="keyword">new</span> Job(getConf(), getClass().getSimpleName());</div><div class="line">        job.setJarByClass(getClass());</div><div class="line">        FileInputFormat.addInputPath(job, <span class="keyword">new</span> Path(args[<span class="number">0</span>]));</div><div class="line">        job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, <span class="string">"observations"</span>);</div><div class="line">        job.setMapperClass(HBaseTemperatureMapper.class);</div><div class="line">        job.setNumReduceTasks(<span class="number">0</span>);</div><div class="line">        <span class="comment">//reduce直接用这个类即可</span></div><div class="line">        job.setOutputFormatClass(TableOutputFormat.class);</div><div class="line">        <span class="keyword">return</span> job.waitForCompletion(<span class="keyword">true</span>) ? <span class="number">0</span> : <span class="number">1</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="keyword">int</span> exitCode = ToolRunner.run(HBaseConfiguration.create(),</div><div class="line">                <span class="keyword">new</span> HBaseTemperatureImporter(), args);</div><div class="line">        System.exit(exitCode);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从htable里取元素（主要看如何建立htable以及如何使用get函数，另外这个extends configure, implements tool以后可以在hbase里直接用，比如这个就是可以hbase HBaseTemperatureQuery 011990-99999）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HBaseTemperatureQuery</span> <span class="keyword">extends</span> <span class="title">Configured</span> <span class="keyword">implements</span> <span class="title">Tool</span> </span>&#123;</div><div class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">byte</span>[] DATA_COLUMNFAMILY = Bytes.toBytes(<span class="string">"data"</span>);</div><div class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">byte</span>[] AIRTEMP_QUALIFIER = Bytes.toBytes(<span class="string">"airtemp"</span>);</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> NavigableMap&lt;Long, Integer&gt; <span class="title">getStationObservations</span><span class="params">(HTable table, String stationId, <span class="keyword">long</span> maxStamp, <span class="keyword">int</span> maxCount)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">        <span class="keyword">byte</span>[] startRow = RowKeyConverter.makeObservationRowKey(stationId, maxStamp);</div><div class="line">        NavigableMap&lt;Long, Integer&gt; resultMap = <span class="keyword">new</span> TreeMap&lt;Long, Integer&gt;();</div><div class="line">        Scan scan = <span class="keyword">new</span> Scan(startRow);</div><div class="line">        scan.addColumn(DATA_COLUMNFAMILY, AIRTEMP_QUALIFIER);</div><div class="line">        ResultScanner scanner = table.getScanner(scan);</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Result res;</div><div class="line">            <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">            <span class="keyword">while</span> ((res = scanner.next()) != <span class="keyword">null</span> &amp;&amp; count++ &lt; maxCount) &#123;</div><div class="line">                <span class="keyword">byte</span>[] row = res.getRow();</div><div class="line">                <span class="keyword">byte</span>[] value = res.getValue(DATA_COLUMNFAMILY, AIRTEMP_QUALIFIER);</div><div class="line">                Long stamp = Long.MAX_VALUE -</div><div class="line">                        Bytes.toLong(row, row.length - Bytes.SIZEOF_LONG, Bytes.SIZEOF_LONG);</div><div class="line">                Integer temp = Bytes.toInt(value);</div><div class="line">                resultMap.put(stamp, temp);</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line">            scanner.close();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> resultMap;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">run</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">        <span class="keyword">if</span> (args.length != <span class="number">1</span>) &#123;</div><div class="line">            System.err.println(<span class="string">"Usage: HBaseTemperatureQuery &lt;station_id&gt;"</span>);</div><div class="line">            <span class="keyword">return</span> -<span class="number">1</span>;</div><div class="line">        &#125;</div><div class="line">        HTable table = <span class="keyword">new</span> HTable(HBaseConfiguration.create(getConf()), <span class="string">"observations"</span>);</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            NavigableMap&lt;Long, Integer&gt; observations =</div><div class="line">                    getStationObservations(table, args[<span class="number">0</span>], Long.MAX_VALUE, <span class="number">10</span>).descendingMap();</div><div class="line">            <span class="keyword">for</span> (Map.Entry&lt;Long, Integer&gt; observation : observations.entrySet()) &#123; <span class="comment">// Print the date, time, and temperature</span></div><div class="line">                System.out.printf(<span class="string">"%1$tF %1$tR\t%2$s\n"</span>, observation.getKey(),</div><div class="line">                        observation.getValue());</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line"></div><div class="line">            table.close();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="keyword">int</span> exitCode = ToolRunner.run(HBaseConfiguration.create(),</div><div class="line">                <span class="keyword">new</span> HBaseTemperatureQuery(), args);</div><div class="line">        System.exit(exitCode);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Hbase使用时会一直打开hdfs文件</p>
+<p><a href="http://www.searchtb.com/2011/01/understanding-hbase.html" target="_blank" rel="external">http://www.searchtb.com/2011/01/understanding-hbase.html</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/02/04/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-20-hbase-md/">http://thousandhu.github.io/2016/02/04/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-20-hbase-md/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/hbase/" rel="tag"># hbase</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/21/mapreduce-内存溢出分析/" rel="next" title="mapreduce 内存溢出分析">
+                <i class="fa fa-chevron-left"></i> mapreduce 内存溢出分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/29/maven-几种打包方式小结/" rel="prev" title="maven 几种打包方式小结 ">
+                maven 几种打包方式小结  <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#concepts"><span class="nav-number">1.</span> <span class="nav-text">concepts</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#regions"><span class="nav-number">1.1.</span> <span class="nav-text">regions</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Implementation"><span class="nav-number">2.</span> <span class="nav-text">Implementation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MR-utils"><span class="nav-number">3.</span> <span class="nav-text">MR utils</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,708 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="java,maven," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="转载请注明出处：http://thousandhu.github.io/2015/10/27/Maven-%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/编写maven插件主要是两个部分，一个是使用这个插件的工程的pom.xml，另一个是插件本身。 首先看看工程的pom.xml 12345678910111213141516171819202122&amp;lt;build&amp;gt">
+<meta name="keywords" content="java,maven">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Maven 插件编写">
+<meta property="og:url" content="http://thousandhu.github.io/2015/10/27/Maven-插件编写/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="转载请注明出处：http://thousandhu.github.io/2015/10/27/Maven-%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/编写maven插件主要是两个部分，一个是使用这个插件的工程的pom.xml，另一个是插件本身。 首先看看工程的pom.xml 12345678910111213141516171819202122&amp;lt;build&amp;gt">
+<meta property="og:updated_time" content="2015-11-14T14:09:22.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Maven 插件编写">
+<meta name="twitter:description" content="转载请注明出处：http://thousandhu.github.io/2015/10/27/Maven-%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/编写maven插件主要是两个部分，一个是使用这个插件的工程的pom.xml，另一个是插件本身。 首先看看工程的pom.xml 12345678910111213141516171819202122&amp;lt;build&amp;gt">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2015/10/27/Maven-插件编写/"/>
+
+
+
+
+
+  <title>Maven 插件编写 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/10/27/Maven-插件编写/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Maven 插件编写</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-27T18:10:48+08:00">
+                2015-10-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>转载请注明出处：<a href="http://thousandhu.github.io/2015/10/27/Maven-%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/">http://thousandhu.github.io/2015/10/27/Maven-%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/</a><br>编写maven插件主要是两个部分，一个是使用这个插件的工程的pom.xml，另一个是插件本身。</p>
+<p>首先看看工程的pom.xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>my.maven<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>my-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">executions</span>&gt;</span></div><div class="line">           <span class="tag">&lt;<span class="name">execution</span>&gt;</span></div><div class="line">              <span class="tag">&lt;<span class="name">id</span>&gt;</span>process rdf<span class="tag">&lt;/<span class="name">id</span>&gt;</span></div><div class="line">              <span class="tag">&lt;<span class="name">phase</span>&gt;</span>generate-resources<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></div><div class="line">              <span class="tag">&lt;<span class="name">goals</span>&gt;</span></div><div class="line">                 <span class="tag">&lt;<span class="name">goal</span>&gt;</span>process<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></div><div class="line">              <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></div><div class="line">              <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">                 <span class="tag">&lt;<span class="name">from</span>&gt;</span>param1<span class="tag">&lt;/<span class="name">from</span>&gt;</span></div><div class="line">                 <span class="tag">&lt;<span class="name">to</span>&gt;</span>param2<span class="tag">&lt;/<span class="name">to</span>&gt;</span></div><div class="line">              <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line">           <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></div><div class="line">     <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>这里注意这样几个参数</p>
+<ol>
+<li>groupId:和具体程序的报名前缀要相同</li>
+<li>packaging:    This should be set to “maven-plugin”</li>
+<li>dependencies：A dependency must be declared to the Maven Plugin Tools API to resolve “AbstractMojo” and related classes</li>
+<li>phase：就是在编译的那个阶段执行，可以参考<a href="http://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html" target="_blank" rel="external">Build Lifecycle</a></li>
+<li>goals: 这里的goal会在插件程序中作为注释，pom中提到的goal下的类中的execute会被执行</li>
+<li>configuration：这里主要是传入参数，比如程序中某个变量前有<code>/*** @parameter expression=&quot;ttlFrom&quot;*/</code>的注释则会自动把值赋给这个变量。<br><a href="http://maven.apache.org/guides/plugin/guide-java-plugin-development.html" target="_blank" rel="external">官网</a>的这篇文档有更多的介绍</li>
+</ol>
+<p>接下来java文件</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * @goal hello</div><div class="line"> */</div><div class="line">public class SayHelloMojo extends AbstractMojo &#123;    </div><div class="line">    /**</div><div class="line">     * @parameter expression="ttlFrom"</div><div class="line">     */</div><div class="line">    @Parameter( property = "hello.user", defaultValue = "admin" )</div><div class="line">    private String user;</div><div class="line">    public void execute() throws MojoExecutionException, MojoFailureException &#123;</div><div class="line">    	System.out.println("</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>java文件中的@goal和pom.xml对应。maven编译时会执行这个注释标注的类的execute函数。</p>
+<p>至于@parameter，我的程序中其实是没有的。String user的值直接和pom.xml的configuration通过变量名的方式对应。而且intellij中如果你在pom.xml中写没有定义名字的config，还会报错。。。</p>
+<p>最后在java文件的命令行下执行mvn install。即可安装上mvn，这样用mvn编译时就会用到这个插件。</p>
+<p>最后说一下版本吧，我的mvn是3.3.3,log里和mvn版本有关的信息有：</p>
+<ul>
+<li>maven-jar-plugin:2.4</li>
+<li>maven-plugin-plugin:3.2</li>
+<li>maven-install-plugin:2.4</li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2015/10/27/Maven-插件编写/">http://thousandhu.github.io/2015/10/27/Maven-插件编写/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/maven/" rel="tag"># maven</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/27/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter3-HDFS/" rel="next" title="Hadoop: The Definitive Guide 4th 读书笔记—chapter3: HDFS">
+                <i class="fa fa-chevron-left"></i> Hadoop: The Definitive Guide 4th 读书笔记—chapter3: HDFS
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/28/Apache-jena解析RDF-schema/" rel="prev" title="Apache jena解析RDF schema">
+                Apache jena解析RDF schema <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

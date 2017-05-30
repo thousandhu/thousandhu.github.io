@@ -1,0 +1,775 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="java,effective java," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="第三章 对所有对象都通用的方法 第八条：覆盖equals时请遵守通用约定在以下情况下，不需要覆盖equals：  类的每个实例本质上都是唯一的：即代表实体的类而不是值的类，比如Thread 不关心类是否提供了“逻辑相等”的测试功能：如Random 超类已经覆盖了equals，并且从超类继承过来的行为是合理的：比如HashMap从AbstractMap继承的equals。 类是私有的，确定equal">
+<meta name="keywords" content="java,effective java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第三章_对所有对象都通用的方法_effective java">
+<meta property="og:url" content="http://thousandhu.github.io/2016/10/02/第三章-对所有对象都通用的方法-effective-java/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="第三章 对所有对象都通用的方法 第八条：覆盖equals时请遵守通用约定在以下情况下，不需要覆盖equals：  类的每个实例本质上都是唯一的：即代表实体的类而不是值的类，比如Thread 不关心类是否提供了“逻辑相等”的测试功能：如Random 超类已经覆盖了equals，并且从超类继承过来的行为是合理的：比如HashMap从AbstractMap继承的equals。 类是私有的，确定equal">
+<meta property="og:image" content="http://www.2cto.com/uploadfile/Collfiles/20140120/20140120090020287.jpg">
+<meta property="og:updated_time" content="2016-10-02T03:03:05.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="第三章_对所有对象都通用的方法_effective java">
+<meta name="twitter:description" content="第三章 对所有对象都通用的方法 第八条：覆盖equals时请遵守通用约定在以下情况下，不需要覆盖equals：  类的每个实例本质上都是唯一的：即代表实体的类而不是值的类，比如Thread 不关心类是否提供了“逻辑相等”的测试功能：如Random 超类已经覆盖了equals，并且从超类继承过来的行为是合理的：比如HashMap从AbstractMap继承的equals。 类是私有的，确定equal">
+<meta name="twitter:image" content="http://www.2cto.com/uploadfile/Collfiles/20140120/20140120090020287.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/10/02/第三章-对所有对象都通用的方法-effective-java/"/>
+
+
+
+
+
+  <title>第三章_对所有对象都通用的方法_effective java | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/10/02/第三章-对所有对象都通用的方法-effective-java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">第三章_对所有对象都通用的方法_effective java</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-02T11:00:07+08:00">
+                2016-10-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>第三章 对所有对象都通用的方法</p>
+<h1 id="第八条：覆盖equals时请遵守通用约定"><a href="#第八条：覆盖equals时请遵守通用约定" class="headerlink" title="第八条：覆盖equals时请遵守通用约定"></a>第八条：覆盖equals时请遵守通用约定</h1><p>在以下情况下，不需要覆盖equals：</p>
+<ul>
+<li>类的每个实例本质上都是唯一的：即代表实体的类而不是值的类，比如Thread</li>
+<li>不关心类是否提供了“逻辑相等”的测试功能：如Random</li>
+<li>超类已经覆盖了equals，并且从超类继承过来的行为是合理的：比如HashMap从AbstractMap继承的equals。</li>
+<li>类是私有的，确定equals不会被调用</li>
+</ul>
+<p>当类具有自己特定的逻辑相等时，需要覆盖equals，这是需要遵守以下约定：</p>
+<ul>
+<li>自反性：对于任何非null的x，x.equals(x)</li>
+<li>对称性：x.equals(y) 等价于 y.equals(x)</li>
+<li>传递性：x.euqals(y),y.equals(z)推出x.equals(z)</li>
+<li>一致性：在x,y均未改变的情况下，多次调用x.equals(y)结果相同</li>
+<li>非空性：任何x!=null，满足x.equals(null)=false</li>
+</ul>
+<p>这些要求最容易被破坏的情况其实是比较的时候x,y不是同一个类的情况（有可能x是y的子类这种），所以要非常注意跨类的equals</p>
+<p>实现高质量equals的诀窍：</p>
+<ol>
+<li>使用==操作检查<strong>参数是否为这个对象的引用</strong>，如果是则返回true。这种情况可以优化性能</li>
+<li>使用instanceof操作符检查<strong>参数是否为正确类型</strong></li>
+<li>把参数转换成正确类型。因为2检查过，所以不会有错</li>
+<li>对于类中的每个关键域，检查参数中的域是否与对象中对应域匹配。</li>
+<li>完成后检查是否满足对称性，传递性和一致性</li>
+</ol>
+<p>另外一些诀窍：</p>
+<ul>
+<li>覆盖equals总是要覆盖hashCode</li>
+<li>不要让equals过于智能</li>
+<li>不要将equals的参数从object变为其他类型。在覆盖equals时加上Override注解可以防止这种错误。</li>
+</ul>
+<h1 id="第九条：覆盖equals时总要覆盖hashcode"><a href="#第九条：覆盖equals时总要覆盖hashcode" class="headerlink" title="第九条：覆盖equals时总要覆盖hashcode"></a>第九条：覆盖equals时总要覆盖hashcode</h1><p>hashcode的约定内容如下：</p>
+<ul>
+<li>对象的equals方法用到的域没有修改，hashcode方法必须始终如一的返回同一个整数</li>
+<li>两个对象equals方法相等，则两个对象的hashcode结果也要相等</li>
+<li>一个好的hashcode倾向于为不equals的对象产生不同的hash编码</li>
+</ul>
+<p>计算hashcode的诀窍在于：</p>
+<ul>
+<li>对equals用到的所有域做计算，同时排除equals没用到的域。虽然只对equals用到的部分域做计算能提高性能，但是这个结果可能带来更多的hash冲突</li>
+<li>如果一个类是不可变的，同时计算hashcode开销比较大，可以考虑把hashcode存起来并且做延迟加载</li>
+</ul>
+<h1 id="第十条：始终要覆盖tostring"><a href="#第十条：始终要覆盖tostring" class="headerlink" title="第十条：始终要覆盖tostring"></a>第十条：始终要覆盖tostring</h1><p>这一条没有上两条那么严格，但是也是一个好习惯。并且注意tostraing时的格式设计。因为print函数会隐式的调用tostring，你设计的格式会影响到后续的输出处理log处理等。最好在toString时有文档。</p>
+<h1 id="第十一条：谨慎的覆盖clone"><a href="#第十一条：谨慎的覆盖clone" class="headerlink" title="第十一条：谨慎的覆盖clone"></a>第十一条：谨慎的覆盖clone</h1><p>默认情况下，clone是浅拷贝。<a href="http://www.2cto.com/kf/201401/273852.html" target="_blank" rel="external">参考文献</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Cloneable</span></span>&#123;</div><div class="line">     </div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age ;</div><div class="line">    <span class="keyword">private</span> String name;</div><div class="line">     </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Person</span><span class="params">(<span class="keyword">int</span> age, String name)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.age = age;</div><div class="line">        <span class="keyword">this</span>.name = name;</div><div class="line">    &#125;</div><div class="line">     </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Person</span><span class="params">()</span> </span>&#123;&#125;</div><div class="line"> </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> age;</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> name;</div><div class="line">    &#125;</div><div class="line">     </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> Object <span class="title">clone</span><span class="params">()</span> <span class="keyword">throws</span> CloneNotSupportedException </span>&#123;</div><div class="line">        <span class="keyword">return</span> (Person)<span class="keyword">super</span>.clone();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>person.clone后name是同一个:</p>
+<p><img src="http://www.2cto.com/uploadfile/Collfiles/20140120/20140120090020287.jpg" alt=""></p>
+<p>另外自己试了一下，对于list拷贝，遍历循环复制，使用List实现类的拷贝构造方法，使用list.addAll()方法，使用System.arraycopy()方法，使用collections.copy都是浅拷贝，使用序列化方法是相对靠谱的深拷贝。<a href="http://blog.csdn.net/qiaoidea/article/details/41277263" target="_blank" rel="external">参考文献</a></p>
+<p>或者<a href="http://www.importnew.com/10761.html" target="_blank" rel="external">使用clone函数</a></p>
+<p>clone函数是一个非常容易出错的函数。一般来讲，实现了Cloneable接口的类都应该用一个公有方法覆盖clone。此方法调用super.clone，然后修正任何需要修正的域。在对线程安全的类进行拷贝时记得同步。</p>
+<p>其实可以用其他两种方法实现类似功能：</p>
+<ul>
+<li>拷贝构造器： <code>public Sth (Sth sth)</code></li>
+<li>拷贝工厂： <code>public static Sth newInstanc(Sth sth)</code></li>
+</ul>
+<h1 id="第十二条：考虑实现Comparable接口"><a href="#第十二条：考虑实现Comparable接口" class="headerlink" title="第十二条：考虑实现Comparable接口"></a>第十二条：考虑实现Comparable接口</h1><ol>
+<li>确保所有的x、y满足 sgn(x.compareTo(y)) == -sgn(y.compareTo(x))。</li>
+<li>确保比较关系是可传递的 x.compareTo(y)&gt;0，y.compareTo(z)&gt;0，那么x.compareTo(z)&gt;0 。</li>
+<li>若x.compareTo(y)==0, 则确保 sgn(z.compareTo(x)) == sgn(z.compareTo(y))。</li>
+<li>建议(x.compareTo(y) == 0) == x.equals(y)。</li>
+</ol>
+<p>依赖于比较关系的类包括：有序集合类 TreeSet和TreeMap 、工具类 Collections和Arrays，违反了compareTo方法约定会破坏这些依赖于比较关系的类 他们内部含有搜索和排序算法。类似于hashCode 跟hashMap的关系</p>
+<p>Compareable接口是参数化的，因此不必进行类型检查也不需要对参数进行类型转换。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/10/02/第三章-对所有对象都通用的方法-effective-java/">http://thousandhu.github.io/2016/10/02/第三章-对所有对象都通用的方法-effective-java/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/effective-java/" rel="tag"># effective java</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/01/第二章-创建和销毁对象-effective-java/" rel="next" title="第二章_创建和销毁对象_effective java">
+                <i class="fa fa-chevron-left"></i> 第二章_创建和销毁对象_effective java
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/08/第四章-类和接口-effective-java/" rel="prev" title="第四章_类和接口_effective_java">
+                第四章_类和接口_effective_java <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第八条：覆盖equals时请遵守通用约定"><span class="nav-number">1.</span> <span class="nav-text">第八条：覆盖equals时请遵守通用约定</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第九条：覆盖equals时总要覆盖hashcode"><span class="nav-number">2.</span> <span class="nav-text">第九条：覆盖equals时总要覆盖hashcode</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第十条：始终要覆盖tostring"><span class="nav-number">3.</span> <span class="nav-text">第十条：始终要覆盖tostring</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第十一条：谨慎的覆盖clone"><span class="nav-number">4.</span> <span class="nav-text">第十一条：谨慎的覆盖clone</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第十二条：考虑实现Comparable接口"><span class="nav-number">5.</span> <span class="nav-text">第十二条：考虑实现Comparable接口</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

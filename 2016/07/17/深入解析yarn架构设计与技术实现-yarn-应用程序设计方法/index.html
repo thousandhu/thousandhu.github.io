@@ -1,0 +1,772 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="yarn应用程序设计方法当需要讲一个新的程序运行在yarn上时，需要编写两个组件Client和ApplicationMaster：  client负责向resourceManager提交ApplicationMaster，并查询任务云翔状态 ApplicationMaster负责向ResourceManager申请资源（以container形式），并与nodemanager通信以启动各个conta">
+<meta name="keywords" content="yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-yarn 应用程序设计方法">
+<meta property="og:url" content="http://thousandhu.github.io/2016/07/17/深入解析yarn架构设计与技术实现-yarn-应用程序设计方法/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="yarn应用程序设计方法当需要讲一个新的程序运行在yarn上时，需要编写两个组件Client和ApplicationMaster：  client负责向resourceManager提交ApplicationMaster，并查询任务云翔状态 ApplicationMaster负责向ResourceManager申请资源（以container形式），并与nodemanager通信以启动各个conta">
+<meta property="og:updated_time" content="2016-07-17T03:41:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-yarn 应用程序设计方法">
+<meta name="twitter:description" content="yarn应用程序设计方法当需要讲一个新的程序运行在yarn上时，需要编写两个组件Client和ApplicationMaster：  client负责向resourceManager提交ApplicationMaster，并查询任务云翔状态 ApplicationMaster负责向ResourceManager申请资源（以container形式），并与nodemanager通信以启动各个conta">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/07/17/深入解析yarn架构设计与技术实现-yarn-应用程序设计方法/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-yarn 应用程序设计方法 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/07/17/深入解析yarn架构设计与技术实现-yarn-应用程序设计方法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-yarn 应用程序设计方法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-17T11:39:37+08:00">
+                2016-07-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="yarn应用程序设计方法"><a href="#yarn应用程序设计方法" class="headerlink" title="yarn应用程序设计方法"></a>yarn应用程序设计方法</h1><p>当需要讲一个新的程序运行在yarn上时，需要编写两个组件Client和ApplicationMaster：</p>
+<ul>
+<li>client负责向resourceManager提交ApplicationMaster，并查询任务云翔状态</li>
+<li>ApplicationMaster负责向ResourceManager申请资源（以container形式），并与nodemanager通信以启动各个container。同时AM需要监控各个任务运行状态并在失败是为其重新申请资源</li>
+</ul>
+<p>其中涉及三个RPC协议：</p>
+<ul>
+<li>ApplicationClientProtocol：Client与ResourceManager通信</li>
+<li>ApplicationMasterProtocol： ApplicationMaster和ResourceManager通信</li>
+<li>Container《anagementProtocol： ApplicationMaster和NodeManager通信</li>
+</ul>
+<h1 id="客户端编写"><a href="#客户端编写" class="headerlink" title="客户端编写"></a>客户端编写</h1><p>客户端编写可以参考org.apache.hadoop.yarn.client.api.YarnClient。这个类提供了基本的client和yarn通信的函数的封装。另外可以查看TestYarnClient来查看yarnClient的具体使用。</p>
+<p>clinet与yarn通信，也就是与resourceManager通信。它主要分为几步：</p>
+<ol>
+<li><p>client通过ApplicationClientProtocol#getNewApplication从RM获取applicationID。除了书上说的，这里贴一段单元测试中的代码分析：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">//建立resourceManager的rpc client</div><div class="line">private ApplicationClientProtocol rmClient;</div><div class="line">this.rmClient = (ApplicationClientProtocol) rpc.getProxy(...);</div><div class="line"></div><div class="line">YarnClientApplication newApp = rmClient.createApplication();</div><div class="line"></div><div class="line">ApplicationId appId = </div><div class="line">    newApp.getNewApplicationResponse().getApplicationId();</div></pre></td></tr></table></figure>
+</li>
+<li><p>Client将ApplicationMaster提交到ResourceManager。主要是设置application id等，具体可以见下面的注释。</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">// Create launch context for app master</div><div class="line">ApplicationSubmissionContext appContext</div><div class="line">  = Records.newRecord(ApplicationSubmissionContext.class);</div><div class="line"></div><div class="line">// set the application id</div><div class="line">appContext.setApplicationId(appId);</div><div class="line"></div><div class="line">// set the application name</div><div class="line">appContext.setApplicationName(&quot;test&quot;);</div><div class="line"></div><div class="line">// Set the priority for the application master</div><div class="line">Priority pri = Records.newRecord(Priority.class);</div><div class="line">pri.setPriority(1);</div><div class="line">appContext.setPriority(pri);</div><div class="line"></div><div class="line">// Set the queue to which this application is to be submitted in the RM</div><div class="line">appContext.setQueue(&quot;default&quot;);</div><div class="line"></div><div class="line">// Set up the container launch context for the application master</div><div class="line">ContainerLaunchContext amContainer</div><div class="line">  = Records.newRecord(ContainerLaunchContext.class);</div><div class="line">appContext.setAMContainerSpec(amContainer);</div><div class="line">appContext.setResource(Resource.newInstance(1024, 1));</div><div class="line">appContext.setUnmanagedAM(unmanaged);</div><div class="line"></div><div class="line">// Submit the application to the applications manager</div><div class="line">rmClient.submitApplication(appContext);</div></pre></td></tr></table></figure>
+<p> 这里面除了很明确的几个参数，还有几个：</p>
+<ul>
+<li>unmanged：是否由客户端自己启动ApplicationMaster</li>
+<li>amContainer： ContainerLaunchContext的对象，用来描述ApplicationMaster所在的container的信息</li>
+</ul>
+</li>
+<li>还有一些常用的rpc函数，比如：<ul>
+<li>rmClient.getApplicationReport(appId)：查看application</li>
+<li>client.killApplication：停止一个任务</li>
+</ul>
+</li>
+</ol>
+<p>这里注意appContext和amContainer都是Records生成的。这个Record主要是用来构造一个可序列化的对象。而可序列化是rpc的基本条件。</p>
+<p>client一般是直接和ResourceManager通信。但是在applicationMaster生成后也可以直接与applicationMaster通信。比如mr的任务会通过MRClientProtocol与MRAppMaster通信，不过我没找到代码。。。</p>
+<h1 id="ApplicationMaster"><a href="#ApplicationMaster" class="headerlink" title="ApplicationMaster"></a>ApplicationMaster</h1><p>AM的编写主要是两部分，一部分是AM和ResourceManager通信的部分。另一部分是AM和Nodemanager通信的部分。</p>
+<h2 id="AM-RM"><a href="#AM-RM" class="headerlink" title="AM-RM"></a>AM-RM</h2><p>AM和ResourceManager通信主要分为3个步骤：</p>
+<ol>
+<li>通过ApplicationClientProtocol#registerApplicationMaster向resourceManager注册。</li>
+<li>通过ApplicationClientProtocol#allocate向resourceManager申请资源。resourceManager会返回给它可用的资源封装。这里注意allocate会被不断轮询调用，他会维持AM与RM的周期性心跳。RM靠这个保证AM还活着</li>
+<li>任务结束时调用ApplicationClientProtocol#finishApplicationMaster来告诉RM任务结束并退出。</li>
+</ol>
+<p>yarn提供了一个AM-RM的编程库，里面实现了一个同步的AMRMClientImpl和一个异步的AMRMClientAsyncImpl。一般都使用异步的，他将操作封装成一个时间放在一个线程池执行，可以看到里面有两个子类CallbackHandlerThread和 HeartbeatThread。使用这个的时候主要是要实现自己的CallbackHandler，实现AMRMClientAsync.CallbackHandler接口。接口中定义了各种情况下应该进行什么操作。而具体什么时候调用这些函数在HeartbeatThread的run()和CallbackHandlerThread()中都已经写好了，我们不用关系。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">public interface CallbackHandler &#123;</div><div class="line">    </div><div class="line">    /**</div><div class="line">     * Called when the ResourceManager responds to a heartbeat with completed</div><div class="line">     * containers. If the response contains both completed containers and</div><div class="line">     * allocated containers, this will be called before containersAllocated.</div><div class="line">     */</div><div class="line">    public void onContainersCompleted(List&lt;ContainerStatus&gt; statuses);</div><div class="line">    </div><div class="line">    /**</div><div class="line">     * Called when the ResourceManager responds to a heartbeat with allocated</div><div class="line">     * containers. If the response containers both completed containers and</div><div class="line">     * allocated containers, this will be called after containersCompleted.</div><div class="line">     */</div><div class="line">    public void onContainersAllocated(List&lt;Container&gt; containers);</div><div class="line">    </div><div class="line">    /**</div><div class="line">     * Called when the ResourceManager wants the ApplicationMaster to shutdown</div><div class="line">     * for being out of sync etc. The ApplicationMaster should not unregister</div><div class="line">     * with the RM unless the ApplicationMaster wants to be the last attempt.</div><div class="line">     */</div><div class="line">    public void onShutdownRequest();</div><div class="line">    </div><div class="line">    /**</div><div class="line">     * Called when nodes tracked by the ResourceManager have changed in health,</div><div class="line">     * availability etc.</div><div class="line">     */</div><div class="line">    public void onNodesUpdated(List&lt;NodeReport&gt; updatedNodes);</div><div class="line">    </div><div class="line">    public float getProgress();</div><div class="line">    </div><div class="line">    /**</div><div class="line">     * Called when error comes from RM communications as well as from errors in</div><div class="line">     * the callback itself from the app. Calling</div><div class="line">     * stop() is the recommended action.</div><div class="line">     *</div><div class="line">     * @param e</div><div class="line">     */</div><div class="line">    public void onError(Throwable e);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>同时，用户可以用ApplicationClient</p>
+<h2 id="AM-NM"><a href="#AM-NM" class="headerlink" title="AM-NM"></a>AM-NM</h2><p>AM与Nodemanager的通信也分为三步。</p>
+<ol>
+<li>AM将申请到的资分配给内部任务，并且启动NM上的container。这个主要是靠ContainerManagementProtocol#startContainer函数</li>
+<li>AM通过ContainerManagementProtocol#getContainerStatus轮询container的状态。如果container失败了Am会进行容错处理</li>
+<li>当Container结束时，通过ContainerManagementProtocol#stopContainer来释放相关资源</li>
+</ol>
+<p>Yarn同样提供了一个编程库：NMClientImpl和NMClientAsyncImpl。也是只需要实现NMClientAsync.CallbackHandler，其他的事情两个Impl帮你做就好。</p>
+<p>AM-NM与AM-RM唯一不同的一点在于AM要与多个counter通信.NMClientImpl维护一个<code>ConcurrentMap&lt;ContainerId, StartedContainer&gt; startedContainers</code>储存所有的container。而在NMClientAsyncImpl中，有一个<code>BlockingQueue&lt;ContainerEvent&gt; events</code>将事件缓存起来，也就是说AM是异步的将与container的通信都包装成event的形式处理的。主线程负责将各种事件put进evnets，而另外一个eventDispatcherThread线程异步处理各种事件。</p>
+<h1 id="Distributed-Shell"><a href="#Distributed-Shell" class="headerlink" title="Distributed Shell"></a>Distributed Shell</h1><p>Distributed shell 是一个很好的学习yarn application的示例程序。它主要有各两个类，<code>org.apache.hadoop.yarn.applications.distributedshell.Client</code>和<code>org.apache.hadoop.yarn.applications.distributedshell.ApplicationMaster</code></p>
+<p>Client 主要看run函数，他有一个成员变量yarnClient封装了和RM的rpc。之后run函数就按照步骤给RM提交application。最后函数调用monitorApplication()轮询的查看application的运行状态并在运行结束时返回。</p>
+<p>ApplicationMaster更是展示了如何使用yarn提供的编程库。他有两个重要的成员变量：amRmClient和nmClientAsync分别负责和rm以及和nm的通信。启动两个client以后，他有一下几步</p>
+<ol>
+<li>首先init application设置各种初始变量，就是处理运行时传进来的参数</li>
+<li>amRmClient调用registerApplicationMaster注册一个application</li>
+<li>设置container的meemory，vCore信息</li>
+<li>amRMclient调用addContainerRequest申请资源</li>
+<li>轮询查看client的状态。这里主要看numCompletedContainers.get() 是否等于 numTotalContainers。而这个numCompletedContainers是由RMCallbackHandler设置的，也就是nmClientAsync内部的子线程设置。</li>
+<li>完成最后的收尾操作，如unregister等</li>
+</ol>
+<p>其中1是在init函数，2-4是在run函数，5、6是在finish函数。利用yarn的库其实很多处理逻辑，比如am通过nm检查container状态等都省了，我们只需要提供自己的callbackHandler即可。</p>
+<p>至于书上的思考题，主要就是application run的时候设置一下申请container的属性来控制container的位置。</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/07/17/深入解析yarn架构设计与技术实现-yarn-应用程序设计方法/">http://thousandhu.github.io/2016/07/17/深入解析yarn架构设计与技术实现-yarn-应用程序设计方法/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/04/sqoop使用总结/" rel="next" title="sqoop使用总结">
+                <i class="fa fa-chevron-left"></i> sqoop使用总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/22/Hbase-利用Bulk-Load导入数据/" rel="prev" title="Hbase 利用Bulk Load导入数据">
+                Hbase 利用Bulk Load导入数据 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#yarn应用程序设计方法"><span class="nav-number">1.</span> <span class="nav-text">yarn应用程序设计方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#客户端编写"><span class="nav-number">2.</span> <span class="nav-text">客户端编写</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ApplicationMaster"><span class="nav-number">3.</span> <span class="nav-text">ApplicationMaster</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#AM-RM"><span class="nav-number">3.1.</span> <span class="nav-text">AM-RM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AM-NM"><span class="nav-number">3.2.</span> <span class="nav-text">AM-NM</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Distributed-Shell"><span class="nav-number">4.</span> <span class="nav-text">Distributed Shell</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

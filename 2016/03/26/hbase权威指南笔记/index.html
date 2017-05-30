@@ -1,0 +1,832 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hbase," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="概述数据库CAP定理：一个分布式系统只能实现一致性，可用性和分区容忍性三个中的两个 1.4.5 P22 数据储存在HFile中，是经过排序的键值映射结构，文件内部由连续的块组成，块的索引信息放在文件尾部。每次打开Hfile时块先把索引load到内存，查找时通过块索引定位到块。 跟新数据先将数据提交到日志里（write-ahead log）。   1个regionServer包含一个WAL，一个bl">
+<meta name="keywords" content="hbase">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hbase权威指南笔记">
+<meta property="og:url" content="http://thousandhu.github.io/2016/03/26/hbase权威指南笔记/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="概述数据库CAP定理：一个分布式系统只能实现一致性，可用性和分区容忍性三个中的两个 1.4.5 P22 数据储存在HFile中，是经过排序的键值映射结构，文件内部由连续的块组成，块的索引信息放在文件尾部。每次打开Hfile时块先把索引load到内存，查找时通过块索引定位到块。 跟新数据先将数据提交到日志里（write-ahead log）。   1个regionServer包含一个WAL，一个bl">
+<meta property="og:image" content="http://dl2.iteye.com/upload/attachment/0114/5936/927d7057-adcb-3847-89ed-9ea72c7b0ad4.png">
+<meta property="og:image" content="http://static.oschina.net/uploads/img/201411/28115112_gmNF.jpg">
+<meta property="og:updated_time" content="2016-03-31T10:20:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hbase权威指南笔记">
+<meta name="twitter:description" content="概述数据库CAP定理：一个分布式系统只能实现一致性，可用性和分区容忍性三个中的两个 1.4.5 P22 数据储存在HFile中，是经过排序的键值映射结构，文件内部由连续的块组成，块的索引信息放在文件尾部。每次打开Hfile时块先把索引load到内存，查找时通过块索引定位到块。 跟新数据先将数据提交到日志里（write-ahead log）。   1个regionServer包含一个WAL，一个bl">
+<meta name="twitter:image" content="http://dl2.iteye.com/upload/attachment/0114/5936/927d7057-adcb-3847-89ed-9ea72c7b0ad4.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/03/26/hbase权威指南笔记/"/>
+
+
+
+
+
+  <title>hbase权威指南笔记 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/03/26/hbase权威指南笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">hbase权威指南笔记</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-03-26T22:04:40+08:00">
+                2016-03-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>数据库CAP定理：一个分布式系统只能实现一致性，可用性和分区容忍性三个中的两个</p>
+<p>1.4.5 P22</p>
+<p>数据储存在HFile中，是经过排序的键值映射结构，文件内部由连续的块组成，块的索引信息放在文件尾部。每次打开Hfile时块先把索引load到内存，查找时通过块索引定位到块。</p>
+<p>跟新数据先将数据提交到日志里（write-ahead log）。</p>
+<p><img src="http://dl2.iteye.com/upload/attachment/0114/5936/927d7057-adcb-3847-89ed-9ea72c7b0ad4.png" alt="Storage Machinery"></p>
+<ul>
+<li>1个regionServer包含一个WAL，一个blockCache和多个HRegion</li>
+<li>1个region包含多个Store，每个Store对于一个column family</li>
+<li>1个Store对于多个Storefile</li>
+<li>1个storeFile对于1各Hfile</li>
+</ul>
+<p>读取数据时先判断在那个region。确定region以后，有一个BlockCache（bloomfilter），先判断数据是否在memory里。队以一个hfile，他由多个64k的块组成，每个块有leaf index。leaf index的结尾组成组成一个intermediate index。对于每个block，还有自己的bloom，进一步在查找键值时filter。</p>
+<ul>
+<li><a href="https://www.mapr.com/blog/in-depth-look-hbase-architecture" target="_blank" rel="external">An In-Depth Look at the HBase Architecture</a></li>
+<li><a href="http://blog.cloudera.com/blog/2012/06/hbase-io-hfile-input-output/" target="_blank" rel="external">Apache HBase I/O – HFile</a></li>
+<li><a href="http://chengjianxiaoxue.iteye.com/blog/2271643" target="_blank" rel="external">hbase存储结构-图-客户端读写数据顺序</a></li>
+<li><a href="http://my.oschina.net/zhengyang841117/blog/188723?fromerr=lxoOAiBX" target="_blank" rel="external">HBase实现分析：HFile</a></li>
+</ul>
+<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.rootdir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://master:9000/hbase<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.cluster.distributed<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span>   </div><div class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.zookeeper.quorum<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>master,slave1,slave2<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.zookeeper.property.dataDir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>/home/spark/workspace/zookeeper/data<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>其中第一个属性指定本机的hbase的存储目录，必须与Hadoop集群的core-site.xml文件配置保持一致；第二个属性指定hbase的运行模式，true代表全分布模式；第三个属性指定 Zookeeper 管理的机器，一般为奇数个；第四个属性是数据存放的路径。这里我使用的默认的 HBase 自带的 Zookeeper。同时在regionservers中写入regionserver，一行一个。</p>
+<p>之后运行 <code>bin/start-hbase.sh</code>启动程序。</p>
+<h1 id="客户端api"><a href="#客户端api" class="headerlink" title="客户端api"></a>客户端api</h1><h2 id="curd"><a href="#curd" class="headerlink" title="curd"></a>curd</h2><p>主要使用org.apache.hadoop.hbase.client的HTable类。由于HTable类需要扫描。meta表，所以尽量只创建一次，或者使用HTablePool</p>
+<p>Put/Get/Delete    读写、删除数据，同时可以用table.setAutoFlush()设置是否使用缓冲区。p78</p>
+<p><img src="http://static.oschina.net/uploads/img/201411/28115112_gmNF.jpg" alt=""></p>
+<p>显示加锁 p111</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">RowLock lockRow(byte[] row) throws IOException;</div><div class="line">void unlockRow(RowLock r1) throws IOException</div></pre></td></tr></table></figure>
+<p>get操作不需要锁，他用了一个多版本的并发控制机制保证行级别的读操作。get永远不会返回写了一半的数据。可以把它当做一个小规模的事务系统。</p>
+<p>scan 提供扫描操作 p115</p>
+<p>resultScanner类将扫描结果封装成迭代器，提供Result next（），close（）等接口。 由于其很占用资源，要保证尽早关闭它。</p>
+<h2 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h2><p>get和scan可以使用filter p130</p>
+<ul>
+<li>Rowfilter 行过滤器</li>
+<li>FamilyFilter 列族过滤器</li>
+<li>QualifierFilter 列名过滤器</li>
+<li>ValueFilter 值过滤器</li>
+<li>DependentColumnFilter 参考列过滤器</li>
+</ul>
+<p>还有很多其他的过滤器用的时候再查吧</p>
+<p>当需要同时使用多个需猎奇时，可以使用filterList（List<filter> filter）。通过FilterList.Operator可以指定与或关系。operate有<code>MUST_PASS_ONE,MUST_PASS_ALL</code></filter></p>
+<p>自定义filter需要实现filter接口或者直接继承filterBase类，同时要把它部署到所有regionserver上，并修改hbase-env.sh。p153</p>
+<h2 id="计数器"><a href="#计数器" class="headerlink" title="计数器 "></a>计数器 </h2><p>p160</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">hbase&gt; create 'counters', '2016010', 'daily'</div><div class="line">hbase&gt; incre ‘counters', '20160101', 'daily:hists', 1</div><div class="line">hbase&gt; get_counter 'counters', '2016010' , 'daily:hits'</div><div class="line">counter vavlue = 2</div></pre></td></tr></table></figure>
+<p>计数器保证了操作的原子性，同时不需要锁，这比基于行级锁的单行修改方法要快。计数器不能用put初始化，储存方式不同，会造成错误</p>
+<p>HTablePool p192</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Configuration conf = HBaseConfiguration.create();</div><div class="line">HTablePool pool = <span class="keyword">new</span> HTablePool(conf,<span class="number">5</span>);</div><div class="line">HTableInterface talbe1= pool.getTable(<span class="string">"talbename"</span>);</div><div class="line">pool.putTable(table1);</div><div class="line">pool.closeTablePool(<span class="string">"tablename)"</span></div></pre></td></tr></table></figure>
+<p>有相同conf的HTable共享一个HConnenction实例，这对于效率是有好处的（共享zookeeper链接，缓存通用资源）</p>
+<h1 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h1><h2 id="rest"><a href="#rest" class="headerlink" title="rest"></a>rest</h2><p>p322</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">bin/hbase rest start</div><div class="line">之后在网页端</div><div class="line">dn1.hadoop:60050/tablename/row/col_familename</div><div class="line">即可访问数据</div></pre></td></tr></table></figure>
+<p>rest同样有java客户端 p238</p>
+<p>hbase shell p265。hbase支持利用管道运行命令：<code>echo ”status&quot; |bin/hbase shell</code>。或者利用.rb文件。</p>
+<p>shell支持for循环等复杂操作,因为shell基于jurby的IRB</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">hbase&gt;</span><span class="bash"> java.text.SimpleDataFormat.new(<span class="string">"yyyy/MM/dd HH:mm.:ss).parse(\"2011/05/30 00：00：00\"</span></span></div><div class="line"></div><div class="line">for循环</div><div class="line"><span class="meta">hbase&gt;</span><span class="bash"><span class="string"> for i in 'a'..'z' do for j in 'a'..'z' do \</span></span></div><div class="line">put "table","row-#&#123;i&#125;,#&#123;j&#125;","colfam1:#&#123;j&#125;","#&#123;j&#125;" end end</div></pre></td></tr></table></figure>
+<h1 id="文件"><a href="#文件" class="headerlink" title="文件"></a>文件</h1><p><a href="http://blog.csdn.net/dbanote/article/details/8897599" target="_blank" rel="external">LSM树</a></p>
+<ul>
+<li>根级文件        <ul>
+<li>.logs： WAL文件</li>
+</ul>
+</li>
+<li>表级文件<ul>
+<li>.tableinfo</li>
+</ul>
+</li>
+<li>region文件<ul>
+<li><code>/&lt;hbase-root-dir&gt;/&lt;tablename&gt;/&lt;encoded-regionname&gt;/&lt;col-family&gt;/&lt;filename&gt;</code> </li>
+<li>.regioninfo</li>
+<li>.tmp：临时文件，比如hfile合并时产生的那些</li>
+<li>recovered.edits： WAL回放操作</li>
+</ul>
+</li>
+</ul>
+<p>除了regionServer挂掉然后在其他地方重启时，其他时候数据都是可用的（待确认）</p>
+<h2 id="合并"><a href="#合并" class="headerlink" title="合并"></a>合并</h2><p>minor： 负责重写最后几个生成的文件导一个大文件。不会真正删除啥的。<br>major： 据说会将所有文件合并，并且进行真正的删除。major后一个store只有一个file</p>
+<p><a href="http://mattshma.github.io/2015/09/25/hbase%E7%9A%84split%E4%B8%8Ecompact%E4%BB%8B%E7%BB%8D/" target="_blank" rel="external">hfile调优</a></p>
+<p>WAL写入流程（储存在hdfs中）</p>
+<p>实现WAL的类是HLog，核心方法是append（），是否写入wal是可选的，通过调用setWriteToWAL（false）即可。这一段可以以后结合着看看源代码，主要讲了每个类干什么 p320</p>
+<p>一个regionServer的WAL写到同一个log文件，而不是每个region单独写一个文件，主要原因是每个单独写的话存在磁盘寻道问题，是并发的写到磁盘不同位置，而写到一个就是一个顺序写。这是的一个服务崩溃以后无法立即重启的主要原因，崩溃regionserver的log需要拆分，即重新读取混合在一起的日志并将其按照归属的region分组。</p>
+<p>get读取数据是首先用时间戳和bloom filter找到需要读取的StoreFile，然后便利他们和memstore，同时使用一个keyValueHeap类来扫描。<del>~推测其得到的数据是按照堆的形式来储存</del>~。他是按照时间降序来扫描的，因为sFile其实是时间有序的。这里有空可以看看代码（p327）。</p>
+<h2 id="如何获得数据的Region地址"><a href="#如何获得数据的Region地址" class="headerlink" title="如何获得数据的Region地址"></a>如何获得数据的Region地址</h2><p>首先， HBase内部维护着两个元数据表，分别是-ROOT- 和 .META. 表 他们分别维护者当前集群所有region 的列表、状态和位置。-ROOT-表包含.META.表的region 列表，因为.META. 表可能会因为超过region的大小而进行分裂，所以-ROOT-才会保存.META.表的region索引，-ROOT-表是不会分裂的。而.META. 表中则包含所有用户region（user-space region）的列表。表中的项使用region 名作为键。region名由所属的表名、region的起始行、创建的时间 以及对其整体进行MD5 hash值。</p>
+<p>由于region的位置其实不是经常变动，所以会有缓存。具体访问步骤如下：</p>
+<ol>
+<li>从缓存中得到region的位置（1次）</li>
+<li>如果1中的位置失败，则从缓存中得到对应的.meta表的server，读取region（2次）</li>
+<li>如果2中得到的region位置失败则从缓存找到root的server并读取。meta。的位置（1次）<ul>
+<li>如果成功，进入4</li>
+<li>如果失败，则去zk读取root表的位置，然后再读取meta的位置（2次）<br>4，从meta得到region位置并读取。（1次）</li>
+</ul>
+</li>
+</ol>
+<h1 id="主从复制"><a href="#主从复制" class="headerlink" title="主从复制"></a>主从复制</h1><p>客户端将数据写入(Put)到的Region中，RegionServer会将这次写转换为一个WAL日志（附上自己的ClusterUUID），每个WAL日志中包含了若干个KV(视写入的column多少而定），并将这个WAL日志追加到全局的HLog中。Master端有一个ReplicationSource线程不断的去获取HLog的数据，并将新的数据写入到本地的一个Buffer(默认64M)中。当Buffer满了或者HLog无新数据的时候，ReplicationSource就向从集群的一个RegionServer发送同步的RPC请求。从集群的有一个ReplicationSink线程来同步接受Source传过来的数据，并将数据按照不同的表写到不同的本地Buffer中，然后由本地程序通过HTableClient端写入到本地的从HBase集群中。</p>
+<p>这个过程中有几个要注意的问题：</p>
+<p>1）Master如何选择从RegionServer的机器？</p>
+<p>在复制启动的时候，从集群会将自己的ZK地址注册给主集群。Master通过从集群的ZK知道从集群有多少RegionServer，并从中随机挑出10%的RS用于复制。由于不同的Master会挑选不同的10%的机器，因此可以认为主集群的复制压力会大致均匀的分布到从集群的每台RegionServer上。</p>
+<p>2）多个从集群复制的时候是如何不相互干扰的？</p>
+<p>Master会为每个从集群创建一个ReplicationSource线程来复制数据，但是由于各个从集群复制的速度不一样。每个Source都需要维护一个上次同步的HLog的位置。各个Source用这个位置来同步不同的HLog片段的数据到不同的集群中。在完成复制的时候，Master还会向Zookeeper报告各个集群目前同步到哪个位置了。</p>
+<p>3）在机器宕机的情况下如何继续复制？</p>
+<p>分为两种情况，当从集群中正在复制的RegionServer宕机后，主集群的Master会选择另外一个备选的RegionServer进行复制。<br>当主集群的某个RegionServer宕机后，该集群中的其他的RegionServer会从Zookeeper上感知到这点，并接管该RegionServer的复制任务，将剩余的HLog数据复制到对应的从集群中。</p>
+<p><a href="http://www.fireflies.me/2014/02/%E4%BA%94%E3%80%81hbase-replication/" target="_blank" rel="external">http://www.fireflies.me/2014/02/%E4%BA%94%E3%80%81hbase-replication/</a></p>
+<h1 id="行键设计"><a href="#行键设计" class="headerlink" title="行键设计"></a>行键设计</h1><p>hbase储存数据的最小单元是keyValue。他的结构是<code>行键|列族|列限定符|时间戳|值</code>。这表示每个单元都需要储存行键和列族。设计列族可以有效的减少储存文件。查询的筛选效率是从左到右递减的，所以将筛选信息放在行或者列族中会比较有效。</p>
+<p>行键如果是按照一定形式组织的，很容易造成热点问题。而如果纯随机，则很难进行顺序读。因此常使用hash+信息（如时间戳）的方式。行键的设计需要考虑业务需求。这里有一篇<a href="http://blog.chedushi.com/archives/9720" target="_blank" rel="external">参考</a></p>
+<p>Avro和Protocol Buffer可以帮助hbase序列化存储数据</p>
+<h1 id="bloom-filter"><a href="#bloom-filter" class="headerlink" title="bloom filter "></a>bloom filter </h1><p>p355</p>
+<p>通常设置错误肯定答复为1%</p>
+<p>是否使用bloom filter</p>
+<ul>
+<li>如果用户定期修改所有行，那么大部分储存文件都将包含用户查找的行数据，这种情况不适用于bloom filter。而如果用户批量更新，每行数据只出现在少数文件中，则bloom filter很有用。</li>
+<li>bloom filter会占用额外的空间。使用bloom filter以后每个storeFilte会跟一个bloom filter。每项一般在过滤器中占用1个字节，所以原来每项占的储存空间越大，bloom filter的额外空间占比越小。</li>
+<li>是否使用行+列级的filter，取决于访问模式一般是整行访问更新还是会有某一列的更新</li>
+</ul>
+<h1 id="版本控制器"><a href="#版本控制器" class="headerlink" title="版本控制器"></a>版本控制器</h1><p>不同regionserver的时间可能不一致，这会导致数据的时间戳不一致，进而导致版本错误。用客户端时间覆盖服务器时间课余有效的解决这个问题。</p>
+<p>p363有问题，删除时时间戳的关系</p>
+<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p>第一点就是选择合适的压缩，一般是snappy</p>
+<p>第二个是jvm调优，p393. jvm在gc时会导致程序暂停，gc的东西见<a href="http://colobu.com/2015/04/07/minor-gc-vs-major-gc-vs-full-gc/" target="_blank" rel="external">这一篇</a></p>
+<p>第三个就是region的拆分和移动，同时要注意对rowkey的设置</p>
+<h1 id="客户端api-最佳实践"><a href="#客户端api-最佳实践" class="headerlink" title="客户端api 最佳实践"></a>客户端api 最佳实践</h1><ul>
+<li>禁止自动刷写</li>
+<li>使用扫描缓存</li>
+<li>限定扫描范围</li>
+<li>关闭resultScanner</li>
+<li>块缓存用法：如果是扫描操作，则应该setCacheBlocks为false。对于频繁访问某些行的操作，则为ture</li>
+<li>优化获取行健的方式：使用filter</li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/03/26/hbase权威指南笔记/">http://thousandhu.github.io/2016/03/26/hbase权威指南笔记/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hbase/" rel="tag"># hbase</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/15/虚拟机搭建hadoop集群/" rel="next" title="虚拟机搭建hadoop集群">
+                <i class="fa fa-chevron-left"></i> 虚拟机搭建hadoop集群
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/31/chapter7-how-mapreduce-works-hadoop-The-Definitive-Guide-4th读书笔记/" rel="prev" title="chapter7 how mapreduce works-hadoop The Definitive Guide 4th读书笔记">
+                chapter7 how mapreduce works-hadoop The Definitive Guide 4th读书笔记 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#客户端api"><span class="nav-number">3.</span> <span class="nav-text">客户端api</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#curd"><span class="nav-number">3.1.</span> <span class="nav-text">curd</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#filter"><span class="nav-number">3.2.</span> <span class="nav-text">filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#计数器"><span class="nav-number">3.3.</span> <span class="nav-text">计数器 </span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#客户端"><span class="nav-number">4.</span> <span class="nav-text">客户端</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#rest"><span class="nav-number">4.1.</span> <span class="nav-text">rest</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#文件"><span class="nav-number">5.</span> <span class="nav-text">文件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#合并"><span class="nav-number">5.1.</span> <span class="nav-text">合并</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何获得数据的Region地址"><span class="nav-number">5.2.</span> <span class="nav-text">如何获得数据的Region地址</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#主从复制"><span class="nav-number">6.</span> <span class="nav-text">主从复制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#行键设计"><span class="nav-number">7.</span> <span class="nav-text">行键设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bloom-filter"><span class="nav-number">8.</span> <span class="nav-text">bloom filter </span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#版本控制器"><span class="nav-number">9.</span> <span class="nav-text">版本控制器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#优化"><span class="nav-number">10.</span> <span class="nav-text">优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#客户端api-最佳实践"><span class="nav-number">11.</span> <span class="nav-text">客户端api 最佳实践</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

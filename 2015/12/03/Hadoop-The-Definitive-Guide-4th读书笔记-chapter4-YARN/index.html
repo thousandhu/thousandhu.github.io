@@ -1,0 +1,758 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Anatomy of a YARN Application RunYARN的架构分两层。1 每个cluster有一个resourceManger。2 每个node有一个node manger管理和监视containers。 运行一个yarn app有这样几步：1 client 连接resource manager来启动一个application master process2 resource m">
+<meta name="keywords" content="hadoop,yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop: The Definitive Guide 4th读书笔记 chapter4: YARN">
+<meta property="og:url" content="http://thousandhu.github.io/2015/12/03/Hadoop-The-Definitive-Guide-4th读书笔记-chapter4-YARN/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="Anatomy of a YARN Application RunYARN的架构分两层。1 每个cluster有一个resourceManger。2 每个node有一个node manger管理和监视containers。 运行一个yarn app有这样几步：1 client 连接resource manager来启动一个application master process2 resource m">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/151202Yarn.png">
+<meta property="og:image" content="http://www.ibm.com/developerworks/cn/data/library/bd-yarn-intro/Figure3Architecture-of-YARN.png">
+<meta property="og:image" content="http://www.ibm.com/developerworks/cn/data/library/bd-yarn-intro/fig04.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/151202yarn_schedule.png">
+<meta property="og:updated_time" content="2015-12-03T07:34:28.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hadoop: The Definitive Guide 4th读书笔记 chapter4: YARN">
+<meta name="twitter:description" content="Anatomy of a YARN Application RunYARN的架构分两层。1 每个cluster有一个resourceManger。2 每个node有一个node manger管理和监视containers。 运行一个yarn app有这样几步：1 client 连接resource manager来启动一个application master process2 resource m">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/151202Yarn.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2015/12/03/Hadoop-The-Definitive-Guide-4th读书笔记-chapter4-YARN/"/>
+
+
+
+
+
+  <title>Hadoop: The Definitive Guide 4th读书笔记 chapter4: YARN | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/12/03/Hadoop-The-Definitive-Guide-4th读书笔记-chapter4-YARN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Hadoop: The Definitive Guide 4th读书笔记 chapter4: YARN</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-12-03T15:33:49+08:00">
+                2015-12-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Anatomy-of-a-YARN-Application-Run"><a href="#Anatomy-of-a-YARN-Application-Run" class="headerlink" title="Anatomy of a YARN Application Run"></a>Anatomy of a YARN Application Run</h1><p>YARN的架构分两层。1 每个cluster有一个resourceManger。2 每个node有一个node manger管理和监视containers。</p>
+<p>运行一个yarn app有这样几步：<br>1 client 连接resource manager来启动一个application master process<br>2 resource manager寻找一个node manager来加载这个process。<br>3 如果需要分布式，则从resource manager那里需求更多的node 并且<br>4 启动其他的container。<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/151202Yarn.png" alt="151202yarn"></p>
+<h2 id="Resource-Request"><a href="#Resource-Request" class="headerlink" title="Resource Request"></a>Resource Request</h2><p>YARN 有一个flexible（想了半天不知道如何翻译）的resourc request机制。一个app可以在任意时间创建resource需求，比如一次性全都创建好，或者动态创建。</p>
+<p>其中比较特殊的需求是locality，这是为了充分利用数据读取带宽。当locality需求不能满足是，应该是会按照同一刀架，同一cluster降级。</p>
+<h2 id="Application-Lifespan"><a href="#Application-Lifespan" class="headerlink" title="Application Lifespan"></a>Application Lifespan</h2><ol>
+<li>每个job一个application，就是最传统的MR</li>
+<li>每个workflow或者user session一个app，这个可以从数据缓存等方面提高效率</li>
+<li>a long-runnung application shared by different users. 比如以些作为coordination role的应用</li>
+</ol>
+<p>我看了下ibm的一篇介绍yarn结构的<a href="http://www.ibm.com/developerworks/cn/data/library/bd-yarn-intro/" target="_blank" rel="external">文章</a>，觉得讲的更清楚。</p>
+<blockquote>
+<p>我们现在稍微改变一下用辞。以下名称的改动有助于更好地了解 YARN 的设计：</p>
+<p>ResourceManager 代替集群管理器</p>
+<p>ApplicationMaster 代替一个专用且短暂的 JobTracker</p>
+<p>NodeManager 代替 TaskTracker</p>
+<p>一个分布式应用程序代替一个 MapReduce 作业<br><img src="http://www.ibm.com/developerworks/cn/data/library/bd-yarn-intro/Figure3Architecture-of-YARN.png" alt=""><br><img src="http://www.ibm.com/developerworks/cn/data/library/bd-yarn-intro/fig04.png" alt=""></p>
+</blockquote>
+<p>主要思想就是每个app自己生成一个AM管理任务执行状态，resource只管理资源。从而分离了之前MR的tasktracker的任务。</p>
+<h1 id="Yarn相比mr1的优点"><a href="#Yarn相比mr1的优点" class="headerlink" title="Yarn相比mr1的优点"></a>Yarn相比mr1的优点</h1><ol>
+<li>scalability，mr1的jobtracker是瓶颈</li>
+<li>High availability</li>
+<li>utilization<ul>
+<li>MR1会指定static的slots，map slot和reduce slot不通用</li>
+<li>YARN 通过node manager管理resource</li>
+</ul>
+</li>
+<li>Multitenance</li>
+</ol>
+<h1 id="Scheduling-in-YARN"><a href="#Scheduling-in-YARN" class="headerlink" title="Scheduling in YARN"></a>Scheduling in YARN</h1><h2 id="Scheduler-Options"><a href="#Scheduler-Options" class="headerlink" title="Scheduler Options"></a>Scheduler Options</h2><ol>
+<li>FIFO</li>
+<li>Capacity：留出一部分资源专门跑小任务</li>
+<li>Fair 每个任务获得同样的资源（当然也可以有queue的概念）<ul>
+<li>任务1开始跑，他获得全部资源。</li>
+<li>任务2启动，他和任务1对半分资源</li>
+<li>任务2结束，任务1重新获得全部资源<br><img src="http://7xmhxl.com1.z0.glb.clouddn.com/151202yarn_schedule.png" alt="151202yarn_schedule"></li>
+</ul>
+</li>
+</ol>
+<h2 id="Delay-Scheduling"><a href="#Delay-Scheduling" class="headerlink" title="Delay Scheduling"></a>Delay Scheduling</h2><p>如果一个request的locality要求某一个特定的node。当要求不能满足时，他会被放在同一刀架的node上。而如果使用delay scheduling，他会有一个等待策略。<br>当使用延迟调度时，调度器不会简单的使用它所接收到的第一个调度机会，但是它会在放开位置限制以及采用下一个调度机会之前等待，直到所给定的最大调度机会次数发生之前。 </p>
+<h2 id="Dominant-Resource-Fairness"><a href="#Dominant-Resource-Fairness" class="headerlink" title="Dominant Resource Fairness"></a>Dominant Resource Fairness</h2><p>fair scheduling在每个任务需要多种资源时，主要看dominant resource，也就是他需求的资源中占集群总资源百分比最大的那个，原文中例子如下</p>
+<blockquote>
+<p>Imagine a cluster with a total of 100 CPUs and 10 TB of memory. Application A requests containers of (2 CPUs, 300 GB), and application B requests containers of (6 CPUs, 100 GB). A’s request is (2%, 3%) of the cluster, so memory is dominant since its proportion (3%) is larger than CPU’s (2%). B’s request is (6%, 1%), so CPU is dominant. Since B’s container requests are twice as big in the dominant resource (6% versus 3%), it will be allocated half as many containers under fair sharing.</p>
+</blockquote>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2015/12/03/Hadoop-The-Definitive-Guide-4th读书笔记-chapter4-YARN/">http://thousandhu.github.io/2015/12/03/Hadoop-The-Definitive-Guide-4th读书笔记-chapter4-YARN/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/30/利用MapReduce从hbase导出数据到hive/" rel="next" title="利用MapReduce从hbase导出数据到hive">
+                <i class="fa fa-chevron-left"></i> 利用MapReduce从hbase导出数据到hive
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/12/13/Hadoop-The-Definitive-Guide-4th读书笔记-chapter-17-hive/" rel="prev" title="Hadoop: The Definitive Guide 4th读书笔记: chapter 17 hive">
+                Hadoop: The Definitive Guide 4th读书笔记: chapter 17 hive <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Anatomy-of-a-YARN-Application-Run"><span class="nav-number">1.</span> <span class="nav-text">Anatomy of a YARN Application Run</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Resource-Request"><span class="nav-number">1.1.</span> <span class="nav-text">Resource Request</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Application-Lifespan"><span class="nav-number">1.2.</span> <span class="nav-text">Application Lifespan</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Yarn相比mr1的优点"><span class="nav-number">2.</span> <span class="nav-text">Yarn相比mr1的优点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Scheduling-in-YARN"><span class="nav-number">3.</span> <span class="nav-text">Scheduling in YARN</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Scheduler-Options"><span class="nav-number">3.1.</span> <span class="nav-text">Scheduler Options</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Delay-Scheduling"><span class="nav-number">3.2.</span> <span class="nav-text">Delay Scheduling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dominant-Resource-Fairness"><span class="nav-number">3.3.</span> <span class="nav-text">Dominant Resource Fairness</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

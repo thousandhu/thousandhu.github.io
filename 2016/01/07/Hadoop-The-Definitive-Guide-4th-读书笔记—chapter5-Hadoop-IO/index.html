@@ -1,0 +1,725 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Data Integrityhadoop使用checksum来验证数据的正确性。 Data integrity in hdfsdatanodes和client都是在读取数据的时候检查checksum 一般是client读取时发现其有错，则client会将这个bad block报告出去。namenode会将这个数据块标记成corrupt，然后从其他地方拷贝一个正确的block。当正确的block成功">
+<meta name="keywords" content="hadoop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop: The Definitive Guide 4th 读书笔记—chapter5: Hadoop IO">
+<meta property="og:url" content="http://thousandhu.github.io/2016/01/07/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter5-Hadoop-IO/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="Data Integrityhadoop使用checksum来验证数据的正确性。 Data integrity in hdfsdatanodes和client都是在读取数据的时候检查checksum 一般是client读取时发现其有错，则client会将这个bad block报告出去。namenode会将这个数据块标记成corrupt，然后从其他地方拷贝一个正确的block。当正确的block成功">
+<meta property="og:updated_time" content="2016-01-07T09:19:27.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hadoop: The Definitive Guide 4th 读书笔记—chapter5: Hadoop IO">
+<meta name="twitter:description" content="Data Integrityhadoop使用checksum来验证数据的正确性。 Data integrity in hdfsdatanodes和client都是在读取数据的时候检查checksum 一般是client读取时发现其有错，则client会将这个bad block报告出去。namenode会将这个数据块标记成corrupt，然后从其他地方拷贝一个正确的block。当正确的block成功">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/01/07/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter5-Hadoop-IO/"/>
+
+
+
+
+
+  <title>Hadoop: The Definitive Guide 4th 读书笔记—chapter5: Hadoop IO | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/01/07/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter5-Hadoop-IO/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Hadoop: The Definitive Guide 4th 读书笔记—chapter5: Hadoop IO</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-01-07T17:18:22+08:00">
+                2016-01-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Data-Integrity"><a href="#Data-Integrity" class="headerlink" title="Data Integrity"></a>Data Integrity</h1><p>hadoop使用checksum来验证数据的正确性。</p>
+<h2 id="Data-integrity-in-hdfs"><a href="#Data-integrity-in-hdfs" class="headerlink" title="Data integrity in hdfs"></a>Data integrity in hdfs</h2><p>datanodes和client都是在读取数据的时候检查checksum</p>
+<p>一般是client读取时发现其有错，则client会将这个bad block报告出去。namenode会将这个数据块标记成corrupt，然后从其他地方拷贝一个正确的block。当正确的block成功时，corrupt block replica被删除</p>
+<h1 id="Compression"><a href="#Compression" class="headerlink" title="Compression"></a>Compression</h1><p>使用compression是一个时间和空间的trade off。压缩的时间越长，一般压缩效果越好，传输时间越短。同时要注意压缩的数据能不能被并行的读，也就是说一个数据是不是只读某一块即可解压，而不是必须读取全部数据才能解压。</p>
+<p>压缩时不经可以设置结果被压缩，也可以设置map端的outpu被压缩。在程序中使用如下语句即可：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">conf.setBoolean(&quot;mapreduce.map.output.compress&quot;, true);</div><div class="line">conf.setClass(&quot;mapreduce.map.output.compress.codec&quot;, GzipCodec.class, CompressionCodec.class);</div><div class="line"></div><div class="line">conf.setBoolean(&quot;mapreduce.output.fileoutputformat.compress&quot;, true);</div><div class="line">conf.setClass(&quot;mapreduce.output.fileoutputformat.compress.codec&quot;, GzipCodec.class, CompressionCodec.class);</div></pre></td></tr></table></figure>
+<p>对于压缩格式，gzip不可以被分割，bzip2计算时间过长，loz需要对环境进行配置。具体可以见<a href="http://www.cnblogs.com/ggjucheng/archive/2012/04/22/2465580.html" target="_blank" rel="external">这篇文章</a>。loz的配置可以见<a href="http://www.tech126.com/hadoop-lzo/" target="_blank" rel="external">这里</a>。IBM的一片压缩技术实现的<a href="https://www.ibm.com/developerworks/cn/opensource/os-cn-hadoop-compression-analysis/" target="_blank" rel="external">文章</a></p>
+<p>测试了一下，因为hive本身用了rcfile，效果并不明显，只是观测到了不同压缩的确影响到了mapper的数量，时间上相差并不是很大。</p>
+<h1 id="Serialization"><a href="#Serialization" class="headerlink" title="Serialization"></a>Serialization</h1><p>这一节主要需要理解的是数据在hadoop中如何序列化和反序列化，以及其原因。其中常用的xxwritable和text两个类就是做序列化的。<br>序列化的四个目标是：</p>
+<ul>
+<li>Compact:(数据密度大？)充分利用带宽</li>
+<li>Fast： 序列化和反序列化开销小</li>
+<li>Extensible:</li>
+<li>Interoperable:不同语言之间兼容</li>
+</ul>
+<p>自己定义writable类需要实现writable和comparable接口。同时注意comparator的实现时应该直接比较序列化以后的结果，而不是反序列化回来以后进行比较。<br>书中给了如何自己写writable和comparable的例子。其中提到了hashcode()函数会直接影响reduce的任务分配</p>
+<p>常用的序列化框架还有thrift和Avro等</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/01/07/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter5-Hadoop-IO/">http://thousandhu.github.io/2016/01/07/Hadoop-The-Definitive-Guide-4th-读书笔记—chapter5-Hadoop-IO/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/07/azkaban定制/" rel="next" title="azkaban定制">
+                <i class="fa fa-chevron-left"></i> azkaban定制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/11/hive-udtf使用/" rel="prev" title="hive udtf使用">
+                hive udtf使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Data-Integrity"><span class="nav-number">1.</span> <span class="nav-text">Data Integrity</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Data-integrity-in-hdfs"><span class="nav-number">1.1.</span> <span class="nav-text">Data integrity in hdfs</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Compression"><span class="nav-number">2.</span> <span class="nav-text">Compression</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Serialization"><span class="nav-number">3.</span> <span class="nav-text">Serialization</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

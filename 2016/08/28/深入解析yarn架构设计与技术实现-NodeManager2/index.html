@@ -1,0 +1,757 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="深入解析yarn架构设计与技术实现-Node Manager2 状态机管理Nodemanager中的状态机一共有三类，分别是Application，Container和 LocalizedResource。NodeManager收到一个应用的在本机的第一个container启动命令时，会创建一个Application状态机来跟踪该应用程序在该节点的状态。每个container对已一个状态机；而每个">
+<meta name="keywords" content="hadoop,yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-NodeManager2">
+<meta property="og:url" content="http://thousandhu.github.io/2016/08/28/深入解析yarn架构设计与技术实现-NodeManager2/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="深入解析yarn架构设计与技术实现-Node Manager2 状态机管理Nodemanager中的状态机一共有三类，分别是Application，Container和 LocalizedResource。NodeManager收到一个应用的在本机的第一个container启动命令时，会创建一个Application状态机来跟踪该应用程序在该节点的状态。每个container对已一个状态机；而每个">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-22-234253.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-23-000620.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-25-224105.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-26-220652.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-26-220914.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-26-223610.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-26-222238.png">
+<meta property="og:updated_time" content="2016-08-28T14:47:50.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-NodeManager2">
+<meta name="twitter:description" content="深入解析yarn架构设计与技术实现-Node Manager2 状态机管理Nodemanager中的状态机一共有三类，分别是Application，Container和 LocalizedResource。NodeManager收到一个应用的在本机的第一个container启动命令时，会创建一个Application状态机来跟踪该应用程序在该节点的状态。每个container对已一个状态机；而每个">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-22-234253.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/08/28/深入解析yarn架构设计与技术实现-NodeManager2/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-NodeManager2 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/08/28/深入解析yarn架构设计与技术实现-NodeManager2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-NodeManager2</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-28T22:47:27+08:00">
+                2016-08-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>深入解析yarn架构设计与技术实现-Node Manager2</p>
+<h1 id="状态机管理"><a href="#状态机管理" class="headerlink" title="状态机管理"></a>状态机管理</h1><p>Nodemanager中的状态机一共有三类，分别是Application，Container和 LocalizedResource。NodeManager收到一个应用的在本机的第一个container启动命令时，会创建一个Application状态机来跟踪该应用程序在该节点的状态。每个container对已一个状态机；而每个资源（jar，文件等）的下载过程均由一个状态机LocalizedResource维护和跟踪。</p>
+<h2 id="Application状态机"><a href="#Application状态机" class="headerlink" title="Application状态机"></a>Application状态机</h2><p>Application的状态机在<code>package org.apache.hadoop.yarn.server.nodemanager.containermanager.application</code>里，它主要是为了对一个节点上统一Application的container进行统一管理。Nodemanager上的Application的状态可以近似看做ResourceManager的ApplicationAttempt一个子集，并且和ResourceManager上的ApplicationAttempt状态同步。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-22-234253.png" alt="2016-08-22-234253"></p>
+<p>这里我觉得需要提一下的就是Finishing_containers_wait状态和Application_resources_cleaningup：</p>
+<ul>
+<li>Finishing_containers_wait: 当Application状态机收到Finish_aplication事件以后，回想各个container发送kill命令以回收他们占用的资源，这个状态是等待回收container占用的资源时所处的状态</li>
+<li>Application_resources_cleaningup：Application所有container占用的资源被回收后所处的状态。</li>
+</ul>
+<p>我觉得这两个状态应该是对应的ApplicationAttempt的Finishing状态。</p>
+<h2 id="Container状态机"><a href="#Container状态机" class="headerlink" title="Container状态机"></a>Container状态机</h2><p>container状态机维护一个container运行的全部状态，包含11个状态和10个事件，代码主要在<code>package org.apache.hadoop.yarn.server.nodemanager.containermanager.container;</code> 。下面是状态转化的图，具体的细节也是建议直接看书，我就不”抄书”了</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-23-000620.png" alt="2016-08-23-000620"></p>
+<h2 id="LocalizedResource状态机"><a href="#LocalizedResource状态机" class="headerlink" title="LocalizedResource状态机"></a>LocalizedResource状态机</h2><p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-25-224105.png" alt="2016-08-25-224105"></p>
+<p>状态转移没什么好说的，着重说一下下载。</p>
+<p>下载是在从init状态转移到downloading状态时，会发一个<code>REQUEST_RESOURCE_LOCALIZATION</code>事件。这个事件是会发给<code>ResourceLocalizationService</code>,<code>ResourceLocalizationService</code>根据资源的类型和可见性确定路径并下载他。下载是异步的（并且每个application对应着自己的下载线程），每个下载会对应一个callable的FSDownload</p>
+<h1 id="Container生命周期"><a href="#Container生命周期" class="headerlink" title="Container生命周期"></a>Container生命周期</h1><p>Container启动主要分为三个部分，资源本地化，container启动和资源清理。</p>
+<h2 id="资源本地化"><a href="#资源本地化" class="headerlink" title="资源本地化"></a>资源本地化</h2><p>资源本地化主要是完成初始化各种服务，创建工作目录，从HDFS下载运行所需的各种资源等。资源本地化分为应用程序本地化和container本地化。应用程序本地化主要是初始化应用执行的各种服务组件，比如loghandler等，通常是在应用的第一个container启动时完成；container本地化是创建工作目录，从hdfs下载各种文件等</p>
+<p>一个application的第一个container启动时，流程图如下，主要是分为相关组件启动和container启动两部分。其中2-5启动了日志记录组件LogHandler和资源状态追踪组件，7-12步相关目录创建和资源下载。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-26-220652.png" alt="2016-08-26-220652"></p>
+<p>剩余container的启动相对简单，不需要处理application相关的任务，下图是剩余container启动的流程图，其中2-8步和之前第一个container启动的7-12步是相同的。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-26-220914.png" alt="2016-08-26-220914"></p>
+<h2 id="container运行"><a href="#container运行" class="headerlink" title="container运行"></a>container运行</h2><p>container运行主要分为四个步骤，涉及到运行脚本的生成，执行以及对该执行的监控，这里详细讲一下，首先上一张流程图</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-26-223610.png" alt="2016-08-26-223610"></p>
+<ol>
+<li>cotainerImpl向ContainersLauncher服务发送Launch_container事件请求启动container</li>
+<li>ConatinerLauncher收到Launch_container时间后，为该Container创建一个callable类型的对象ContainerLaunch，并放在线程池中。ContainerLaunch会为container创建tokens文件和执行脚本文件launch_container.sh,并保存在nmPrivate中。launch_container.sh包含containersuo’xu所需的环境变量，运行状态等全部信息</li>
+<li>准备好launch-container.sh后,containerLaunch首先向containerImpl发送一个CONTAINER_LAUNCHED事件，让他启动container监控机制，然后调用containerExecutor#launchcontainer启动container。启动的contain。containerExecutor有两类<ol>
+<li>defaultContainerExecutor：用一个default_container_executor.sh以nodeManager启动者身份运行launch_container.sh</li>
+<li>用c语言的setuid运行containerExecutor，运行身份是应用程序所属的用户身份，后面的cpu资源隔离机制与其有关</li>
+</ol>
+</li>
+<li>containerImpl收到container——launched时间后，进一步向containersMonitorImpl服务发送一个start_monitoring_container事件，已启动对该container的内存资源监控，该containerimpl状态转换为running。由于containerExecutor#launchContainer​是阻塞式的，当脚本完成后才退出。退出后containerLauncher想containerImpl发送comtainer_exited_with_success事件，containerimple状态转为exxited_with_success，一个contain的运行阶段完成</li>
+</ol>
+<h2 id="container清理"><a href="#container清理" class="headerlink" title="container清理"></a>container清理</h2><p>container运行结束后，NodeManager需要回收他占用的资源，主要是container运行使用的临时目录。在这个阶段NodeManager会删除用户工作目录和NodeManager私有目录下的container文件。但是并不会删除用于存放临时输出的文件<code>${yarn.nodemanager.local-dirs}/usercache/${user}/appcache/${appid}/output</code>。output石凳整个application执行结束后统一删除的</p>
+<p>同时container结束时会检查进程pid文件是否存在，存在的话证明container未退出，会强制kill了进程。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-26-222238.png" alt="2016-08-26-222238"></p>
+<h1 id="资源隔离"><a href="#资源隔离" class="headerlink" title="资源隔离"></a>资源隔离</h1><p>yarn对于内存采用的是线程监控方案，而对于cpu采用的是cgroup的方式实现资源隔离。</p>
+<p>内存的资源隔离主要是基于线程监控。监控线程会每隔一段时间扫描所有运行的container进程，构造其进程树并判断其使用的内存容量。因为jvm使用fork+exec模型创建子进程，子进程会复制父进程的内存空间，yarn引用了年龄的概念。新进程年龄为0，每次检查时年龄加1，如果年龄大于1的所有进程内存超过限额或者所有年龄的进程内存超过限额的两倍，则认为使用内存超限。</p>
+<p>对于cpu，通过cgroups的cpu子系统可以控制进程使用cpu的时间片，进而控制每个container使用cpu的比例。同时通过赋予Nodemanager进程本身root权限，让其有能力将container的启动用户修改为提交用户，可以防止container执行一些只有nodemanager用户有权执行的操作（比如杀死nodemanager进程）</p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/08/28/深入解析yarn架构设计与技术实现-NodeManager2/">http://thousandhu.github.io/2016/08/28/深入解析yarn架构设计与技术实现-NodeManager2/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/08/22/深入解析yarn架构设计与技术实现-NodeManager1/" rel="next" title="深入解析yarn架构设计与技术实现-NodeManager1">
+                <i class="fa fa-chevron-left"></i> 深入解析yarn架构设计与技术实现-NodeManager1
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/09/15/深入解析yarn架构设计与技术实现-离线计算框架MapReduce/" rel="prev" title="深入解析yarn架构设计与技术实现-离线计算框架MapReduce">
+                深入解析yarn架构设计与技术实现-离线计算框架MapReduce <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#状态机管理"><span class="nav-number">1.</span> <span class="nav-text">状态机管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Application状态机"><span class="nav-number">1.1.</span> <span class="nav-text">Application状态机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Container状态机"><span class="nav-number">1.2.</span> <span class="nav-text">Container状态机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LocalizedResource状态机"><span class="nav-number">1.3.</span> <span class="nav-text">LocalizedResource状态机</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Container生命周期"><span class="nav-number">2.</span> <span class="nav-text">Container生命周期</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#资源本地化"><span class="nav-number">2.1.</span> <span class="nav-text">资源本地化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#container运行"><span class="nav-number">2.2.</span> <span class="nav-text">container运行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#container清理"><span class="nav-number">2.3.</span> <span class="nav-text">container清理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#资源隔离"><span class="nav-number">3.</span> <span class="nav-text">资源隔离</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

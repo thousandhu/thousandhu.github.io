@@ -1,0 +1,792 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="java,effective java," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="第十三条：使类和成员访问性最小化 尽量使每个类或者成员变量不被外界访问  如果一个包级私有的顶层类或者接口只是在某一类内部被使用，则应该考虑将其声明为那个类的私有嵌套类 如果方法a覆盖了超类中的方法b，则a的访问级别就不允许低于b的访问级别，这样可与确保任何可使用超类实例的地方也可以使用子类的实例。   实例域不可以是共有域。  公有域意味着你放弃了对该域的限制能力。同时包含公有可变域的类并不是线">
+<meta name="keywords" content="java,effective java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第四章_类和接口_effective_java">
+<meta property="og:url" content="http://thousandhu.github.io/2016/10/08/第四章-类和接口-effective-java/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="第十三条：使类和成员访问性最小化 尽量使每个类或者成员变量不被外界访问  如果一个包级私有的顶层类或者接口只是在某一类内部被使用，则应该考虑将其声明为那个类的私有嵌套类 如果方法a覆盖了超类中的方法b，则a的访问级别就不允许低于b的访问级别，这样可与确保任何可使用超类实例的地方也可以使用子类的实例。   实例域不可以是共有域。  公有域意味着你放弃了对该域的限制能力。同时包含公有可变域的类并不是线">
+<meta property="og:updated_time" content="2016-10-08T04:45:43.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="第四章_类和接口_effective_java">
+<meta name="twitter:description" content="第十三条：使类和成员访问性最小化 尽量使每个类或者成员变量不被外界访问  如果一个包级私有的顶层类或者接口只是在某一类内部被使用，则应该考虑将其声明为那个类的私有嵌套类 如果方法a覆盖了超类中的方法b，则a的访问级别就不允许低于b的访问级别，这样可与确保任何可使用超类实例的地方也可以使用子类的实例。   实例域不可以是共有域。  公有域意味着你放弃了对该域的限制能力。同时包含公有可变域的类并不是线">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/10/08/第四章-类和接口-effective-java/"/>
+
+
+
+
+
+  <title>第四章_类和接口_effective_java | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/10/08/第四章-类和接口-effective-java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">第四章_类和接口_effective_java</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-08T12:44:34+08:00">
+                2016-10-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="第十三条：使类和成员访问性最小化"><a href="#第十三条：使类和成员访问性最小化" class="headerlink" title="第十三条：使类和成员访问性最小化"></a>第十三条：使类和成员访问性最小化</h1><ol>
+<li><p>尽量使每个类或者成员变量不被外界访问</p>
+<ul>
+<li>如果一个包级私有的顶层类或者接口只是在某一类内部被使用，则应该考虑将其声明为那个类的私有嵌套类</li>
+<li>如果方法a覆盖了超类中的方法b，则a的访问级别就不允许低于b的访问级别，这样可与确保任何可使用超类实例的地方也可以使用子类的实例。</li>
+</ul>
+</li>
+<li><p>实例域不可以是共有域。</p>
+<ul>
+<li>公有域意味着你放弃了对该域的限制能力。同时包含公有可变域的类并不是线程安全的</li>
+<li>不可变静态域可以通过公有静态final域来暴露这些常量。这种域的命名建议使用大写字母加下划线</li>
+</ul>
+</li>
+<li><p>长度非零的数组总是可变的，因为公有静态final数据域几乎总是错误的，因为客户端能够修改数据内容。修正这个问题可以返回一个不可变列表或者返回私有数组的备份</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Thing[] STH = &#123;&#125;;</div><div class="line"><span class="comment">//method 1</span></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> List&lt;Thing&gt; VALUES=</div><div class="line">	Collections.unmodifiableList(Arrays.asList(STH));</div><div class="line"><span class="comment">//method 2</span></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Thing[] values()&#123;</div><div class="line">    <span class="keyword">return</span> STH.clone();</div><div class="line">    <span class="comment">//这里要注意clone其实只是对数组的第一层引用做了深拷贝，如果thing里面有其他对象，比如String name，修改这个对象原数组还是会改变</span></div><div class="line">    <span class="comment">//参考文献 http://www.cppblog.com/baby-fly/archive/2010/11/16/133763.html</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="第十四条：在公有类中使用访问方法而非公有域"><a href="#第十四条：在公有类中使用访问方法而非公有域" class="headerlink" title="第十四条：在公有类中使用访问方法而非公有域"></a>第十四条：在公有类中使用访问方法而非公有域</h1><p>如果类能在他的包外部进行外部访问，就提供访问方法。</p>
+<p>如果类是包级私有的或者私有的嵌套类，直接暴露他的数据域并没有本质的错误</p>
+<h1 id="第十五条：使可变性最小化"><a href="#第十五条：使可变性最小化" class="headerlink" title="第十五条：使可变性最小化"></a>第十五条：使可变性最小化</h1><p>这一条主要讲了一些不可变类的使用。为了是类成为不可变，要遵循以下五条规则：</p>
+<ol>
+<li>不要提供任何会修改对象状态的方法。</li>
+<li>保证类不会被扩展。一般做法是让这个类成为final</li>
+<li>使所有域都成为fianl。</li>
+<li>使所有域都成为私有的。</li>
+<li>确保对于任何可变组件的互斥访问。如果类具有指向可变对象的域，则必须确保该类的客户端无法获得指向这些对象的引用。</li>
+</ol>
+<p>使用不可变类的方法可以用函数式的做法，即每次运算都返回新的对象而不是在原对象上修改。</p>
+<p>不可变对象本质上是线程安全的，它不需要同步，所以不可变对象可以被自由的共享。我们可以构造一些常量帮助客户端重用现有实例，更进一步可以提供一些不可变类的静态工厂，将频繁使用的实例缓存起来，当现有实力符合请求时返回缓存的实例（BigInteger就有这样的静态工厂）。</p>
+<p>不仅可以共享不可变对象，甚至可以共享他们的内部信息。比如BigInteger a调用negate方法返回一个新的BigInteger b，b只需要修改符号位，数值位可以直接共享a的。</p>
+<p>不可变类的缺点在于对于每个不同的值都需要一个单独的对象，这在值大量变化时会带来性能问题。解决这一问题的方法是提供一个可变的配套类，比如StringBuffer就是String的配套类。</p>
+<p>不可变类与Serializable接口的相关讨论请见76条</p>
+<h1 id="第十六条：复合优先于继承"><a href="#第十六条：复合优先于继承" class="headerlink" title="第十六条：复合优先于继承"></a>第十六条：复合优先于继承</h1><p>继承的缺点在于打破了封装性。因此尽量只在包内使用继承，或者只有当子类真正的和超类之间存在is-a关系的是再使用继承。否则应该是类B含有一个类A的私有实现，并暴露一个较小，较简单的api（包装类）。</p>
+<h1 id="第十七条：要么为继承而设计，并提供文档，要么就禁止继承"><a href="#第十七条：要么为继承而设计，并提供文档，要么就禁止继承" class="headerlink" title="第十七条：要么为继承而设计，并提供文档，要么就禁止继承"></a>第十七条：要么为继承而设计，并提供文档，要么就禁止继承</h1><ol>
+<li>该类必须有文档署名他可覆盖的方法的自用性</li>
+<li>为了方便编写游侠的子类，类必须通过某种形式提供适当的钩子（hook），以便能够进入他的内部工作流程中，这种hook可以使protected方法</li>
+<li>对于为了继承而设计的类，唯一的测试方法就是编写子类</li>
+<li>构造器不能调用可被覆盖的方法</li>
+</ol>
+<p>另外说一下java类初始化的构造顺序: <a href="http://stone02111.iteye.com/blog/1823446" target="_blank" rel="external">http://stone02111.iteye.com/blog/1823446</a></p>
+<blockquote>
+<p>  1 类中的静态对象先于static{}执行<br>  2  static{}中的代码是在构建类对象之前执行的<br>  3 构造子类的时候是按照先父后子的顺序执行的<br>  4 如果在子的构造函数中并没有使用显式的调用父类的构造函数（使用super），则执行无参构造函数。<br>  5 如果使用this(),则会先调用this(),再调用下面的代码(此时父类别的默认构造函数不再执行,而会根据执行this()执行相应的父构造函数)</p>
+</blockquote>
+<h1 id="第十八条：接口优先于抽象类"><a href="#第十八条：接口优先于抽象类" class="headerlink" title="第十八条：接口优先于抽象类"></a>第十八条：接口优先于抽象类</h1><p>先说一下接口的基本概念：<a href="http://www.cnblogs.com/dolphin0520/p/3811437.html" target="_blank" rel="external">深入理解Java的接口和抽象类</a></p>
+<blockquote>
+<p>  　接口中可以含有 变量和方法。但是要注意，接口中的<strong>变量会被隐式地指定为public static final变量</strong>（并且只能是public static final变量，用private修饰会报编译错误），而<strong>方法会被隐式地指定为public abstract</strong>方法且只能是public abstract方法（用其他关键字，比如private、protected、static、 final等修饰会报编译错误），并且接口中所有的方法不能有具体的实现，也就是说，接口中的方法必须都是抽象方法。从这里可以隐约看出接口和抽象类的区别，接口是一种极度抽象的类型，它比抽象类更加“抽象”，并且一般情况下不在接口中定义变量。</p>
+</blockquote>
+<p>接口相比于抽象类的优点：</p>
+<ol>
+<li>现有的类可以很容易的被更新，以实现新的类。只需要加一个implements子句即可，而抽象类则需要找到类层次中的一处添加新的功能</li>
+<li>接口是定义mixin（混合类型）的理想选择。</li>
+<li>接口允许我们构造飞车呢过次结构的类型框架</li>
+</ol>
+<p>接口不允许方法实现。于是可以通过对你导出到每一个重要接口都提供抽象的骨架实现类把接口和抽象类的优点结合起来。比如Collections  Framework中的AbstractCollection，AbstractSet等都是骨架实现。股价实现的好处在于，他们为抽象类提供了实现上的帮助，又保留了接口的灵活性。对于接口的大多数实现来讲，扩展股价类是一个很显然的选择，但是如果你无法扩展股价类，实现接口即可。</p>
+<p>相比于接口，抽象类有一个明显的优势：抽象类比接口的演变容易的多。如果在后续版本你希望在抽象类中增加新的方法，添加具体的方法即可，子类都会继承这个方法。而接口增加新的方法则需要在所有implements的类中增加实现（否则无法通过编译），这在接口被广泛实现的情况下几乎是不可能的。</p>
+<h1 id="第十九条：接口只用于定义类型"><a href="#第十九条：接口只用于定义类型" class="headerlink" title="第十九条：接口只用于定义类型"></a>第十九条：接口只用于定义类型</h1><p>接口应该植被用于定义类型，他们不应该被用来导出常量。</p>
+<p>常量接口（只有静态final域没有方法）是对接口的不良使用。例子如<a href="http://hussion.iteye.com/blog/1322308" target="_blank" rel="external">参考文献</a></p>
+<p>如果需要导出常量，应该是用枚举类型或者不可实例化的工具类（工具类的域是public static final，构造函数是私有的）。</p>
+<h1 id="第二十条：类层次优先于标签类"><a href="#第二十条：类层次优先于标签类" class="headerlink" title="第二十条：类层次优先于标签类"></a>第二十条：类层次优先于标签类</h1><p>用类层次的模式可以比标签类更容易扩展并且内存用量更少。（标签类总会有一些冗余数据）</p>
+<h1 id="第二十一条：用函数对象表示策略"><a href="#第二十一条：用函数对象表示策略" class="headerlink" title="第二十一条：用函数对象表示策略"></a>第二十一条：用函数对象表示策略</h1><p>这一条指的是策略模式，java中主要是通过指定一个接口（抽象策略类），对于不同的实现策略用不同的类实现（具体策略类），最后宿主类调用时通过制定不同的具体策略类执行不同的策略。基本程序结构就是宿主类里面有一个域是抽象策略类，一个set函数来设置这个域。网上的一片参考文献讲的比书里细致：<a href="http://blog.csdn.net/hguisu/article/details/7558249" target="_blank" rel="external">设计模式 ( 十八 ) 策略模式Strategy（对象行为型）</a></p>
+<p>当一个具体的策略只需要被使用一次时，通常使用匿名类来声明和实例化这个具体策略类。当一个具体策略是设计出来供重复使用时，他的类通常就要被实现为私有的亭台成员类，并且通过公有的静态final域导出，导出类型为策略接口。</p>
+<h1 id="第二十二条：优先考虑静态成员类"><a href="#第二十二条：优先考虑静态成员类" class="headerlink" title="第二十二条：优先考虑静态成员类"></a>第二十二条：优先考虑静态成员类</h1><p>这一条讲的是嵌套类。嵌套类分为两大部分，静态内部类和普通内部类，普通内部类又分为非静态成员类，匿名类和局部类。</p>
+<p>静态内部类其实可以看成一个普通的类，因为他和外部类的具体实例没有关联。非静态类的每个实例都隐含着一个与外围实例的关联。如果声明成员类不要求访问外部实例，则始终要把static关键字放在他的声明中，使之成为一个静态内部类。</p>
+<p>静态类的一个常见用法是作为公有的辅助类，比如Calculator的静态内部类Operator。另一种用法是用来代表外围类的对象的组件。比如Map内部的Entry（具体为hashmap的<code>static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt;</code> ）。因为enrty上的方法getkey，getvalue等都不需要访问map，所以可以声明为静态内部类。</p>
+<p>普通内部类的一个常见用法是定义一个Adapter，比如Map中用它来是先keyset，entrySet，以及各种集合类用来实现iterator。</p>
+<p>匿名类不能拥有静态成员变量，除了声明时不能被实例化，也不能用instanceof，所以匿名类应该尽量保持简介。匿名类主要用于创建函数对象（sort中的comparator）或者过程对象（各种runnable，TimerTask等）</p>
+<p>局部类用的比较少，他声明在任何可以声明局部变量的地方。使用它主要要注意作用域。<a href="http://www.cnblogs.com/simply-zhao/archive/2008/04/13/1151157.html" target="_blank" rel="external">Java 局部类/匿名类</a></p>
+<p>最后附一个静态内部类和非静态成员类的对比：</p>
+<ul>
+<li>普通内部类<ul>
+<li>内部类拥有普通类的所有特性，也拥有类成员变量的特性</li>
+<li>内部类可以访问其外部类的成员变量，属性，方法，其它内部类</li>
+</ul>
+</li>
+<li>静态内部类<ul>
+<li>只有内部类才能声明为static，也可以说是静态内部类</li>
+<li>只有静态内部类才能拥有静态成员，普通内部类只能定义普通成员</li>
+<li>静态类跟静态方法一样，只能访问其外部类的静态成员</li>
+<li>如果在外部类的静态方法中访问内部类，这时候只能访问静态内部类</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/10/08/第四章-类和接口-effective-java/">http://thousandhu.github.io/2016/10/08/第四章-类和接口-effective-java/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/effective-java/" rel="tag"># effective java</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/02/第三章-对所有对象都通用的方法-effective-java/" rel="next" title="第三章_对所有对象都通用的方法_effective java">
+                <i class="fa fa-chevron-left"></i> 第三章_对所有对象都通用的方法_effective java
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/09/第五章-泛型-effective-java/" rel="prev" title="第五章_泛型_effective_java">
+                第五章_泛型_effective_java <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第十三条：使类和成员访问性最小化"><span class="nav-number">1.</span> <span class="nav-text">第十三条：使类和成员访问性最小化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第十四条：在公有类中使用访问方法而非公有域"><span class="nav-number">2.</span> <span class="nav-text">第十四条：在公有类中使用访问方法而非公有域</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第十五条：使可变性最小化"><span class="nav-number">3.</span> <span class="nav-text">第十五条：使可变性最小化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第十六条：复合优先于继承"><span class="nav-number">4.</span> <span class="nav-text">第十六条：复合优先于继承</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第十七条：要么为继承而设计，并提供文档，要么就禁止继承"><span class="nav-number">5.</span> <span class="nav-text">第十七条：要么为继承而设计，并提供文档，要么就禁止继承</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第十八条：接口优先于抽象类"><span class="nav-number">6.</span> <span class="nav-text">第十八条：接口优先于抽象类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第十九条：接口只用于定义类型"><span class="nav-number">7.</span> <span class="nav-text">第十九条：接口只用于定义类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二十条：类层次优先于标签类"><span class="nav-number">8.</span> <span class="nav-text">第二十条：类层次优先于标签类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二十一条：用函数对象表示策略"><span class="nav-number">9.</span> <span class="nav-text">第二十一条：用函数对象表示策略</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二十二条：优先考虑静态成员类"><span class="nav-number">10.</span> <span class="nav-text">第二十二条：优先考虑静态成员类</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

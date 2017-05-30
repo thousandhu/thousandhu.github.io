@@ -1,0 +1,828 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="深入解析yarn架构设计与技术实现-资源调度器 Yarn资源调度器的基本框架yarn的资源调度器是可以配置的，默认的是FIFO、CapacityScheduler和Fair Scheduler三种。 这三个scheduler都继承一个AbstractYarnScheduler。这个抽象类extends AbstractService implements ResourceScheduler 。ex">
+<meta name="keywords" content="yarn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析yarn架构设计与技术实现-资源调度器">
+<meta property="og:url" content="http://thousandhu.github.io/2016/08/10/深入解析yarn架构设计与技术实现-资源调度器/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="深入解析yarn架构设计与技术实现-资源调度器 Yarn资源调度器的基本框架yarn的资源调度器是可以配置的，默认的是FIFO、CapacityScheduler和Fair Scheduler三种。 这三个scheduler都继承一个AbstractYarnScheduler。这个抽象类extends AbstractService implements ResourceScheduler 。ex">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-10-162333.png">
+<meta property="og:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-10-162423.png">
+<meta property="og:updated_time" content="2016-08-10T08:24:42.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入解析yarn架构设计与技术实现-资源调度器">
+<meta name="twitter:description" content="深入解析yarn架构设计与技术实现-资源调度器 Yarn资源调度器的基本框架yarn的资源调度器是可以配置的，默认的是FIFO、CapacityScheduler和Fair Scheduler三种。 这三个scheduler都继承一个AbstractYarnScheduler。这个抽象类extends AbstractService implements ResourceScheduler 。ex">
+<meta name="twitter:image" content="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-10-162333.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2016/08/10/深入解析yarn架构设计与技术实现-资源调度器/"/>
+
+
+
+
+
+  <title>深入解析yarn架构设计与技术实现-资源调度器 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2016/08/10/深入解析yarn架构设计与技术实现-资源调度器/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入解析yarn架构设计与技术实现-资源调度器</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-10T16:21:27+08:00">
+                2016-08-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>深入解析yarn架构设计与技术实现-资源调度器</p>
+<h1 id="Yarn资源调度器的基本框架"><a href="#Yarn资源调度器的基本框架" class="headerlink" title="Yarn资源调度器的基本框架"></a>Yarn资源调度器的基本框架</h1><p>yarn的资源调度器是可以配置的，默认的是FIFO、CapacityScheduler和Fair Scheduler三种。</p>
+<p>这三个scheduler都继承一个AbstractYarnScheduler。这个抽象类extends AbstractService implements ResourceScheduler 。extends Abstractservice说明是一个服务，而实现了ResourceScheduler的函数是scheduler的主要功能。 ResourceScheduler本质是个eventHandler。他一共处理10种事件，分别是：</p>
+<ul>
+<li>NODE_ADDED: 集群中增加一个节点</li>
+<li>NODE_REMOVED: 集群中移除一个节点</li>
+<li>NODE_RESOURCE_UPDATE: 集群中有一个节点的资源增加了</li>
+<li>NODE_LABELS_UPDATE:更新node labels。node labels可以用于划分一个cluster的node，每个node可以有一个label，具体见文档<a href="https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/NodeLabel.html" target="_blank" rel="external">YARN Node Labels</a></li>
+<li>NODE_UPDATE:该时间是NodeManager通过心跳和ResourceManager通信时发送的，会汇报该node的资源使用情况，同时出发一次分配操作。</li>
+<li>APP_ADDED: 增加一个Application</li>
+<li>APP_REMOVED:移除一个application</li>
+<li>APP_ATTEMPT_ADDED:增加一个application Attempt</li>
+<li>APP_ATTEMPT_REMOVED:移除一个application attempt</li>
+<li>CONTAINER_EXPIRED:回收一个超时的container</li>
+</ul>
+<p>Yarn的资源现在主要以cpu和内存为主，对于cpu，支持将物理核划分为虚拟核，但是调度时必须是虚拟核的整倍数。</p>
+<p>YARN支持的调度语义：</p>
+<ul>
+<li>请求某个节点上的特定资源量</li>
+<li>请求某个特定机架上的特定资源量</li>
+<li>将某些节点加入（或移除）黑名单，不再为自己分配这些节点上的资源</li>
+<li>请求归还某些资源</li>
+</ul>
+<p>不支持的调度语义：</p>
+<ul>
+<li>请求任意节点上的特定资源量</li>
+<li>请求任意机架上的特定资源量</li>
+<li>请求一组或几组符合某种特质的资源</li>
+<li>超细粒度资源。比如CPU性能要求、绑定CPU等</li>
+<li>动态调整Container资源，允许根据需要动态调整Container资源量</li>
+</ul>
+<h2 id="资源调度模型"><a href="#资源调度模型" class="headerlink" title="资源调度模型"></a>资源调度模型</h2><p>yarn采用双层资源调度模型，第一层中ResourceManager中的资源调度器将资源分配给ApplicationMaster，第二层ApplicationMaster在自己内部再分配资源。资源分配是个异步的过程:</p>
+<ol>
+<li>NodeManager通过周期心跳汇报节点信息</li>
+<li>ResourceManager为NodeManager返回一个心跳应答，包括需要释放的container列表等信息</li>
+<li>ResourceManager收到的NodeManager信息触发一个Node_UPDATED事件，之后会按照一定策略将该节点上的资源分配到各个应用，并将分配结果放到一个内存数据结构中</li>
+<li>ApplicationMaster向resourceManager发送心跳，获得最新分配的container资源</li>
+<li>ApplicationMaster将收到的新container分配给内部任务</li>
+</ol>
+<h3 id="资源保证机制"><a href="#资源保证机制" class="headerlink" title="资源保证机制"></a>资源保证机制</h3><p>Yarn采用的是增量分配资源的机制，当应用程序申请资源暂时无法保证时，优先为应用程序预留节点上的资源，直到累计释放的空闲资源达到其要求。这样的分配虽然会导致浪费，但是不会使得一个application饿死</p>
+<h3 id="资源分配算法"><a href="#资源分配算法" class="headerlink" title="资源分配算法"></a>资源分配算法</h3><p>为了支持多维资源分配，Yarn使用的是DRF（Dominant Resouce Fairness，主资源公平调度算法）。他首先将多资源问题简化，将每个需求中占用资源总额比例最大的那个资源作为主资源，之后对所有需求只看主资源进行划分。</p>
+<p>划分的过程类似max-min算法，目标是最大化所有主资源中最小的，每次分配都是分配给目前dominant share中最小的需求者一份他需求的资源。具体可以参考这偏<a href="http://blog.csdn.net/pelick/article/details/19326865" target="_blank" rel="external">文章</a></p>
+<h2 id="资源抢占模型"><a href="#资源抢占模型" class="headerlink" title="资源抢占模型"></a>资源抢占模型</h2><p>yarn中每个队列可以设置一个最小资源量和最大资源量。其中最小资源是资源紧缺情况下每个队列需保证的资源量，而最大资源是极端情况下队列也不能超过的资源量。通常情况下，为了提高资源利用率，当队列不需要任何资源时，并不会满足其最小资源，而是将资源分配给其他队列，如资源调度器会将负载较轻的队列（比如A）的资源暂时分给负载重的队列B。而当负载较轻的队列A突然收到任务时，调度器会将分出去的资源还给该队列。</p>
+<p>由于在A收到任务时B可能正在使用从A借过来的资源，立即杀了这些container意味着浪费了这些container正在运行的计算，所以一般是这样的步骤：</p>
+<ol>
+<li>SchedulingEditPolicy探测到需要抢占的资源，通过DROP_RESERVATION和PREEMPT_CONTAINER发送给ResourceManager</li>
+<li>ResourceManager调用ResourceScheduler的dropContainerReservation和preemptContainer函数，标注带抢占的container。</li>
+<li>ResourceManager把需要抢占的container和资源总量通过心跳发送给ApplicationMaster。</li>
+<li>ApplicationMaster收到请求后，可能做这三种操作：<ol>
+<li>杀死这些container</li>
+<li>选择并杀死其他container以凑个需求的资源数量</li>
+<li>不做处理，等待container自行结束释放资源或者被ResourceManager杀死</li>
+</ol>
+</li>
+<li>SchedulingEditPolicy探测到一段时间内，ApplicationMaster未自行杀死约定container，则将这些container封装到KILL_CONTAINER事件中发送给ResourceManager。</li>
+<li>ResourceManager调用ResourceScheduler的killContainer函数杀死这些Container（通过和NodeManager的心跳真正实现杀死动作）</li>
+<li>ResourceManager收到来自ApplicationMaster的心跳，通过心跳将已经杀死的container列表发给他。</li>
+</ol>
+<p>其中有个问题就是要确定抢占发生时到底抢占哪些队列的资源。基本思想是在最开始时大家按照minResource的比例分配所有资源，如果队列A需要的资源比按比例分配给你的资源多，则把这部分分配给其他队列。而当A新进来一批应用导致资源需求变化时，重新计算每个队列的资源需求，确定从哪些队列抢占资源。这里我猜测如果队列A在新应用来时拥有资源大于minResource则不会抢占，否则大家抢来抢去kill来kill是对资源的浪费。</p>
+<p>另外可以注意到，抢占不是立即发生的，Yarn首先会选择优先级低的container，同时是RM发送给AM让其处理，而且强制回收也是有一定的时间间隔。这里主要是因为container已经在执行，直接kill掉无疑是浪费了他已经运行的部分。</p>
+<h2 id="Yarn的层级队列管理机制"><a href="#Yarn的层级队列管理机制" class="headerlink" title="Yarn的层级队列管理机制"></a>Yarn的层级队列管理机制</h2><p>yarn的队列是层级的，每个队列可以包含子队列，用户只能讲任务提交到叶子队列。管理员可以配置每个叶子队列对应的操作系统用户和用户组，也可以配置每个队列的管理员。管理员可以杀死队列中的任何应用程序，改变任何应用的优先级等。</p>
+<p>队列的命名用<code>.</code>来连接，比如<code>ROOT</code>，<code>ROOT.A</code>，<code>ROOT.A.A1</code>。</p>
+<h1 id="Capactiy-scheduler"><a href="#Capactiy-scheduler" class="headerlink" title="Capactiy scheduler"></a>Capactiy scheduler</h1><p>这里只是稍微简单讲一下Capacity scheduler，因为我们用的是fair schedule，下一章会详细讲那个。Capacity scheduler以队列为单位划分资源，每个队列可以设定一定比例的资源最低保证和使用上限；而当一个队列的资源有剩余时，可以将其剩余资源暂时共享给其他队列。</p>
+<p>Capacity scheduler的一个典型过程是这样的：</p>
+<ol>
+<li><p>应用程序初始化</p>
+<ol>
+<li>应用程序提交到ResourceManager上后，ResourceManager会向Capacity Scheduler发送SchedulerEventType.APP_ADD事件。</li>
+<li>Capacity Scheduler收到该事件后蒋伟引用程序创建一个FiCaSchedulerApp对象跟踪和维护该应用程序的运行时信息，同时将程序提交到对应的叶子队列</li>
+<li>叶子队列会对程序进行合法化检查，检查通过才算提交成功</li>
+</ol>
+</li>
+<li><p>资源调度:当ResourceManager收到nodemanager的心跳信息后，将向Capacity Scheduler发送NODE_UPDATE事件，CS收到这个事件后会干练件事情</p>
+<ol>
+<li><p>处理心跳信息：</p>
+<ol>
+<li>node上的新启动了container，cs会向rm发送RMContainerEventType.LUNCH事件将该container标记为已启动，使得RM不会将该container作为超时回收的目标</li>
+<li>对于运行完成的Container，资源调度器回收其资源</li>
+<li>Node本身的资源变化也会在此进行处理</li>
+</ol>
+</li>
+<li><p>资源分配：</p>
+<ol>
+<li>选择队列：从根节点开始按照子队列资源使用率从小到大依次遍历。直到找到一个满足需求的队列</li>
+<li>选定一个子队列后，CS按照提交时间对叶子节点的应用程序进行排序，依次遍历队列中的Application，选择合适的application</li>
+<li>选定应用后，CS先满足优先级高的container，再满足低的。对于同一优先级，先选择满足本地性的container（即数据在本地存储的）</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h1 id="Fair-Scheduler"><a href="#Fair-Scheduler" class="headerlink" title="Fair Scheduler"></a>Fair Scheduler</h1><p>Fair Schedule的配置文件分为两个部分，一部分在yarn-site.xml 里面，用于配置调度器级别的参数。另一个路径是可配置的，默认是fair-scheduler.xml，主要用于配置各个队列的资源量，权重等信息</p>
+<p>Fair Schedule 也是接受scheduler的各种事件，然后进行处理。同Capacity Scheduler一样，他也是依次选择队列，应用程序和container三个级别的资源分配策略。不同的地方书中给了表格，见下表。</p>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-10-162333.png" alt="2016-08-10-162333"></p>
+<p>下面从代码级别讲一下一个application是如何通过Fair Scheduler被调度到一个Node上去的。<br>第一部分是提交一个application和applicationattempt到Scheduler：</p>
+<ol>
+<li>RMApp从NEW_SAVING状态转移到SUBMITTED状态，会发送一个AppAddedSchedulerEvent到Scheduler</li>
+<li>FScheduler收到AppAddedSchedulerEvent，会将应用加入相应的队列（将RMApp assign给一个FSLeafQueue）并给RMApp返回一个 RMAppEventType.APP_ACCEPTED事件。这里如果失败的话则会发送RMAppRejectedEvent</li>
+<li>RMApp收到RMAppEventType.APP_ACCEPTED事件会转为accepted状态，同时调用createAndStartNewAttempt函数生成一个新的RMAPPAttempt，并且给这个RMAPPAttempt发送RMAppStartAttemptEvent事件</li>
+<li>新的RMAppAttemtp收到RMAppStartAttemptEvent后切换到submitted状态，并给Scheduler发送AppAttemptAddedSchedulerEvent</li>
+<li>Scheduler会将这个Attempt加入FSLeafQueue，同时返回一个RMAppAttemptEventType.ATTEMPT_ADDED事件</li>
+<li>RMAppAttempt收到RMAppAttemptEventType.ATTEMPT_ADDED事件，会从submited状态转化为scheduled状态</li>
+</ol>
+<p><img src="http://7xmhxl.com1.z0.glb.clouddn.com/blog/2016-08-10-162423.png" alt="2016-08-10-162423"></p>
+<p>第二部分是真正的将这个applicationAttempt调度到一个node上去。这个是通过一个Scheduler的Node_Update事件触发。这个事件会出发函数FairScheduler.nodeUpdate(RMNode nm)。该函数首先处理在node上new launched以及comleted的container。之后调用attemptScheduling函数尝试分配资源。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">attemptScheduling</span><span class="params">(FSSchedulerNode node)</span> </span>&#123;</div><div class="line">    <span class="comment">//do some prepare</span></div><div class="line"></div><div class="line">    <span class="comment">// Assign new containers...</span></div><div class="line">    <span class="comment">// 1. Check for reserved applications</span></div><div class="line">    <span class="comment">// 2. Schedule if there are no reservations</span></div><div class="line"></div><div class="line">    FSAppAttempt reservedAppSchedulable = node.getReservedAppSchedulable();</div><div class="line">    <span class="keyword">if</span> (reservedAppSchedulable != <span class="keyword">null</span>) &#123;</div><div class="line">      Priority reservedPriority = node.getReservedContainer().getReservedPriority();</div><div class="line">      FSQueue queue = reservedAppSchedulable.getQueue();</div><div class="line"></div><div class="line">      <span class="comment">//do some prepare</span></div><div class="line">     </div><div class="line">      node.getReservedAppSchedulable().assignReservedContainer(node);</div><div class="line">      </div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (reservedAppSchedulable == <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="comment">// No reservation, schedule at queue which is farthest below fair share</span></div><div class="line">      <span class="keyword">int</span> assignedContainers = <span class="number">0</span>;</div><div class="line">      <span class="keyword">while</span> (node.getReservedContainer() == <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">boolean</span> assignedContainer = <span class="keyword">false</span>;</div><div class="line">        <span class="keyword">if</span> (!queueMgr.getRootQueue().assignContainer(node).equals(</div><div class="line">            Resources.none())) &#123;</div><div class="line">          assignedContainers++;</div><div class="line">          assignedContainer = <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (!assignedContainer) &#123; <span class="keyword">break</span>; &#125;</div><div class="line">        <span class="keyword">if</span> (!assignMultiple) &#123; <span class="keyword">break</span>; &#125;</div><div class="line">        <span class="keyword">if</span> ((assignedContainers &gt;= maxAssign) &amp;&amp; (maxAssign &gt; <span class="number">0</span>)) &#123; <span class="keyword">break</span>; &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    updateRootQueueMetrics();</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这一段代码中需要注意两点，第一它是先分配reserved container，没有reserved applications再分配新的applicationAttempt。这是因为scheduler的资源分配方式是增量预留，前面讨论过这种方式如果一个container申请资源暂时无法保证时，优先为应用程序预留节点上的资源，直到累计释放的空闲资源达到其要求。所以有这样一个检查。看代码时忘了了这个东西，想了好久才明白这段是干嘛的</p>
+<p>第二点就是分配新资源是在23行的assignContainer(node)这个函数。从root队列逐渐往下分到leafQueue。最终调用FSAppAttempt.assignContainer()，分配时遵循如下原则：</p>
+<blockquote>
+<p>For each priority, see if we can schedule a node local, rack local or off-switch request. Rack of off-switch requests may be delayed (not scheduled) in order to promote better locality.</p>
+</blockquote>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ul>
+<li><a href="http://www.jianshu.com/p/7151ba6c5e03" target="_blank" rel="external">YARN资源调度器</a></li>
+<li><a href="http://blog.csdn.net/suifeng3051/article/details/49508261" target="_blank" rel="external">Yarn 调度器Scheduler详解</a></li>
+<li><a href="http://tech.uc.cn/?p=1438" target="_blank" rel="external">YARN ResourceManager调度器的分析</a></li>
+<li><a href="http://dongxicheng.org/mapreduce-nextgen/hadoop-jira-yarn-326-yarn-2/" target="_blank" rel="external">Hadoop 新特性、改进、优化和Bug分析系列4：YARN-326, YARN-2</a></li>
+</ul>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2016/08/10/深入解析yarn架构设计与技术实现-资源调度器/">http://thousandhu.github.io/2016/08/10/深入解析yarn架构设计与技术实现-资源调度器/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/yarn/" rel="tag"># yarn</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/08/08/spark-history-server/" rel="next" title="spark history server">
+                <i class="fa fa-chevron-left"></i> spark history server
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/22/深入解析yarn架构设计与技术实现-NodeManager1/" rel="prev" title="深入解析yarn架构设计与技术实现-NodeManager1">
+                深入解析yarn架构设计与技术实现-NodeManager1 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Yarn资源调度器的基本框架"><span class="nav-number">1.</span> <span class="nav-text">Yarn资源调度器的基本框架</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#资源调度模型"><span class="nav-number">1.1.</span> <span class="nav-text">资源调度模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#资源保证机制"><span class="nav-number">1.1.1.</span> <span class="nav-text">资源保证机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#资源分配算法"><span class="nav-number">1.1.2.</span> <span class="nav-text">资源分配算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#资源抢占模型"><span class="nav-number">1.2.</span> <span class="nav-text">资源抢占模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Yarn的层级队列管理机制"><span class="nav-number">1.3.</span> <span class="nav-text">Yarn的层级队列管理机制</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Capactiy-scheduler"><span class="nav-number">2.</span> <span class="nav-text">Capactiy scheduler</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Fair-Scheduler"><span class="nav-number">3.</span> <span class="nav-text">Fair Scheduler</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">4.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

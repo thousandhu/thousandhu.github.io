@@ -1,0 +1,740 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hexo," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="安装hexo首先需要安装nodejs, git然后安装hexo 12npm install -g hexo-clinpm install hexo --save 安装hexo会遇到npm链接不上的情况，这时可以修改node的repository。编辑~/.npmrc 1registry = https://registry.npm.taobao.org 可以选择安装hexo的插件 12345678">
+<meta name="keywords" content="hexo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mac下用github+hexo搭建个人博客">
+<meta property="og:url" content="http://thousandhu.github.io/2015/09/23/mac下用github-hexo搭建个人博客/index.html">
+<meta property="og:site_name" content="ThousandHu`s blog">
+<meta property="og:description" content="安装hexo首先需要安装nodejs, git然后安装hexo 12npm install -g hexo-clinpm install hexo --save 安装hexo会遇到npm链接不上的情况，这时可以修改node的repository。编辑~/.npmrc 1registry = https://registry.npm.taobao.org 可以选择安装hexo的插件 12345678">
+<meta property="og:updated_time" content="2017-05-30T15:22:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mac下用github+hexo搭建个人博客">
+<meta name="twitter:description" content="安装hexo首先需要安装nodejs, git然后安装hexo 12npm install -g hexo-clinpm install hexo --save 安装hexo会遇到npm链接不上的情况，这时可以修改node的repository。编辑~/.npmrc 1registry = https://registry.npm.taobao.org 可以选择安装hexo的插件 12345678">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://thousandhu.github.io/2015/09/23/mac下用github-hexo搭建个人博客/"/>
+
+
+
+
+
+  <title>mac下用github+hexo搭建个人博客 | ThousandHu`s blog</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ThousandHu`s blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">千里之行 始于足下</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://thousandhu.github.io/2015/09/23/mac下用github-hexo搭建个人博客/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ThousandHu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ThousandHu`s blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">mac下用github+hexo搭建个人博客</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-09-23T18:44:47+08:00">
+                2015-09-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h2><p>首先需要安装nodejs, git<br>然后安装hexo</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">npm install -g hexo-cli</div><div class="line">npm install hexo --save</div></pre></td></tr></table></figure>
+<p>安装hexo会遇到npm链接不上的情况，这时可以修改node的repository。编辑~/.npmrc</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">registry = https://registry.npm.taobao.org</div></pre></td></tr></table></figure>
+<p>可以选择安装hexo的插件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">npm install hexo-generator-index --save</div><div class="line">npm install hexo-generator-archive --save</div><div class="line">npm install hexo-generator-category --save</div><div class="line">npm install hexo-generator-tag --save</div><div class="line">npm install hexo-server --save</div><div class="line">npm install hexo-deployer-git --save</div><div class="line">npm install hexo-deployer-heroku --save</div><div class="line">npm install hexo-deployer-rsync --save</div><div class="line">npm install hexo-deployer-openshift --save</div><div class="line">npm install hexo-renderer-marked --save</div><div class="line">npm install hexo-renderer-stylus --save</div><div class="line">npm install hexo-deployer-git --save</div><div class="line">#npm install hexo-generator-feed@1 --save</div><div class="line">#npm install hexo-generator-sitemap@1 --save</div></pre></td></tr></table></figure>
+<p>之后需要在hexo文件夹下<code>git init</code>一下</p>
+<h2 id="hexo-文件夹init"><a href="#hexo-文件夹init" class="headerlink" title="hexo 文件夹init"></a>hexo 文件夹init</h2><p>新建一个文件夹hexo并进入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">hexo init</div><div class="line">npm install</div></pre></td></tr></table></figure>
+<p>该文件夹下会产生如下目录</p>
+<ul>
+<li>_config_yml // 配置文件</li>
+<li>db.json // 数据</li>
+<li>debug.log // 日志</li>
+<li>_node_mudules // nodejs 相关依赖</li>
+<li>package.json // 配置依赖</li>
+<li>scaffolds // 工具模板</li>
+<li>source // blog正文</li>
+<li>themes // 皮肤</li>
+</ul>
+<h2 id="创建github-page"><a href="#创建github-page" class="headerlink" title="创建github page"></a>创建github page</h2><p>登陆自己的github并创建New repository，注意name必须和用户名一致，如<a href="http://thousandhu.github.io">thousandhu.github.io</a>，等待一段时间后github page会自动创建成功</p>
+<h2 id="将hexo部署到github"><a href="#将hexo部署到github" class="headerlink" title="将hexo部署到github "></a>将hexo部署到github </h2><p>首先修改hexo/~config.yml，修改Deployment为如下几行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"># Deployment</div><div class="line">## Docs: http://hexo.io/docs/deployment.html</div><div class="line">deploy:</div><div class="line">  type: git</div><div class="line">  repository: https://github.com/thousandhu/thousandhu.github.io.git</div><div class="line">  branch: master</div></pre></td></tr></table></figure>
+<p>之后运行如下两个命令即可将hexo push到github上去</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">hexo g</div><div class="line">hexo deploy//可简写为 hexo d</div></pre></td></tr></table></figure>
+<p>之后就可以在你的github.io看到hello world了~.</p>
+<h2 id="第一篇blog"><a href="#第一篇blog" class="headerlink" title="第一篇blog"></a>第一篇blog</h2><p>运行<code>hexo new hello</code>会在/hexo/source/_posts/下生成hello.md，之后修改hello.md即可。支持markdown语法~</p>
+<h2 id="更换主题"><a href="#更换主题" class="headerlink" title="更换主题"></a>更换主题</h2><p>我用的是<del><a href="https://github.com/litten/hexo-theme-yilia" target="_blank" rel="external">yilia</a></del><a href="https://github.com/iissnan/hexo-theme-next" target="_blank" rel="external">next</a><br>将主题文件下载到theme中。<br>修改<code>_config.yml</code> : <code>theme: yilia</code><br>修改其他配置，主要是使用了<a href="duoshuo.com">多说</a>作为评论插件，创建一个多说工程，将工程名填入主题的<code>_config.yml</code>即可</p>
+<h2 id="图床"><a href="#图床" class="headerlink" title="图床"></a>图床</h2><p>图床使用了七牛，参考了<a href="http://yansu.org/2015/01/10/use-dropzone-and-qiniu-to-store-blog-images.html" target="_blank" rel="external">这篇文章</a>配置dropzone，期间会遇到rubygem被墙的问题，执行下列命令换源即可</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">gem sources --remove https://rubygems.org/</div><div class="line">gem sources -a https://ruby.taobao.org/</div><div class="line">gem sources -l</div></pre></td></tr></table></figure>
+<p>另外如果大家用<a href="https://portal.qiniu.com/signup?code=3lfa6fytmib0y" target="_blank" rel="external">我的link</a>注册七牛的话可以给我增加流量，万分感谢</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="http://yebujimo.com/2015/03/15/Mac%E4%B8%8B%E6%90%AD%E5%BB%BAHexo%E5%8D%9A%E5%AE%A2%E6%95%99%E7%A8%8B/" target="_blank" rel="external">Mac下搭建Hexo博客教程</a><br><a href="http://wsgzao.github.io/post/hexo-guide/#" target="_blank" rel="external">使用GitHub和Hexo搭建免费静态Blog</a><br><a href="http://yansu.org/2015/01/10/use-dropzone-and-qiniu-to-store-blog-images.html" target="_blank" rel="external">使用Dropzone和七牛云存储来优化博客图床</a></p>
+<hr>
+<p>本文采用<a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="external">创作共用保留署名-非商业-禁止演绎4.0国际许可证</a>，欢迎转载，但转载请注明来自<a href="http://thousandhu.github.io">http://thousandhu.github.io</a>，并保持转载后文章内容的完整。本人保留所有版权相关权利。</p>
+<p>本文链接：<a href="http://thousandhu.github.io/2015/09/23/mac下用github-hexo搭建个人博客/">http://thousandhu.github.io/2015/09/23/mac下用github-hexo搭建个人博客/</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hexo/" rel="tag"># hexo</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/09/23/hello/" rel="next" title="hello world">
+                <i class="fa fa-chevron-left"></i> hello world
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/09/24/hexo添加rss和站内搜索/" rel="prev" title="hexo添加rss和站内搜索">
+                hexo添加rss和站内搜索 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://7xmhxl.com1.z0.glb.clouddn.com/%E5%A4%B4%E5%83%8F.jpeg"
+               alt="ThousandHu" />
+          <p class="site-author-name" itemprop="name">ThousandHu</p>
+           
+              <p class="site-description motion-element" itemprop="description">千里之行 始于足下</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">92</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/thousandhu/" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/thousandhu" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="" target="_blank" title="微信公众号：thousandhu学架构">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  微信公众号：thousandhu学架构
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装hexo"><span class="nav-number">1.</span> <span class="nav-text">安装hexo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hexo-文件夹init"><span class="nav-number">2.</span> <span class="nav-text">hexo 文件夹init</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建github-page"><span class="nav-number">3.</span> <span class="nav-text">创建github page</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#将hexo部署到github"><span class="nav-number">4.</span> <span class="nav-text">将hexo部署到github </span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一篇blog"><span class="nav-number">5.</span> <span class="nav-text">第一篇blog</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更换主题"><span class="nav-number">6.</span> <span class="nav-text">更换主题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#图床"><span class="nav-number">7.</span> <span class="nav-text">图床</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考链接"><span class="nav-number">8.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ThousandHu</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
